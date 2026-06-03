@@ -12,6 +12,7 @@ import {
   Line,
 } from "@once-ui-system/core";
 import { home, about, person, baseURL, routes } from "@/resources";
+import { getPosts } from "@/utils/utils";
 import { Mailchimp } from "@/components";
 import { Projects } from "@/components/work/Projects";
 import { Posts } from "@/components/blog/Posts";
@@ -27,6 +28,7 @@ export async function generateMetadata() {
 }
 
 export default function Home() {
+  const hasBlogPosts = getPosts(["src", "app", "blog", "posts"]).length > 0;
   return (
     <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
       <Schema
@@ -95,7 +97,7 @@ export default function Home() {
                       size="m"
                     />
                   )}
-                  {about.title}
+                  About me
                 </Row>
               </Button>
             </div>
@@ -105,7 +107,7 @@ export default function Home() {
       <RevealFx translateY="16" delay={0.6}>
         <Projects range={[1, 1]} />
       </RevealFx>
-      {routes["/blog"] && (
+      {routes["/blog"] && hasBlogPosts && (
         <Column fillWidth gap="24" marginBottom="l">
           <Row fillWidth paddingRight="64">
             <Line maxWidth={48} />
