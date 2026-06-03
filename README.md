@@ -1,6 +1,20 @@
 # flabs.tech
 
-Personal portfolio and blog — Fabio Ritzel Borges.
+**Fábio Ritzel Borges** — Senior full-stack engineer · GraphQL · React · Next.js · GenAI / RAG
+
+Based in Joinville, Brazil. I build production-ready web platforms, federated APIs, and GenAI/RAG tools with an emphasis on clean architecture, performance, and accessibility.
+
+Personal brand, thought leadership, and hobby projects — live at [flabs.tech](https://flabs.tech).
+
+---
+
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router) + [Once UI](https://once-ui.com) design system
+- TypeScript · MDX for blog & projects
+- Deployed on [Vercel](https://vercel.com)
+
+---
 
 ## Local development
 
@@ -11,22 +25,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Content
+---
 
-- **Personal info & social links:** `src/resources/content.tsx`
-- **Theme & metadata:** `src/resources/once-ui.config.ts`
-- **Blog posts:** `src/app/blog/posts/*.mdx`
-- **Work projects:** `src/app/work/projects/*.mdx`
+## Content files
 
-## Stack
+| File | Purpose |
+|------|---------|
+| `src/resources/content.tsx` | Personal info, bio, social links, skills |
+| `src/resources/once-ui.config.ts` | Theme, colors, baseURL, SEO schema |
+| `src/app/blog/posts/*.mdx` | Blog posts |
+| `src/app/work/projects/*.mdx` | Work projects |
 
-- [Next.js](https://nextjs.org) 16 (App Router)
-- [Once UI](https://once-ui.com) design system
-- [TypeScript](https://www.typescriptlang.org)
-- Deployed on [Vercel](https://vercel.com)
+---
 
-## License
+## Contact
 
-Template distributed under [CC BY-NC 4.0](LICENSE).
-
-## Credits to @once-ui-system for providing the template I found on Vercel
+LinkedIn: [linkedin.com/in/fabiorborges](https://www.linkedin.com/in/fabiorborges)
