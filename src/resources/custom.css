@@ -1,3 +1,10 @@
+/* Obsidian dark background — applied only in dark mode */
+[data-theme="dark"] {
+  --page-background: #07091a;
+  --neutral-background-medium: #0d1024;
+  --neutral-background-weak: #111428;
+}
+
 /* :root {
   /*
   /* Override default variables here */
