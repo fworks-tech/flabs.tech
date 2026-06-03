@@ -1,0 +1,35 @@
+---
+title: "flabs.tech — Personal Portfolio"
+publishedAt: "2026-06-03"
+summary: "This site — a personalized portfolio built on Next.js 16 and Once UI, featuring dynamic OG images, MDX content, dark mode, and a custom indigo + obsidian design system."
+images: []
+tag: "Frontend"
+team: []
+link: "https://github.com/fworks-tech/flabs.tech"
+---
+
+## Overview
+
+flabs.tech is my personal corner of the internet. It's built on the Once UI design system with Next.js 16 App Router, SASS, and MDX for content — all statically generated and deployed to Vercel.
+
+**Stack:** Next.js 16 · TypeScript · Once UI · SASS · MDX · Vercel
+
+## Design
+
+The visual identity uses **indigo + obsidian** — a sci-fi minimal aesthetic carried over from lessons learned building the previous fritzelborges portfolio. Key details:
+
+- Brand color: Indigo-400 (`#818cf8`) — used for interactive elements and glow effects
+- Background: Obsidian dark (`#07091a`) — deep, near-black with a subtle gradient
+- Typography: Geist (heading, body, label) + Geist Mono (code)
+- Neon CSS animations on the home page headline and CTA button
+
+## Technical Highlights
+
+- **Dynamic OG images** — Generated server-side via `next/og` at `/api/og/generate?title=...`, no pre-rendering needed
+- **MDX content** — Blog posts and work projects are `.mdx` files parsed with `gray-matter` and rendered via `next-mdx-remote`
+- **Performance** — Static generation, image optimization, SASS modern compiler
+- **Quality gates** — Biome for formatting/linting, lint-staged on pre-commit
+
+## Process
+
+Built incrementally across 5 milestones (Core Identity → Work → Blog → Performance → Deploy), each tracked as GitHub issues and merged via feature branches with conventional commits. Agenthood members enforce standards on every commit.

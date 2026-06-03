@@ -1,0 +1,39 @@
+---
+title: "Agenthood — AI Agent Society"
+publishedAt: "2026-06-01"
+summary: "A structured multi-agent framework built on Claude AI: specialized agents (Architect, Scribe, Reviewer, Tester, Auditor) that enforce engineering standards on every commit."
+images: []
+tag: "AI"
+team: []
+link: "https://github.com/fworks-tech/agenthood"
+---
+
+## Overview
+
+Agenthood is a personal multi-agent framework that enforces engineering standards as a set of specialized Claude AI agents — "Society members" — each with a defined role, trigger condition, and behavior. Instead of relying on memory or convention, the Society bakes quality gates into the development workflow itself.
+
+**Stack:** Claude AI (Sonnet 4.6) · Claude Code SDK · Markdown · GitHub Actions
+
+## The Society
+
+Each member is a skill that activates at a specific moment:
+
+| Member | Trigger | Role |
+|--------|---------|------|
+| **The Architect** | Before any non-trivial implementation | Spec first, tasks second |
+| **The Scribe** | Before every commit or PR | Conventional commits, PR descriptions |
+| **The Reviewer** | Before merging any change | Five-axis code review |
+| **The Tester** | When writing new behavior | Test-first discipline |
+| **The Auditor** | Before security-sensitive merges | OWASP Top 10, secrets, deps |
+| **The Doorman** | On every commit message | Validates format, rejects `fix stuff` |
+| **The Herald** | Before any release | Semver determination, changelog |
+| **The Librarian** | After code changes affect docs | Keeps documentation in sync |
+| **The Debugger** | On any error | Five-step protocol, no guessing |
+
+## Why It Exists
+
+Solo engineering tends to drift — skipped reviews, inconsistent commits, documentation rot. Agenthood is the answer to "how do I maintain team-quality standards when it's just me?" by encoding those standards as executable agents rather than guidelines that get ignored under deadline pressure.
+
+## Design Principles
+
+Skills are stored as Markdown files with a structured header — trigger, behavior, output format. They compose: The Architect generates specs that The Scribe turns into commits that The Doorman validates. The entire Society runs inside Claude Code, requiring no external infrastructure.
