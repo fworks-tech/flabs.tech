@@ -2,8 +2,6 @@
 
 Personal portfolio and blog — Fabio Ritzel Borges.
 
-Built with [Magic Portfolio](https://github.com/once-ui-system/magic-portfolio) (Next.js + Once UI).
-
 ## Local development
 
 ```bash
@@ -29,4 +27,6 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## License
 
-Template distributed under [CC BY-NC 4.0](LICENSE). Attribution to Once UI is required.
+Template distributed under [CC BY-NC 4.0](LICENSE).
+
+## Credits to @once-ui-system for providing the template I found on Vercel
