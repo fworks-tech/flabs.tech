@@ -1,0 +1,33 @@
+---
+title: "Driveline — ELD & Route Planner"
+publishedAt: "2026-05-01"
+summary: "Production-ready FMCSA-compliant trucking platform: trip planning, Hours of Service enforcement, digital ELD logbooks, and interactive route maps."
+images: []
+tag: "Full-Stack"
+team: []
+link: "https://github.com/fworks-tech/driveline-app"
+---
+
+## Overview
+
+Driveline is a full-stack trucking compliance platform built for FMCSA Hours of Service (HOS) regulations. Drivers plan multi-stop routes, and the system enforces all five HOS rules automatically — 11-hour driving limit, 14-hour window, 30-minute break, 70-hour weekly cycle — generating digital ELD logbook sheets ready for roadside inspection.
+
+**Stack:** React 19 · TypeScript · Material UI v6 · Django 4.2 · Django REST Framework · PostgreSQL · Nominatim · OSRM
+
+## What It Does
+
+- **Trip Planning** — Multi-stop route planning with real geocoded addresses
+- **HOS Compliance Engine** — Enforces all 5 FMCSA rules with clear violation reporting
+- **ELD Logbooks** — Generates FMCSA-style duty status timeline sheets
+- **Interactive Maps** — Route visualization with waypoints, fuel stops, and rest breaks via react-leaflet
+- **Route Analytics** — Distance, duration, fuel cost, and HOS impact summary
+
+## Technical Highlights
+
+The backend exposes a Django REST Framework API with a custom HOS rules engine that processes trip segments sequentially, accumulates duty hours, and injects mandatory rest breaks. Geocoding uses Nominatim and routing uses OSRM — both self-hostable, no API key required.
+
+The frontend is a strict TypeScript React 19 app with 85%+ test coverage (50+ tests). Dark mode is supported via Material UI theming with system preference detection.
+
+## Status
+
+v1.7.0 — production-ready, fully tested, MIT licensed.
