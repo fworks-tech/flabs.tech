@@ -104,28 +104,12 @@
   }
 }
 
-@keyframes bounce-slow {
-  0%, 100% {
-    transform: translateY(-18%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-  }
-  50% {
-    transform: none;
-    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-  }
-}
-
-.neon-headline {
-  animation: neon-pulse-indigo 3s ease-in-out infinite;
-}
-
 .neon-cta-wrap {
-  animation: bounce-slow 1.4s infinite;
   border-radius: 1rem;
   box-shadow:
     0 0 6px #818cf8,
     0 0 14px #6366f1;
-  transition: box-shadow 0.15s;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .neon-cta-wrap:hover {
@@ -133,6 +117,5 @@
     0 0 10px #a5b4fc,
     0 0 24px #818cf8,
     0 0 40px #6366f1;
-  transform: scale(1.05);
-  animation-play-state: paused;
+  transform: scale(1.04);
 }

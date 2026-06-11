@@ -1,5 +1,6 @@
 export { AnimatedHeadline } from "@/components/AnimatedHeadline";
 export { Header } from "@/components/Header";
+export { ProjectGrid } from "@/components/work/ProjectGrid";
 export { Footer } from "@/components/Footer";
 export { Mailchimp } from "@/components/Mailchimp";
 export { ProjectCard } from "@/components/ProjectCard";

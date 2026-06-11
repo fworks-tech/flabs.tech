@@ -1,0 +1,104 @@
+@use "../breakpoints.scss" as bp;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+
+  @include bp.m {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include bp.s {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-decoration: none;
+
+  &:hover .tileImage {
+    transform: scale(1.02);
+  }
+}
+
+.tileImage {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+
+  /* Default — indigo (Frontend) */
+  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 55%, #4f46e5 100%);
+
+  &[data-tag="ai"] {
+    background: linear-gradient(135deg, #2e1065 0%, #6d28d9 55%, #8b5cf6 100%);
+  }
+
+  &[data-tag="full-stack"] {
+    background: linear-gradient(135deg, #022c22 0%, #065f46 55%, #059669 100%);
+  }
+
+  &[data-tag="frontend"] {
+    background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 55%, #4f46e5 100%);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0);
+    transition: background 0.2s ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileLabel {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 1.25rem;
+  font-family: var(--font-heading);
+  line-height: 1.3;
+}
+
+.tileMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tileHeading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+  font-family: var(--font-heading);
+  line-height: 1.3;
+}
+
+.tileTag {
+  font-size: 0.75rem;
+  color: var(--neutral-on-background-weak);
+  font-family: var(--font-label);
+}

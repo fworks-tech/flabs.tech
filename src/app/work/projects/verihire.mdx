@@ -1,0 +1,32 @@
+---
+title: "VeriHire — GenAI Recruiter Tool"
+publishedAt: "2026-04-01"
+summary: "GenAI + RAG recruitment assistant that cross-checks candidate documents against job descriptions using Chroma vector search and Claude AI — built to cut screening time dramatically."
+images: []
+tag: "AI"
+team: []
+link: "https://github.com/fworks-tech/verihire"
+---
+
+## Overview
+
+VeriHire is an assistive GenAI tool for technical recruiters. Upload a job description and a candidate's resume or portfolio — it uses Retrieval-Augmented Generation (RAG) with Chroma vector search and Claude AI to cross-check alignment, surface gaps, and score fit across multiple criteria.
+
+**Stack:** Python · Streamlit · Claude AI · Chroma · LangChain · RAG
+
+## What It Does
+
+- **Document Ingestion** — Accepts PDF resumes, LinkedIn exports, portfolio links, and plain-text JDs
+- **Semantic Cross-Checking** — Embeds both documents and runs similarity queries across technical skills, experience depth, and culture signals
+- **AI-Powered Analysis** — Claude AI synthesizes vector search results into a structured fit report with pass/flag/fail per criterion
+- **Streamlit UI** — Clean recruiter-facing interface for uploading docs, reviewing results, and exporting summaries
+
+## Technical Highlights
+
+The RAG pipeline is intentionally simple: chunk documents, embed via a sentence transformer, store in Chroma, then query with the JD as the prompt context. Claude AI does the reasoning over retrieved chunks — it doesn't see the full documents, only the most relevant passages. This keeps token usage low and latency fast even for long resumes.
+
+Designed as a lightweight demo that any recruiter can run locally with `streamlit run app.py`.
+
+## Status
+
+Open-source demo. Actively maintained.

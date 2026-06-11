@@ -1,11 +1,10 @@
 import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
-import { Text } from "@once-ui-system/core";
 
 const person: Person = {
   firstName: "Fabio",
   lastName: "Ritzel Borges",
   name: "Fabio Ritzel Borges",
-  role: "Software Engineer",
+  role: "Senior Full-Stack Engineer & AI Systems Architect",
   avatar: "/images/avatar.png",
   email: "fritzelborges@gmail.com",
   location: "America/Sao_Paulo",
@@ -44,30 +43,23 @@ const home: Home = {
   image: "/images/og/home.jpg",
   label: "Home",
   title: `${person.name}'s Portfolio`,
-  description: `This is my place in the internet to showcase my projects, thoughts, few updates about this fast growing tech world we live in, and share a bit about myself.`,
-  headline: "Welcome to FLABS",
+  description: `Senior Full-Stack Engineer & AI Systems Architect. I build production GraphQL APIs, federated backends, and autonomous AI agent frameworks.`,
+  headline: "Hey there, I'm Fabio Borges",
   featured: {
     display: false,
     title: <></>,
     href: "/work",
   },
-  subline: (
-    <>
-      Senior full-stack engineer based in Joinville, Brazil.{" "}
-      <Text as="span" size="xl" weight="strong">GraphQL · React · Next.js · GenAI</Text>
-      <br />
-      I build production-ready platforms and tinker with AI agents after hours.
-    </>
-  ),
+  subline: "I design and build production-ready GraphQL APIs, federated backends, and autonomous AI agent frameworks.",
 };
 
 const about: About = {
   path: "/about",
   label: "About",
   title: `About – ${person.name}`,
-  description: `Meet ${person.name}, ${person.role} from ${person.location}`,
+  description: `Senior Full-Stack Engineer & AI Systems Architect from Joinville, Brazil.`,
   tableOfContent: {
-    display: true,
+    display: false,
     subItems: false,
   },
   avatar: {
@@ -82,10 +74,16 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        Senior full-stack engineer based in Joinville, Brazil. I build production-ready web
-        platforms, federated GraphQL APIs, and GenAI/RAG tools with an emphasis on clean
-        architecture, performance, and accessibility. After hours I tinker with AI agents and
-        hobby projects.
+        Senior Full-Stack Engineer & AI Systems Architect based in Joinville, Brazil.
+        I design and build production-ready GraphQL APIs, federated backend services,
+        and autonomous AI agent frameworks — with an emphasis on scalable architecture,
+        clean TypeScript code, and operational reliability.
+        <br />
+        <br />
+        Currently at BairesDev, engineering automated AI checkout systems with GraphQL
+        Federation for major US telecom partners, processing 1,000+ daily transactions.
+        After hours I build{" "}Agenthood — an open-source society of 14 specialized AI
+        agents that enforce engineering standards on every commit.
       </>
     ),
   },
@@ -114,8 +112,8 @@ const about: About = {
         images: [],
       },
       {
-        title: "Backend & Data",
-        description: <>Node.js · GraphQL · Python · Django · PostgreSQL · MongoDB</>,
+        title: "Backend & APIs",
+        description: <>GraphQL · Apollo Federation · Node.js · Django · PostgreSQL · MongoDB · AWS</>,
         tags: [
           { name: "GraphQL", icon: "graphql" },
           { name: "Python", icon: "python" },
@@ -124,7 +122,7 @@ const about: About = {
       },
       {
         title: "AI & Agents",
-        description: <>Claude AI · RAG · Chroma · multi-agent frameworks</>,
+        description: <>Agenthood · Claude AI · RAG · LanceDB · Chroma · Multi-agent orchestration · ReAct loops</>,
         tags: [],
         images: [],
       },
@@ -134,16 +132,16 @@ const about: About = {
 
 const blog: Blog = {
   path: "/blog",
-  label: "Blog",
-  title: "Writing about engineering, AI, and building things",
-  description: `Thoughts and experiments from ${person.name}`,
+  label: "Posts",
+  title: "Posts",
+  description: `Thoughts on engineering, GraphQL, and agentic AI from ${person.name}`,
 };
 
 const work: Work = {
   path: "/work",
   label: "Work",
-  title: `Projects – ${person.name}`,
-  description: `Engineering and AI projects by ${person.name}`,
+  title: "Work",
+  description: `Production systems, AI experiments, and open-source tools by ${person.name}`,
 };
 
 const gallery: Gallery = {

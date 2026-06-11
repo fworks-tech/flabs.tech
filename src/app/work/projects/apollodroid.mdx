@@ -1,0 +1,33 @@
+---
+title: "ApolloDroid — AI Voice Assistant for Android"
+publishedAt: "2026-05-20"
+summary: "100% Python voice assistant for Android — wake-word activated, Claude AI-powered, always running in the background. Say 'Hey Apollo' and get an intelligent response out loud."
+images: []
+tag: "AI"
+team: []
+link: "https://github.com/fworks-tech/ApolloDroid"
+---
+
+## Overview
+
+ApolloDroid is a fully Python-native voice assistant for Android. It runs persistently as a background service, listens for the wake word "Hey Apollo" offline, processes your command with Claude AI, and speaks the response aloud — no Android Studio, no Java, no Kotlin required.
+
+**Stack:** Python · Kivy · Briefcase · Claude AI · Android APK
+
+## What It Does
+
+- **Always-On Background Service** — Runs persistently even with the screen off, with offline wake-word detection optimized for low battery
+- **Native Android APK** — Built entirely with Python (Kivy + Briefcase) and packaged as a real `.apk` without requiring Android Studio
+- **AI-Powered NLP** — Natural language understanding via the Claude API for intelligent, contextual conversation
+- **Built-in Skills** — Native support for alarms, timers, weather, and web searches
+- **Live Presence Window** — Chat UI displaying Apollo's current state in real time
+
+## Technical Highlights
+
+The most interesting engineering challenge was packaging a Python app as a proper Android APK without the Java/Kotlin toolchain. Briefcase handles cross-compilation and APK packaging entirely from Python, while Kivy provides the UI layer. The wake word runs fully offline (no API call needed to detect "Hey Apollo") — only Claude AI requests go over the network.
+
+This project proved that Python can be a first-class citizen on Android for production-quality applications.
+
+## Status
+
+Active development. Available as open-source on GitHub.
