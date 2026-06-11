@@ -21,7 +21,7 @@ const routes: RoutesConfig = {
   "/about": true,
   "/work": true,
   "/blog": true,
-  "/gallery": true,
+  "/gallery": false,
 };
 
 const display: DisplayConfig = {
@@ -105,7 +105,7 @@ const effects: EffectsConfig = {
     radius: 100,
   },
   gradient: {
-    display: true,
+    display: false,
     opacity: 30,
     x: 50,
     y: 0,
@@ -116,7 +116,7 @@ const effects: EffectsConfig = {
     colorEnd: "page-background",
   },
   dots: {
-    display: true,
+    display: false,
     opacity: 24,
     size: "2",
     color: "brand-on-background-weak",

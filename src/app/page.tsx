@@ -2,20 +2,15 @@ import {
   Heading,
   Text,
   Button,
-  Avatar,
-  RevealFx,
   Column,
-  Badge,
   Row,
   Schema,
   Meta,
-  Line,
+  SmartLink,
 } from "@once-ui-system/core";
 import { home, about, person, baseURL, routes } from "@/resources";
 import { getPosts } from "@/utils/utils";
-import { Mailchimp } from "@/components";
-import { AnimatedHeadline } from "@/components/AnimatedHeadline";
-import { Projects } from "@/components/work/Projects";
+import { ProjectGrid } from "@/components/work/ProjectGrid";
 import { Posts } from "@/components/blog/Posts";
 
 export async function generateMetadata() {
@@ -30,8 +25,9 @@ export async function generateMetadata() {
 
 export default function Home() {
   const hasBlogPosts = getPosts(["src", "app", "blog", "posts"]).length > 0;
+
   return (
-    <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
+    <Column maxWidth="m" gap="xl" paddingY="12">
       <Schema
         as="webPage"
         baseURL={baseURL}
@@ -45,95 +41,68 @@ export default function Home() {
           image: `${baseURL}${person.avatar}`,
         }}
       />
-      <Column fillWidth horizontal="center" gap="m">
-        <Column maxWidth="s" horizontal="center" align="center">
-          {home.featured.display && (
-            <RevealFx
-              fillWidth
-              horizontal="center"
-              paddingTop="16"
-              paddingBottom="32"
-              paddingLeft="12"
-            >
-              <Badge
-                background="brand-alpha-weak"
-                paddingX="12"
-                paddingY="4"
-                onBackground="neutral-strong"
-                textVariant="label-default-s"
-                arrow={false}
-                href={home.featured.href}
-              >
-                <Row paddingY="2">{home.featured.title}</Row>
-              </Badge>
-            </RevealFx>
-          )}
-          <RevealFx translateY="4" fillWidth horizontal="center" paddingBottom="16">
-            <Heading wrap="balance" variant="display-strong-l">
-              {typeof home.headline === "string" ? (
-                <AnimatedHeadline text={home.headline} />
-              ) : (
-                home.headline
-              )}
-            </Heading>
-          </RevealFx>
-          <RevealFx translateY="8" delay={0.2} fillWidth horizontal="center" paddingBottom="32">
-            <Text wrap="balance" onBackground="neutral-weak" variant="heading-default-xl">
-              {home.subline}
-            </Text>
-          </RevealFx>
-          <RevealFx paddingTop="12" delay={0.4} horizontal="center" paddingLeft="12">
-            <div className="neon-cta-wrap">
-              <Button
-                id="about"
-                data-border="rounded"
-                href={about.path}
-                variant="secondary"
-                size="m"
-                weight="default"
-                arrowIcon
-              >
-                <Row gap="8" vertical="center" paddingRight="4">
-                  {about.avatar.display && (
-                    <Avatar
-                      marginRight="8"
-                      style={{ marginLeft: "-0.75rem" }}
-                      src={person.avatar}
-                      size="m"
-                    />
-                  )}
-                  About me
-                </Row>
-              </Button>
-            </div>
-          </RevealFx>
+
+      {/* Hero: split layout — text left, avatar right */}
+      <Row
+        fillWidth
+        gap="xl"
+        vertical="center"
+        paddingY="64"
+        s={{ direction: "column", gap: "l" }}
+      >
+        <Column flex={5} gap="l">
+          <Text variant="label-default-m" onBackground="neutral-weak">
+            Senior Full-Stack Engineer · Joinville, Brazil
+          </Text>
+          <Heading variant="display-strong-xl">
+            {home.headline}
+          </Heading>
+          <Text variant="body-default-l" onBackground="neutral-weak">
+            {home.subline}
+          </Text>
+          <Row gap="12" wrap>
+            <Button href="/work" variant="primary" size="m" arrowIcon>
+              View Work
+            </Button>
+            <Button href={about.path} variant="secondary" size="m">
+              About Me
+            </Button>
+          </Row>
         </Column>
+
+      </Row>
+
+      {/* Recent Work */}
+      <Column fillWidth gap="m">
+        <Row fillWidth horizontal="between" vertical="center" paddingBottom="4">
+          <Heading as="h2" variant="heading-strong-xl">
+            Recent Work
+          </Heading>
+          <SmartLink href="/work" suffixIcon="arrowRight">
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              View all
+            </Text>
+          </SmartLink>
+        </Row>
+        <ProjectGrid range={[1, 3]} />
       </Column>
-      <RevealFx translateY="16" delay={0.6}>
-        <Projects range={[1, 1]} />
-      </RevealFx>
+
+      {/* Recent Posts */}
       {routes["/blog"] && hasBlogPosts && (
-        <Column fillWidth gap="24" marginBottom="l">
-          <Row fillWidth paddingRight="64">
-            <Line maxWidth={48} />
+        <Column fillWidth gap="m">
+          <Row fillWidth horizontal="between" vertical="center" paddingBottom="4">
+            <Heading as="h2" variant="heading-strong-xl">
+              Recent Posts
+            </Heading>
+            <SmartLink href="/blog" suffixIcon="arrowRight">
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                View all
+              </Text>
+            </SmartLink>
           </Row>
-          <Row fillWidth gap="24" marginTop="40" s={{ direction: "column" }}>
-            <Row flex={1} paddingLeft="l" paddingTop="24">
-              <Heading as="h2" variant="display-strong-xs" wrap="balance">
-                Latest from the blog
-              </Heading>
-            </Row>
-            <Row flex={3} paddingX="20">
-              <Posts range={[1, 2]} columns="2" />
-            </Row>
-          </Row>
-          <Row fillWidth paddingLeft="64" horizontal="end">
-            <Line maxWidth={48} />
-          </Row>
+          <Posts range={[1, 2]} columns="2" thumbnail />
         </Column>
       )}
-      <Projects range={[2]} />
-      <Mailchimp />
     </Column>
   );
 }

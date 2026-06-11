@@ -14,6 +14,7 @@ import {
   SpacingToken,
 } from "@once-ui-system/core";
 import { Footer, Header, RouteGuard, Providers } from "@/components";
+import Particles from "@/components/Particles";
 import { baseURL, effects, fonts, style, dataStyle, home } from "@/resources";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -114,6 +115,9 @@ export default async function RootLayout({
           padding="0"
           horizontal="center"
         >
+          <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+            <Particles quantity={60} staticity={30} ease={40} />
+          </div>
           <RevealFx fill position="absolute">
             <Background
               mask={{

@@ -1,0 +1,87 @@
+---
+title: "GraphQL Federation at scale — what I learned shipping it to a US telecom"
+publishedAt: "2026-06-05"
+summary: "Shipping Apollo Federation to production for a major US telecom's AI checkout flow — subgraph architecture, N+1 elimination, WunderGraph as the gateway, and the observability setup that let us actually debug it."
+tag: "Engineering"
+---
+
+## The problem federation solves (and the one it creates)
+
+GraphQL Federation sounds like an infrastructure problem. It isn't. It's an organizational problem — how do you let teams own their domain's schema without creating a distributed monolith that collapses under the weight of cross-team coordination?
+
+The setup I worked on at BairesDev processes 1,000+ daily transactions for a US telecom's AI-powered checkout flow. Multiple subgraphs, each owned by a different team, unified behind a single gateway. Here's what actually shipping it taught me.
+
+---
+
+## The architecture
+
+We used Apollo Federation v2 with WunderGraph as the composition and gateway layer. The basic topology:
+
+```
+Client → WunderGraph Gateway → [catalog subgraph, pricing subgraph, checkout subgraph, identity subgraph]
+```
+
+WunderGraph handles:
+- Schema composition from all subgraphs (with breaking-change detection in CI)
+- Type-safe client generation
+- Request routing and query planning
+- Response caching for eligible queries
+
+Each subgraph owns its SDL as a contract. No subgraph knows about another subgraph's resolvers — only about the federated entities it shares via `@key` directives.
+
+---
+
+## The N+1 problem doesn't go away — it gets weirder
+
+In a monolithic GraphQL server, N+1 is straightforward: you're querying a list, then resolving a field on each item separately. DataLoader fixes it.
+
+In a federated setup, N+1 manifests differently. The gateway sends a batch request to a subgraph using `@requires` — asking for entity data in one shot. But if your reference resolver isn't batching correctly, you get N round-trips from the gateway to the subgraph instead of one.
+
+The fix is the same (DataLoader, batch loaders), but the debugging path is different. You can't just add a console log to the resolver — you need to look at the query plan the gateway produces and trace the subgraph calls in your observability layer.
+
+---
+
+## WunderGraph instead of Apollo Router
+
+We chose WunderGraph over Apollo Router primarily for type-safe client generation. The generated client knows the exact shape of every operation, which eliminates an entire class of runtime type errors on the frontend. When a subgraph changes a type, the client regenerates and TypeScript catches the incompatibility at build time.
+
+The tradeoff: WunderGraph is less battle-tested at extreme scale than Apollo Router. For our 1,000+ daily transaction volume, it's been solid. At 100,000+ daily transactions I'd evaluate more carefully.
+
+---
+
+## Observability: New Relic flow-tracking
+
+Federated graphs are hard to debug without good observability because a single client query becomes multiple subgraph queries. A slow response could be slow composition, a slow subgraph, a N+1 reference resolver, or a caching miss.
+
+We instrumented with New Relic flow-tracking at the resolver level. For each subgraph call, we track:
+- Time to first byte from the gateway's perspective
+- Reference resolver batch size (to catch N+1 before it becomes a problem in prod)
+- Schema version (so we can correlate regressions with deploys)
+
+The key metric we watch is reference resolver batch efficiency: the ratio of resolved entities to batched requests. A healthy ratio is close to 1:1 (one batch = all entities). When it starts creeping toward N:1, something is wrong with the DataLoader setup.
+
+---
+
+## Breaking change detection in CI
+
+Schema-first means the SDL is a contract. Breaking changes — removing a field, changing a type, making a nullable field non-null — are deployments that break clients. We run schema change detection in CI on every PR touching a subgraph:
+
+1. The PR's schema is composed against all other subgraphs
+2. The resulting supergraph is diffed against the current production supergraph
+3. Breaking changes fail the CI check with a clear error message
+
+This prevents "I only changed my subgraph" accidents. The federation is a shared contract.
+
+---
+
+## What I'd do differently
+
+**Start with a simpler gateway setup.** We over-engineered the initial WunderGraph configuration trying to optimize for features we didn't need on day one. A simpler composition-only setup would have shipped faster.
+
+**Write entity resolver tests first.** Reference resolvers are where federation bugs hide. A unit test that verifies your entity resolver receives a correctly batched set of `__typename` + `id` pairs catches most issues before they reach integration testing.
+
+**Log query plans in staging.** The gateway's query plan — which subgraphs get called, in what order, with what arguments — is the ground truth for debugging performance. Log it in staging from day one.
+
+---
+
+The code lives inside the BairesDev codebase so I can't open-source it, but the architecture is standard Apollo Federation v2. If you're building something similar, the Apollo Federation docs and the WunderGraph docs between them cover 80% of what you need to know. The remaining 20% is the operational stuff above.
