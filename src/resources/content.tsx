@@ -74,24 +74,29 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        Senior Full-Stack Engineer & AI Systems Architect based in Joinville, Brazil.
-        I design and build production-ready GraphQL APIs, federated backend services,
-        and autonomous AI agent frameworks — with an emphasis on scalable architecture,
-        clean TypeScript code, and operational reliability.
-        <br />
-        <br />
-        At BairesDev I engineer AI-powered checkout systems for major US telecom partners
-        using Apollo Federation v2 and WunderGraph, processing 1,000+ daily transactions.
-        I also built an AI-Powered RAG Background Server that pre-generates contextual data
-        for AI checkout flows, and delivered REST/GraphQL APIs consumed by Android and web
-        clients across multiple enterprise engagements.
-        <br />
-        <br />
-        After hours I build <strong>Agenthood</strong> — an open-source multi-agent framework
-        where 14 specialized AI agents enforce engineering standards, run code reviews, manage
-        memory across sessions, and continuously improve through a self-evaluation loop.
-        The next milestone, <em>The Academy</em>, ships 25 structured articles on building
-        production AI agents — from RAG basics to autonomous multi-agent orchestration.
+        I'm a Senior Full‑Stack Engineer & AI Systems Architect with 10+ years of experience across
+        frontend, backend, and testing. I've shipped products for companies in the US, Europe, and
+        Brazil, always balancing solid architecture with real‑world delivery.
+        <br /><br />
+        On the backend, I design and build production GraphQL APIs and federated architectures with
+        TypeScript and Node.js. At BairesDev I've engineered AI‑powered checkout systems for major
+        US telecom partners using Apollo Federation and WunderGraph, handling 1,000+ transactions
+        per day with CI‑enforced contracts and New Relic observability end‑to‑end.
+        <br /><br />
+        On the frontend, I have deep experience building modern React and Next.js applications for
+        e‑commerce, enterprise dashboards, and complex form workflows. I've led Core Web Vitals and
+        SEO improvements, implemented WCAG 2.1 AA accessibility, and created reusable component
+        systems using TypeScript, Storybook, Jest, and Playwright.
+        <br /><br />
+        I also build agentic AI systems and tooling. Agenthood is my open‑source multi‑agent
+        framework where 14 specialized agents enforce engineering standards, review code and commits,
+        manage multi‑tier memory, and continuously improve via eval‑driven feedback loops. Other
+        projects like ApolloDroid, Driveline ELD, and VeriHire explore how to bring LLMs into real
+        products with the same discipline I apply to production web systems.
+        <br /><br />
+        My best work happens where scalable GraphQL backends, high‑quality React frontends, and AI
+        agents meet — designing contracts, building the systems behind them, and shaping the UX
+        that teams and users actually rely on every day.
       </>
     ),
   },
