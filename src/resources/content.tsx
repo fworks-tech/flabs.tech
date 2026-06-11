@@ -45,7 +45,7 @@ const home: Home = {
   label: "Home",
   title: `${person.name}'s Portfolio`,
   description: `This is my place in the internet to showcase my projects, thoughts, few updates about this fast growing tech world we live in, and share a bit about myself.`,
-  headline: <>Welcome to FLABS</>,
+  headline: "Welcome to FLABS",
   featured: {
     display: false,
     title: <></>,

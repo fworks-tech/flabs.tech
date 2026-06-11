@@ -1,3 +1,4 @@
+export { AnimatedHeadline } from "@/components/AnimatedHeadline";
 export { Header } from "@/components/Header";
 export { Footer } from "@/components/Footer";
 export { Mailchimp } from "@/components/Mailchimp";
