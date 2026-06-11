@@ -2,7 +2,7 @@
 
 .position {
   backdrop-filter: blur(12px);
-  background: rgba(7, 9, 26, 0.75);
+  background: var(--neutral-background-weak);
   border-bottom: 1px solid var(--neutral-alpha-weak);
 }
 
@@ -33,6 +33,6 @@
     border: 1px solid var(--neutral-alpha-weak);
     padding: 6px 16px;
     backdrop-filter: blur(12px);
-    background: rgba(7, 9, 26, 0.85);
+    background: var(--neutral-background-medium);
   }
 }
