@@ -82,7 +82,9 @@ export default function Home() {
 
         {about.avatar.display && (
           <Column flex={4} horizontal="center" vertical="center" s={{ hide: true }}>
-            <Avatar src={person.avatar} size="xl" />
+            <div style={{ borderRadius: "50%", overflow: "hidden", width: "fit-content", boxShadow: "none", outline: "none" }}>
+              <Avatar src={person.avatar} size="xl" style={{ boxShadow: "none", outline: "none", border: "none" }} />
+            </div>
           </Column>
         )}
       </Row>

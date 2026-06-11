@@ -1,8 +1,8 @@
 /* Obsidian dark background — applied only in dark mode */
 [data-theme="dark"] {
-  --page-background: #07091a;
-  --neutral-background-medium: #0d1024;
-  --neutral-background-weak: #111428;
+  --page-background: #050507;
+  --neutral-background-medium: #0a0a0f;
+  --neutral-background-weak: #0f0f16;
 }
 
 /* :root {

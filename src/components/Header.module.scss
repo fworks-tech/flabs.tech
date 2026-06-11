@@ -20,20 +20,6 @@
   }
 }
 
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.activeDot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: var(--brand-solid-strong);
-  flex-shrink: 0;
-}
 
 @include bp.s {
   .position {

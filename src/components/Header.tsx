@@ -76,7 +76,6 @@ export const Header = () => {
             <Row hide s={{ hide: false }}>
               <ToggleButton prefixIcon="home" href="/" selected={pathname === "/"} />
             </Row>
-            {pathname === "/" && <span className={styles.activeDot} />}
           </div>
         )}
         {routes["/work"] && (
@@ -87,7 +86,6 @@ export const Header = () => {
             <Row hide s={{ hide: false }}>
               <ToggleButton prefixIcon="grid" href="/work" selected={pathname.startsWith("/work")} />
             </Row>
-            {pathname.startsWith("/work") && <span className={styles.activeDot} />}
           </div>
         )}
         {routes["/blog"] && (
@@ -98,7 +96,6 @@ export const Header = () => {
             <Row hide s={{ hide: false }}>
               <ToggleButton prefixIcon="book" href="/blog" selected={pathname.startsWith("/blog")} />
             </Row>
-            {pathname.startsWith("/blog") && <span className={styles.activeDot} />}
           </div>
         )}
         {routes["/about"] && (
@@ -109,7 +106,6 @@ export const Header = () => {
             <Row hide s={{ hide: false }}>
               <ToggleButton prefixIcon="person" href="/about" selected={pathname === "/about"} />
             </Row>
-            {pathname === "/about" && <span className={styles.activeDot} />}
           </div>
         )}
         {routes["/gallery"] && (
@@ -120,7 +116,6 @@ export const Header = () => {
             <Row hide s={{ hide: false }}>
               <ToggleButton prefixIcon="gallery" href="/gallery" selected={pathname.startsWith("/gallery")} />
             </Row>
-            {pathname.startsWith("/gallery") && <span className={styles.activeDot} />}
           </div>
         )}
       </Row>
