@@ -48,7 +48,7 @@ const home: Home = {
   featured: {
     display: false,
     title: <></>,
-    href: "/work",
+    href: "/projects",
   },
   subline: "I design and build production-ready GraphQL APIs, federated backends, and autonomous AI agent frameworks.",
 };
@@ -74,24 +74,29 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        Senior Full-Stack Engineer & AI Systems Architect based in Joinville, Brazil.
-        I design and build production-ready GraphQL APIs, federated backend services,
-        and autonomous AI agent frameworks — with an emphasis on scalable architecture,
-        clean TypeScript code, and operational reliability.
-        <br />
-        <br />
-        At BairesDev I engineer AI-powered checkout systems for major US telecom partners
-        using Apollo Federation v2 and WunderGraph, processing 1,000+ daily transactions.
-        I also built an AI-Powered RAG Background Server that pre-generates contextual data
-        for AI checkout flows, and delivered REST/GraphQL APIs consumed by Android and web
-        clients across multiple enterprise engagements.
-        <br />
-        <br />
-        After hours I build <strong>Agenthood</strong> — an open-source multi-agent framework
-        where 14 specialized AI agents enforce engineering standards, run code reviews, manage
-        memory across sessions, and continuously improve through a self-evaluation loop.
-        The next milestone, <em>The Academy</em>, ships 25 structured articles on building
-        production AI agents — from RAG basics to autonomous multi-agent orchestration.
+        I'm a Senior Full‑Stack Engineer & AI Systems Architect with 10+ years of experience across
+        frontend, backend, and testing. I've shipped products for companies in the US, Europe, and
+        Brazil, always balancing solid architecture with real‑world delivery.
+        <br /><br />
+        On the backend, I design and build production GraphQL APIs and federated architectures with
+        TypeScript and Node.js. At BairesDev I've engineered AI‑powered checkout systems for major
+        US telecom partners using Apollo Federation and WunderGraph, handling 1,000+ transactions
+        per day with CI‑enforced contracts and New Relic observability end‑to‑end.
+        <br /><br />
+        On the frontend, I have deep experience building modern React and Next.js applications for
+        e‑commerce, enterprise dashboards, and complex form workflows. I've led Core Web Vitals and
+        SEO improvements, implemented WCAG 2.1 AA accessibility, and created reusable component
+        systems using TypeScript, Storybook, Jest, and Playwright.
+        <br /><br />
+        I also build agentic AI systems and tooling. Agenthood is my open‑source multi‑agent
+        framework where 14 specialized agents enforce engineering standards, review code and commits,
+        manage multi‑tier memory, and continuously improve via eval‑driven feedback loops. Other
+        projects like ApolloDroid, Driveline ELD, and VeriHire explore how to bring LLMs into real
+        products with the same discipline I apply to production web systems.
+        <br /><br />
+        My best work happens where scalable GraphQL backends, high‑quality React frontends, and AI
+        agents meet — designing contracts, building the systems behind them, and shaping the UX
+        that teams and users actually rely on every day.
       </>
     ),
   },
@@ -102,7 +107,7 @@ const about: About = {
   },
   studies: {
     display: false,
-    title: "Studies",
+    title: "Education",
     institutions: [],
   },
   technical: {
@@ -155,6 +160,109 @@ const about: About = {
   },
 };
 
+const workExperience = {
+  experiences: [
+    {
+      company: "BairesDev",
+      timeframe: "Dec 2025 – Present",
+      role: "Full Stack Engineer",
+      location: "United States (remote)",
+      achievements: [
+        "Engineered automated AI checkout systems using GraphQL Federation for major US telecom partners, processing 1,000+ daily transactions.",
+        "Architected subgraph solutions overseeing the full lifecycle — from API analysis to CI/infrastructure setup.",
+        "Enhanced system observability by implementing New Relic flow-tracking instrumentation.",
+      ],
+      images: [],
+    },
+    {
+      company: "BairesDev",
+      timeframe: "Jan 2025 – Sep 2025",
+      role: "Full Stack Engineer",
+      location: "United States (remote)",
+      achievements: [
+        "Implemented reusable React interactive forms covering US regulations for Veterans, significantly reducing time spent on digital paperwork.",
+        "Improved Core Web Vitals and React performance through advanced optimization techniques.",
+        "Ensured a11y and WCAG 2.1 AA compliance with mobile-first design patterns.",
+        "Established robust testing strategies with Jest and Playwright, reducing regression bugs by 35%.",
+      ],
+      images: [],
+    },
+    {
+      company: "Present Technologies",
+      timeframe: "Jan 2023 – Apr 2024",
+      role: "Full Stack Engineer",
+      location: "Portugal (remote)",
+      achievements: [
+        "Architected scalable front-end interfaces for Farfetch's global e-commerce platform, improving SEO and page load performance by 25%.",
+        "Led the complete application rebuild of Liminal Link and contributed to LinkGPT, an AI-powered digital market assistant.",
+        "Implemented automated testing and performance monitoring tools, significantly reducing memory leaks.",
+      ],
+      images: [],
+    },
+    {
+      company: "DBC Company",
+      timeframe: "Aug 2021 – Sep 2022",
+      role: "Senior Frontend Developer",
+      location: "Brazil",
+      achievements: [
+        "Designed front-end application architecture from scratch, influencing product decisions and supporting backend tasks.",
+        "Built Chart.js dashboards that reduced data analysis time by 40% through modern chart types and data export methods.",
+        "Developed responsive applications in React.js with reusable component libraries.",
+      ],
+      images: [],
+    },
+    {
+      company: "Gofind",
+      timeframe: "Jul 2020 – Aug 2021",
+      role: "Senior Frontend Developer",
+      location: "Brazil",
+      achievements: [
+        "Architected a product/store management platform and a geolocation-based product discovery app.",
+        "Reduced deployment downtime by 50% through GitLab CI/CD integration and automated testing.",
+        "Optimized performance using Clean Architecture, Context API, and Zod form validation.",
+      ],
+      images: [],
+    },
+    {
+      company: "SoftExpert",
+      timeframe: "Jun 2019 – Jul 2020",
+      role: "Senior Frontend Developer",
+      location: "Brazil",
+      achievements: [
+        "Engineered a scalable enterprise ERP system with React.js, Redux, and Material-UI.",
+        "Developed core framework components in TypeScript with Formik, ensuring standardized UI/UX patterns.",
+        "Integrated RESTful APIs in collaboration with backend teams, improving API response time by 20%.",
+      ],
+      images: [],
+    },
+    {
+      company: "TOTVS",
+      timeframe: "Jun 2016 – Jun 2019",
+      role: "R&D Engineer → QA Technician → Intern",
+      location: "Joinville, Brazil",
+      achievements: [
+        "Maintained and evolved core ERP product functionalities across front-end, back-end, and DevOps.",
+        "Led internal Protractor e2e training, improving code quality and reducing production bugs.",
+        "Integrated testing into CI/CD pipelines using Jenkins; monitored static analysis with SonarQube.",
+        "Developed internal frameworks for web application development, enhancing delivery velocity.",
+      ],
+      images: [],
+    },
+  ],
+  education: [
+    {
+      institution: "Pontifícia Universidade Católica do Paraná",
+      degree: "Postgraduate — Software Architecture, Data Science & Cybersecurity",
+      timeframe: "Apr 2025 – Apr 2026",
+    },
+    {
+      institution: "UNINTER Centro Universitário Internacional",
+      degree: "Associate's — Systems Analysis and Development",
+      timeframe: "Jan 2018 – Dec 2021",
+    },
+  ],
+};
+
 const blog: Blog = {
   path: "/blog",
   label: "Posts",
@@ -165,8 +273,15 @@ const blog: Blog = {
 const work: Work = {
   path: "/work",
   label: "Work",
-  title: "Work",
-  description: `Production systems, AI experiments, and open-source tools by ${person.name}`,
+  title: "Work Experience",
+  description: `10+ years across USA, Europe, and Brazil — TypeScript, GraphQL, React, and AI systems`,
+};
+
+const projects: Work = {
+  path: "/projects",
+  label: "Projects",
+  title: "Projects",
+  description: `Open-source tools, AI experiments, and personal builds by ${person.name}`,
 };
 
 const gallery: Gallery = {
@@ -174,48 +289,7 @@ const gallery: Gallery = {
   label: "Gallery",
   title: `Photo gallery – ${person.name}`,
   description: `A photo collection by ${person.name}`,
-  images: [
-    {
-      src: "/images/gallery/horizontal-1.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-4.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/horizontal-3.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-1.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/vertical-2.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/horizontal-2.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/horizontal-4.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-3.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-  ],
+  images: [],
 };
 
-export { person, social, newsletter, home, about, blog, work, gallery };
+export { person, social, newsletter, home, about, blog, work, projects, workExperience, gallery };

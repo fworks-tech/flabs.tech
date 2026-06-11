@@ -7,6 +7,8 @@ export {
   about,
   blog,
   work,
+  projects,
+  workExperience,
   gallery,
 } from "./content";
 
