@@ -2,8 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-
 import { Flex, Row, ToggleButton } from "@once-ui-system/core";
 
 import { routes, display, person, about, blog, work, gallery } from "@/resources";
@@ -59,13 +57,6 @@ export const Header = () => {
       vertical="center"
       suppressHydrationWarning
     >
-      {/* Left: Wordmark */}
-      <Row flex={1} vertical="center">
-        <Link href="/" className={styles.wordmark}>
-          FLABS
-        </Link>
-      </Row>
-
       {/* Center: Flat nav */}
       <Row horizontal="center" gap="4" vertical="center" textVariant="body-default-s">
         {routes["/"] && (

@@ -2,7 +2,6 @@ import {
   Heading,
   Text,
   Button,
-  Avatar,
   Column,
   Row,
   Schema,
@@ -80,13 +79,6 @@ export default function Home() {
           </Row>
         </Column>
 
-        {about.avatar.display && (
-          <Column flex={4} horizontal="center" vertical="center" s={{ hide: true }}>
-            <div style={{ borderRadius: "50%", overflow: "hidden", width: "fit-content", boxShadow: "none", outline: "none" }}>
-              <Avatar src={person.avatar} size="xl" style={{ boxShadow: "none", outline: "none", border: "none" }} />
-            </div>
-          </Column>
-        )}
       </Row>
 
       {/* Recent Work */}
