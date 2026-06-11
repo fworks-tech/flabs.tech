@@ -80,10 +80,18 @@ const about: About = {
         clean TypeScript code, and operational reliability.
         <br />
         <br />
-        Currently at BairesDev, engineering automated AI checkout systems with GraphQL
-        Federation for major US telecom partners, processing 1,000+ daily transactions.
-        After hours I build{" "}Agenthood — an open-source society of 14 specialized AI
-        agents that enforce engineering standards on every commit.
+        At BairesDev I engineer AI-powered checkout systems for major US telecom partners
+        using Apollo Federation v2 and WunderGraph, processing 1,000+ daily transactions.
+        I also built an AI-Powered RAG Background Server that pre-generates contextual data
+        for AI checkout flows, and delivered REST/GraphQL APIs consumed by Android and web
+        clients across multiple enterprise engagements.
+        <br />
+        <br />
+        After hours I build <strong>Agenthood</strong> — an open-source multi-agent framework
+        where 14 specialized AI agents enforce engineering standards, run code reviews, manage
+        memory across sessions, and continuously improve through a self-evaluation loop.
+        The next milestone, <em>The Academy</em>, ships 25 structured articles on building
+        production AI agents — from RAG basics to autonomous multi-agent orchestration.
       </>
     ),
   },
@@ -103,27 +111,44 @@ const about: About = {
     skills: [
       {
         title: "Frontend",
-        description: <>React · Next.js · TypeScript · Tailwind CSS · Once UI</>,
+        description: <></>,
         tags: [
           { name: "TypeScript", icon: "typescript" },
           { name: "React", icon: "react" },
           { name: "Next.js", icon: "nextjs" },
+          { name: "Tailwind CSS" },
+          { name: "Once UI" },
+          { name: "SCSS Modules" },
         ],
         images: [],
       },
       {
         title: "Backend & APIs",
-        description: <>GraphQL · Apollo Federation · Node.js · Django · PostgreSQL · MongoDB · AWS</>,
+        description: <></>,
         tags: [
           { name: "GraphQL", icon: "graphql" },
-          { name: "Python", icon: "python" },
+          { name: "Apollo Federation" },
+          { name: "Node.js" },
+          { name: "Django", icon: "python" },
+          { name: "PostgreSQL" },
+          { name: "MongoDB" },
+          { name: "AWS" },
+          { name: "Docker" },
         ],
         images: [],
       },
       {
         title: "AI & Agents",
-        description: <>Agenthood · Claude AI · RAG · LanceDB · Chroma · Multi-agent orchestration · ReAct loops</>,
-        tags: [],
+        description: <></>,
+        tags: [
+          { name: "Claude AI" },
+          { name: "RAG pipelines" },
+          { name: "LanceDB" },
+          { name: "Chroma" },
+          { name: "ReAct loops" },
+          { name: "Multi-agent orchestration" },
+          { name: "Vector search" },
+        ],
         images: [],
       },
     ],

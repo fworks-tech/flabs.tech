@@ -56,7 +56,7 @@ export default function About() {
           <Row gap="8" vertical="center" paddingTop="4">
             <Icon onBackground="accent-weak" name="globe" />
             <Text variant="body-default-s" onBackground="neutral-weak">
-              {person.location.split("/").pop()?.replace(/_/g, " ")}
+              Joinville, Brazil
             </Text>
             {person.languages && person.languages.length > 0 && (
               <>
