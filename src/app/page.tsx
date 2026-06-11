@@ -14,6 +14,7 @@ import {
 import { home, about, person, baseURL, routes } from "@/resources";
 import { getPosts } from "@/utils/utils";
 import { Mailchimp } from "@/components";
+import { AnimatedHeadline } from "@/components/AnimatedHeadline";
 import { Projects } from "@/components/work/Projects";
 import { Posts } from "@/components/blog/Posts";
 
@@ -68,8 +69,12 @@ export default function Home() {
             </RevealFx>
           )}
           <RevealFx translateY="4" fillWidth horizontal="center" paddingBottom="16">
-            <Heading wrap="balance" variant="display-strong-l" className="neon-headline">
-              {home.headline}
+            <Heading wrap="balance" variant="display-strong-l">
+              {typeof home.headline === "string" ? (
+                <AnimatedHeadline text={home.headline} />
+              ) : (
+                home.headline
+              )}
             </Heading>
           </RevealFx>
           <RevealFx translateY="8" delay={0.2} fillWidth horizontal="center" paddingBottom="32">
