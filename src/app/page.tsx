@@ -65,16 +65,7 @@ export default function Home() {
               View Work
             </Button>
             <Button href={about.path} variant="secondary" size="m">
-              <Row gap="8" vertical="center">
-                {about.avatar.display && (
-                  <Avatar
-                    style={{ marginLeft: "-0.5rem", marginRight: "4px" }}
-                    src={person.avatar}
-                    size="s"
-                  />
-                )}
-                About Me
-              </Row>
+              About Me
             </Button>
           </Row>
         </Column>
