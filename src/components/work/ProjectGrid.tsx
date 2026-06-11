@@ -8,7 +8,7 @@ interface ProjectGridProps {
 }
 
 export function ProjectGrid({ range, exclude }: ProjectGridProps) {
-  let allProjects = getPosts(["src", "app", "work", "projects"]);
+  let allProjects = getPosts(["src", "app", "projects", "projects"]);
 
   if (exclude?.length) {
     allProjects = allProjects.filter((p) => !exclude!.includes(p.slug));
@@ -33,7 +33,7 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
 
         return (
-          <Link key={post.slug} href={`/work/${post.slug}`} className={styles.tile}>
+          <Link key={post.slug} href={`/projects/${post.slug}`} className={styles.tile}>
             <div className={styles.tileImage} data-tag={tag}>
               {hasImages ? (
                 <img

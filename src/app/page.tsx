@@ -61,8 +61,8 @@ export default function Home() {
             {home.subline}
           </Text>
           <Row gap="12" wrap>
-            <Button href="/work" variant="primary" size="m" arrowIcon>
-              View Work
+            <Button href="/projects" variant="primary" size="m" arrowIcon>
+              View Projects
             </Button>
             <Button href={about.path} variant="secondary" size="m">
               About Me
@@ -76,9 +76,9 @@ export default function Home() {
       <Column fillWidth gap="m">
         <Row fillWidth horizontal="between" vertical="center" paddingBottom="4">
           <Heading as="h2" variant="heading-strong-xl">
-            Recent Work
+            Recent Projects
           </Heading>
-          <SmartLink href="/work" suffixIcon="arrowRight">
+          <SmartLink href="/projects" suffixIcon="arrowRight">
             <Text variant="body-default-s" onBackground="neutral-weak">
               View all
             </Text>

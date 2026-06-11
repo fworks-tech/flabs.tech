@@ -1,0 +1,42 @@
+import { Column, Heading, Text, Meta, Schema } from "@once-ui-system/core";
+import { baseURL, about, person, projects } from "@/resources";
+import { ProjectsList } from "@/components/work/ProjectsList";
+
+export async function generateMetadata() {
+  return Meta.generate({
+    title: projects.title,
+    description: projects.description,
+    baseURL: baseURL,
+    image: `/api/og/generate?title=${encodeURIComponent(projects.title)}`,
+    path: projects.path,
+  });
+}
+
+export default function ProjectsPage() {
+  return (
+    <Column maxWidth="m" paddingTop="24">
+      <Schema
+        as="webPage"
+        baseURL={baseURL}
+        path={projects.path}
+        title={projects.title}
+        description={projects.description}
+        image={`/api/og/generate?title=${encodeURIComponent(projects.title)}`}
+        author={{
+          name: person.name,
+          url: `${baseURL}${about.path}`,
+          image: `${baseURL}${person.avatar}`,
+        }}
+      />
+      <Column fillWidth horizontal="center" align="center" gap="8" marginBottom="xl">
+        <Heading variant="display-strong-l" align="center">
+          Projects
+        </Heading>
+        <Text variant="body-default-l" onBackground="neutral-weak" align="center">
+          Open-source tools, AI experiments, and personal builds.
+        </Text>
+      </Column>
+      <ProjectsList />
+    </Column>
+  );
+}

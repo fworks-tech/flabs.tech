@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Flex, Row, ToggleButton } from "@once-ui-system/core";
 
-import { routes, display, person, about, blog, work, gallery } from "@/resources";
+import { routes, display, person, about, blog, work, projects, gallery } from "@/resources";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.scss";
 
@@ -76,6 +76,16 @@ export const Header = () => {
             </Row>
             <Row hide s={{ hide: false }}>
               <ToggleButton prefixIcon="grid" href="/work" selected={pathname.startsWith("/work")} />
+            </Row>
+          </div>
+        )}
+        {routes["/projects"] && (
+          <div className={styles.navItem}>
+            <Row s={{ hide: true }}>
+              <ToggleButton href="/projects" label={projects.label} selected={pathname.startsWith("/projects")} />
+            </Row>
+            <Row hide s={{ hide: false }}>
+              <ToggleButton prefixIcon="code" href="/projects" selected={pathname.startsWith("/projects")} />
             </Row>
           </div>
         )}
