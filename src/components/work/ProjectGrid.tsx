@@ -48,6 +48,11 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
 
         // Sanitize slug for use as key
         const safeSlug = String(post.slug).replace(/[^a-z0-9-_]/gi, '');
+        
+        // Get tags - prefer 'tags' array, fall back to 'tag'
+        const projectTags = Array.isArray(post.metadata.tags) 
+          ? post.metadata.tags 
+          : (post.metadata.tag ? [post.metadata.tag] : []);
 
         return (
           <Link key={safeSlug} href={href} className={styles.tile}>
@@ -61,8 +66,17 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
               ) : (
                 <>
                   <div className={styles.tileContent}>
-                    {post.metadata.tag && (
-                      <span className={styles.tileTag}>{post.metadata.tag}</span>
+                    {projectTags.length > 0 && (
+                      <div className={styles.tagsList}>
+                        {projectTags.slice(0, 3).map((t, idx) => (
+                          <span key={idx} className={styles.tileTag}>
+                            {t}
+                          </span>
+                        ))}
+                        {projectTags.length > 3 && (
+                          <span className={styles.tileTag}>+{projectTags.length - 3}</span>
+                        )}
+                      </div>
                     )}
                     <span className={styles.tileLabel}>{post.metadata.title}</span>
                   </div>

@@ -77,11 +77,19 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.8rem;
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
   text-align: center;
+}
+
+.tagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  max-width: 100%;
 }
 
 .tileLabel {
@@ -93,10 +101,12 @@
 }
 
 .tileTag {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
   font-family: var(--font-label);
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.35rem 0.65rem;
+  border-radius: 5px;
+  white-space: nowrap;
+  display: inline-block;
 }
