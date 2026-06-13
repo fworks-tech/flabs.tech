@@ -32,21 +32,25 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
           .replace(/[^a-z]/g, "-");
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
         
-        // Validate external links to prevent XSS
+        // Validate external links to prevent XSS - only allow http/https
         let href = `/work/${post.slug}`;
-        if (post.metadata.link) {
+        if (post.metadata.link && typeof post.metadata.link === 'string') {
           try {
             const url = new URL(post.metadata.link);
             if (url.protocol === 'http:' || url.protocol === 'https:') {
-              href = post.metadata.link;
+              // Safe URL after validation
+              href = url.href;
             }
           } catch {
-            // Invalid URL, fall back to default
+            // Invalid URL, fall back to default internal link
           }
         }
 
+        // Sanitize slug for use as key
+        const safeSlug = String(post.slug).replace(/[^a-z0-9-_]/gi, '');
+
         return (
-          <Link key={post.slug} href={href} className={styles.tile}>
+          <Link key={safeSlug} href={href} className={styles.tile}>
             <div className={styles.tileImage} data-tag={tag}>
               {hasImages ? (
                 <img
