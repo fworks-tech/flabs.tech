@@ -8,7 +8,7 @@ interface ProjectGridProps {
 }
 
 export function ProjectGrid({ range, exclude }: ProjectGridProps) {
-  let allProjects = getPosts(["src", "app", "projects", "projects"]);
+  let allProjects = getPosts(["src", "app", "work", "projects"]);
 
   if (exclude?.length) {
     allProjects = allProjects.filter((p) => !exclude!.includes(p.slug));
@@ -31,9 +31,31 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
           .toLowerCase()
           .replace(/[^a-z]/g, "-");
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
+        
+        // Validate external links to prevent XSS - only allow http/https
+        let href = `/work/${post.slug}`;
+        if (post.metadata.link && typeof post.metadata.link === 'string') {
+          try {
+            const url = new URL(post.metadata.link);
+            if (url.protocol === 'http:' || url.protocol === 'https:') {
+              // Safe URL after validation
+              href = url.href;
+            }
+          } catch {
+            // Invalid URL, fall back to default internal link
+          }
+        }
+
+        // Sanitize slug for use as key
+        const safeSlug = String(post.slug).replace(/[^a-z0-9-_]/gi, '');
+        
+        // Get tags - prefer 'tags' array, fall back to 'tag'
+        const projectTags = Array.isArray(post.metadata.tags) 
+          ? post.metadata.tags 
+          : (post.metadata.tag ? [post.metadata.tag] : []);
 
         return (
-          <Link key={post.slug} href={`/projects/${post.slug}`} className={styles.tile}>
+          <Link key={safeSlug} href={href} className={styles.tile}>
             <div className={styles.tileImage} data-tag={tag}>
               {hasImages ? (
                 <img
@@ -42,13 +64,23 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
                   className={styles.img}
                 />
               ) : (
-                <span className={styles.tileLabel}>{post.metadata.title}</span>
-              )}
-            </div>
-            <div className={styles.tileMeta}>
-              <span className={styles.tileHeading}>{post.metadata.title}</span>
-              {post.metadata.tag && (
-                <span className={styles.tileTag}>{post.metadata.tag}</span>
+                <>
+                  <div className={styles.tileContent}>
+                    {projectTags.length > 0 && (
+                      <div className={styles.tagsList}>
+                        {projectTags.slice(0, 3).map((t, idx) => (
+                          <span key={idx} className={styles.tileTag}>
+                            {t}
+                          </span>
+                        ))}
+                        {projectTags.length > 3 && (
+                          <span className={styles.tileTag}>+{projectTags.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                    <span className={styles.tileLabel}>{post.metadata.title}</span>
+                  </div>
+                </>
               )}
             </div>
           </Link>
