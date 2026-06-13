@@ -31,7 +31,19 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
           .toLowerCase()
           .replace(/[^a-z]/g, "-");
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
-        const href = post.metadata.link || `/work/${post.slug}`;
+        
+        // Validate external links to prevent XSS
+        let href = `/work/${post.slug}`;
+        if (post.metadata.link) {
+          try {
+            const url = new URL(post.metadata.link);
+            if (url.protocol === 'http:' || url.protocol === 'https:') {
+              href = post.metadata.link;
+            }
+          } catch {
+            // Invalid URL, fall back to default
+          }
+        }
 
         return (
           <Link key={post.slug} href={href} className={styles.tile}>
