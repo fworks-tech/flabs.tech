@@ -1,81 +1,54 @@
 ---
-title: "Agenthood v1.6.0 — The Academy: 25 articles on building AI agents"
-publishedAt: "2026-06-08"
-summary: "Agenthood's next milestone is The Academy — 25 structured learning articles across 3 levels, mapped to live source code, covering everything from RAG basics to autonomous multi-agent orchestration."
+title: "Agenthood: The Academy is live"
+publishedAt: "2026-06-13"
+summary: "The Academy is now live — 25 articles across 3 levels, built to take you from prompt basics to shipping agents in production."
 tag: "AI"
 ---
 
-## Why I'm building a curriculum
+The Society does not hand you a certificate. It hands you a standard.
 
-When I started building Agenthood, the goal was simple: encode engineering standards as executable agents so I'd stop skipping code reviews at 2am under deadline pressure. What I didn't expect was how deep the rabbit hole goes.
+The Academy is now live — 25 articles across 3 levels, built to take you from "I know what a prompt is" to "I ship agents that work in production."
 
-Building a production-grade multi-agent framework forced me to understand things I thought I knew: how memory actually works under token pressure, why naive RAG implementations hallucinate confidently, what "ReAct" means beyond the paper, and how to make agents fail gracefully instead of silently going off the rails.
-
-I wrote all of this down in scattered notes. **The Academy** is the project to turn those notes into 25 publishable articles — each concept mapped directly to Agenthood's source code so you can read the theory and immediately trace it to a working implementation.
+**→ [Explore the Academy](https://agenthood.flabs.tech/academy/)**
 
 ---
 
 ## Three levels, 25 articles
 
-The curriculum follows a deliberate progression:
-
 ### Level 1 — GenAI & RAG Basics (9 articles)
 
-The foundation. No prior AI experience assumed. This covers:
+How LLMs work. How RAG works. How to write prompts that don't embarrass you.
 
-- What language models actually do (and what they can't)
-- Prompt engineering that holds up in production, not just demos
-- Embeddings and vector search without the magic-box explanation
-- Building your first RAG pipeline step by step
-- Why chunking strategy matters more than people admit
-- Evaluating RAG output — hallucination rate, relevance, groundedness
-- Token budgets: what they are and why you will run out at the worst time
-- When to retrieve and when not to (Agentic RAG vs pipeline RAG)
-- Semantic search vs keyword search — when to use which
+If you're starting here, you're starting right.
+
+**→ [Start Level 1](https://agenthood.flabs.tech/academy/level-1-genai-rag-basics/)**
 
 ### Level 2 — AI Agent Essentials (11 articles)
 
-This is where most "AI developer" guides stop being useful. The gap between "I can call the Claude API" and "I can ship a production agent" is enormous. This level covers the gap:
+How agents reason, remember, plan, and fail — and how to prevent the failure.
 
-- The ReAct reasoning loop — Reason, Act, Observe, repeat
-- Tool use: how agents decide what to call and when to stop
-- Memory architecture: the four tiers and why you need all of them
-- Short-term context management under compression pressure
-- Planning with goal chains and multi-step task decomposition
-- Error recovery — retry policies, fallback strategies, human escalation
-- The Orchestrator pattern: routing tasks to specialized agents
-- Safety guards: sandboxing tools, validating outputs, rate limiting
-- From single agent to multi-agent: when the overhead is worth it
-- Evaluating agents — metrics beyond "did it answer the question"
-- Debugging agents — the five-step protocol Agenthood uses
+This is where most people stop learning. Don't be most people.
+
+**→ [Start Level 2](https://agenthood.flabs.tech/academy/level-2-agent-essentials/)**
 
 ### Level 3 — Advanced Agent Skills (5 articles)
 
-The frontier. This is what I'm building in Agenthood v2.x:
+How to ship agents into production and keep them there.
 
-- Hierarchical parent-child chunking for precision RAG
-- Knowledge Graph retrieval alongside vector search
-- Dynamic model routing by query complexity (cheap model by default, expensive only when needed)
-- Society self-awareness: how agents query the collective institutional memory
-- EpisodeLearner: closing the self-improvement loop with eval → memory → better responses
+The ones who ship go through all three levels.
+
+**→ [Start Level 3](https://agenthood.flabs.tech/academy/level-3-advanced-skills/)**
 
 ---
 
-## Why this exists
+## Agent Skills as an Open Standard
 
-Solo engineering tends to drift. The same applies to learning — without a structured map, you end up with swiss-cheese knowledge, deep in one area and completely blank in others. The Academy is my attempt to build the structured roadmap I wish existed when I started building Agenthood.
+Every Society member — The Scribe, The Architect, The Reviewer, all 14 — now ships as a `SKILL.md` file following the Anthropic open standard. Agent-agnostic. Works with Claude Code, GitHub Copilot, Gemini CLI.
 
-Every article will be:
-- **Code-grounded**: concepts traced to actual Agenthood source, not pseudocode
-- **Honest about tradeoffs**: no "just use RAG" handwaving
-- **Portable**: the skills are framework-agnostic even though the examples use Agenthood
-
-The milestone ships September 2026. Articles will be published here as they're written.
+The Academy teaches you how to use them.
 
 ---
 
-## Follow along
+Start at Level 1. Do not skip ahead.
 
-The work is open-source: [github.com/fworks-tech/agenthood](https://github.com/fworks-tech/agenthood)
-
-The milestone tracking the Academy: [v1.6.0 — The Academy](https://github.com/fworks-tech/agenthood/milestone/12)
+**→ [agenthood.flabs.tech/academy](https://agenthood.flabs.tech/academy/)**
