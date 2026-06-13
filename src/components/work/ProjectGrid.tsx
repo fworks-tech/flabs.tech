@@ -8,7 +8,7 @@ interface ProjectGridProps {
 }
 
 export function ProjectGrid({ range, exclude }: ProjectGridProps) {
-  let allProjects = getPosts(["src", "app", "projects", "projects"]);
+  let allProjects = getPosts(["src", "app", "work", "projects"]);
 
   if (exclude?.length) {
     allProjects = allProjects.filter((p) => !exclude!.includes(p.slug));
@@ -31,9 +31,10 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
           .toLowerCase()
           .replace(/[^a-z]/g, "-");
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
+        const href = post.metadata.link || `/work/${post.slug}`;
 
         return (
-          <Link key={post.slug} href={`/projects/${post.slug}`} className={styles.tile}>
+          <Link key={post.slug} href={href} className={styles.tile}>
             <div className={styles.tileImage} data-tag={tag}>
               {hasImages ? (
                 <img
@@ -42,13 +43,14 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
                   className={styles.img}
                 />
               ) : (
-                <span className={styles.tileLabel}>{post.metadata.title}</span>
-              )}
-            </div>
-            <div className={styles.tileMeta}>
-              <span className={styles.tileHeading}>{post.metadata.title}</span>
-              {post.metadata.tag && (
-                <span className={styles.tileTag}>{post.metadata.tag}</span>
+                <>
+                  <div className={styles.tileContent}>
+                    {post.metadata.tag && (
+                      <span className={styles.tileTag}>{post.metadata.tag}</span>
+                    )}
+                    <span className={styles.tileLabel}>{post.metadata.title}</span>
+                  </div>
+                </>
               )}
             </div>
           </Link>
