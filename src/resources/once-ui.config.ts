@@ -139,7 +139,7 @@ const effects: EffectsConfig = {
 };
 
 const mailchimp: MailchimpConfig = {
-  action: "https://url/subscribe/post?parameters",
+  action: "#",
   effects: {
     mask: {
       cursor: true,

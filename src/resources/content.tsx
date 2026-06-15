@@ -14,7 +14,7 @@ const person: Person = {
 const newsletter: Newsletter = {
   display: true,
   title: <>Stay in the loop</>,
-  description: <>Get new posts on engineering, AI agents, and building production systems — no spam.</>,
+  description: <>Newsletter coming soon — stay tuned for updates on engineering, AI agents, and building production systems.</>,
 };
 
 const social: Social = [
