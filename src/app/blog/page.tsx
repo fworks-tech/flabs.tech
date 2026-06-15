@@ -40,7 +40,7 @@ export default function Blog() {
         {schema}
         <Column fillWidth horizontal="center" align="center" gap="m">
           <Heading variant="display-strong-l" align="center">
-            Posts
+            Blog
           </Heading>
           <Text
             variant="body-default-l"
@@ -48,8 +48,7 @@ export default function Blog() {
             align="center"
             wrap="balance"
           >
-            Thinking out loud about distributed systems, AI agents, and the messy
-            reality of shipping production software.
+            Real-world notes on building GraphQL APIs, AI agent systems, and production software — from architecture decisions to things that broke in staging.
           </Text>
         </Column>
         <Row gap="12" wrap horizontal="center">
@@ -83,7 +82,7 @@ export default function Blog() {
     <Column maxWidth="m" paddingTop="24">
       {schema}
       <Heading marginBottom="l" variant="heading-strong-xl" marginLeft="24">
-        {blog.title}
+        Blog
       </Heading>
       <Column fillWidth flex={1} gap="40">
         <Posts range={[1, 1]} thumbnail />

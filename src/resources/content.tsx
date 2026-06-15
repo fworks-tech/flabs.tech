@@ -1,4 +1,4 @@
-import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
+import { About, Blog, Home, Newsletter, Person, Social, Work } from "@/types";
 
 const person: Person = {
   firstName: "Fabio",
@@ -12,9 +12,9 @@ const person: Person = {
 };
 
 const newsletter: Newsletter = {
-  display: false,
-  title: <>Subscribe to {person.firstName}'s Newsletter</>,
-  description: <>Thoughts on engineering, GenAI, and building things.</>,
+  display: true,
+  title: <>Stay in the loop</>,
+  description: <>Get new posts on engineering, AI agents, and building production systems — no spam.</>,
 };
 
 const social: Social = [
@@ -265,8 +265,8 @@ const workExperience = {
 
 const blog: Blog = {
   path: "/blog",
-  label: "Posts",
-  title: "Posts",
+  label: "Blog",
+  title: "Blog",
   description: `Thoughts on engineering, GraphQL, and agentic AI from ${person.name}`,
 };
 
@@ -284,12 +284,4 @@ const projects: Work = {
   description: `Open-source tools, AI experiments, and personal builds by ${person.name}`,
 };
 
-const gallery: Gallery = {
-  path: "/gallery",
-  label: "Gallery",
-  title: `Photo gallery – ${person.name}`,
-  description: `A photo collection by ${person.name}`,
-  images: [],
-};
-
-export { person, social, newsletter, home, about, blog, work, projects, workExperience, gallery };
+export { person, social, newsletter, home, about, blog, work, projects, workExperience };
