@@ -82,6 +82,31 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
+## Testing
+
+| Command | Description |
+|---------|-------------|
+| `npm test` | Run all unit tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with v8 coverage report |
+
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage
+
+**Convention:** Tests live in `__tests__/` directories next to the files they cover.
+
+```
+src/lib/mdx.ts          → src/lib/__tests__/mdx.test.ts
+src/hooks/useMousePosition.ts → src/hooks/__tests__/useMousePosition.test.ts
+src/components/ui/AnimatedHeadline.tsx → src/components/ui/__tests__/AnimatedHeadline.test.tsx
+```
+
+**Mocks:** Centralized in `__mocks__/` at project root:
+- `@once-ui-system/core` — all components, providers, hooks
+- `next/navigation` — useRouter, usePathname, notFound
+- `gray-matter` — frontmatter parser
+
+---
+
 ## Content files
 
 | File | Purpose |
