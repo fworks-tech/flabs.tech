@@ -17,9 +17,7 @@ describe("useMousePosition", () => {
     const { result } = renderHook(() => useMousePosition());
 
     act(() => {
-      window.dispatchEvent(
-        new MouseEvent("mousemove", { clientX: 150, clientY: 250 }),
-      );
+      window.dispatchEvent(new MouseEvent("mousemove", { clientX: 150, clientY: 250 }));
     });
 
     expect(result.current).toEqual({ x: 150, y: 250 });
@@ -29,16 +27,12 @@ describe("useMousePosition", () => {
     const { result } = renderHook(() => useMousePosition());
 
     act(() => {
-      window.dispatchEvent(
-        new MouseEvent("mousemove", { clientX: 10, clientY: 20 }),
-      );
+      window.dispatchEvent(new MouseEvent("mousemove", { clientX: 10, clientY: 20 }));
     });
     expect(result.current).toEqual({ x: 10, y: 20 });
 
     act(() => {
-      window.dispatchEvent(
-        new MouseEvent("mousemove", { clientX: 999, clientY: 888 }),
-      );
+      window.dispatchEvent(new MouseEvent("mousemove", { clientX: 999, clientY: 888 }));
     });
     expect(result.current).toEqual({ x: 999, y: 888 });
   });

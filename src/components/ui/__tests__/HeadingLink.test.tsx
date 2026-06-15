@@ -8,22 +8,38 @@ import { HeadingLink } from "@/components/ui/HeadingLink";
 
 describe("HeadingLink", () => {
   it("renders heading with correct level", () => {
-    render(<HeadingLink id="my-heading" level={2}>My Title</HeadingLink>);
+    render(
+      <HeadingLink id="my-heading" level={2}>
+        My Title
+      </HeadingLink>,
+    );
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("My Title");
   });
 
   it("renders h1 when level is 1", () => {
-    render(<HeadingLink id="h1" level={1}>First</HeadingLink>);
+    render(
+      <HeadingLink id="h1" level={1}>
+        First
+      </HeadingLink>,
+    );
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
   it("renders h3 when level is 3", () => {
-    render(<HeadingLink id="h3" level={3}>Third</HeadingLink>);
+    render(
+      <HeadingLink id="h3" level={3}>
+        Third
+      </HeadingLink>,
+    );
     expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument();
   });
 
   it("applies id to heading element", () => {
-    render(<HeadingLink id="custom-id" level={2}>Title</HeadingLink>);
+    render(
+      <HeadingLink id="custom-id" level={2}>
+        Title
+      </HeadingLink>,
+    );
     expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute("id", "custom-id");
   });
 });
