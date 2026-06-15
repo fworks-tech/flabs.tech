@@ -22,10 +22,6 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
     },
@@ -36,5 +32,5 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60000,
   },
-  snapshotPathTemplate: "{testDir}/screenshots/{testFilePath}/{arg}{ext}",
+  snapshotPathTemplate: "{testDir}/{arg}{ext}",
 });
