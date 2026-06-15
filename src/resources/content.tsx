@@ -43,7 +43,7 @@ const home: Home = {
   image: `/api/og/generate?title=${encodeURIComponent("Fabio Ritzel Borges")}`,
   label: "Home",
   title: `${person.name}'s Portfolio`,
-  description: `Senior Full-Stack Engineer & AI Systems Architect. I build production GraphQL APIs, federated backends, and autonomous AI agent frameworks.`,
+  description: `Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.`,
   headline: "Hey there, I'm Fabio Borges",
   featured: {
     display: false,

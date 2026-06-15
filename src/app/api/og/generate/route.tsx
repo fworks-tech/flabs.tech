@@ -26,9 +26,10 @@ export async function GET(request: Request) {
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         width: "100%",
         height: "100%",
-        padding: "6rem",
+        padding: "3rem",
         background: "#151515",
       }}
     >
@@ -37,16 +38,17 @@ export async function GET(request: Request) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: "4rem",
+          gap: "1.5rem",
+          flex: 1,
           fontStyle: "normal",
           color: "white",
         }}
       >
         <span
           style={{
-            padding: "1rem",
-            fontSize: "6rem",
-            lineHeight: "8rem",
+            padding: "0.5rem",
+            fontSize: "3.5rem",
+            lineHeight: "4rem",
             letterSpacing: "-0.05em",
             whiteSpace: "wrap",
             textWrap: "balance",
@@ -59,14 +61,14 @@ export async function GET(request: Request) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "5rem",
+            gap: "2rem",
           }}
         >
           <img
             src={baseURL + person.avatar}
             style={{
-              width: "12rem",
-              height: "12rem",
+              width: "7rem",
+              height: "7rem",
               objectFit: "cover",
               borderRadius: "100%",
             }}
@@ -75,13 +77,13 @@ export async function GET(request: Request) {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "0.75rem",
+              gap: "0.25rem",
             }}
           >
             <span
               style={{
-                fontSize: "4.5rem",
-                lineHeight: "4.5rem",
+                fontSize: "2.5rem",
+                lineHeight: "2.5rem",
                 whiteSpace: "pre-wrap",
                 textWrap: "balance",
               }}
@@ -90,8 +92,8 @@ export async function GET(request: Request) {
             </span>
             <span
               style={{
-                fontSize: "2.5rem",
-                lineHeight: "2.5rem",
+                fontSize: "1.25rem",
+                lineHeight: "1.5rem",
                 whiteSpace: "pre-wrap",
                 textWrap: "balance",
                 opacity: "0.6",
@@ -102,10 +104,21 @@ export async function GET(request: Request) {
           </div>
         </div>
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          fontSize: "1rem",
+          opacity: "0.4",
+          color: "white",
+        }}
+      >
+        flabs.tech
+      </div>
     </div>,
     {
-      width: 1280,
-      height: 720,
+      width: 1200,
+      height: 630,
       fonts: [
         {
           name: "Geist",
