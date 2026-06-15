@@ -14,7 +14,9 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:chrome": "npx playwright test --project=chromium",
-    "test:e2e:update-snapshots": "npx playwright test --update-snapshots --project=chromium"
+    "test:e2e:update-snapshots": "npx playwright test --update-snapshots --project=chromium",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -38,6 +40,9 @@
     "@axe-core/playwright": "^4.11.3",
     "@biomejs/biome": "^1.9.4",
     "@playwright/test": "^1.61.0",
+    "@storybook/addon-a11y": "^10.4.5",
+    "@storybook/addon-docs": "^10.4.5",
+    "@storybook/nextjs": "^10.4.5",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -48,7 +53,9 @@
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9.25.0",
     "eslint-config-next": "^16.2.9",
+    "eslint-plugin-storybook": "^10.4.5",
     "jsdom": "^29.1.1",
+    "storybook": "^10.4.5",
     "typescript": "^5.8.3",
     "tzdata": "^1.0.44",
     "vitest": "^4.1.8"
