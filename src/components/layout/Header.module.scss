@@ -1,0 +1,38 @@
+@use "../../styles/breakpoints" as bp;
+
+.position {
+  backdrop-filter: blur(12px);
+  background: var(--neutral-background-weak);
+  border-bottom: 1px solid var(--neutral-alpha-weak);
+}
+
+.wordmark {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--neutral-on-background-strong);
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--brand-on-background-strong);
+  }
+}
+
+
+@include bp.s {
+  .position {
+    position: fixed;
+    bottom: var(--static-space-24);
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    border-radius: 9999px;
+    border: 1px solid var(--neutral-alpha-weak);
+    padding: 6px 16px;
+    backdrop-filter: blur(12px);
+    background: var(--neutral-background-medium);
+  }
+}

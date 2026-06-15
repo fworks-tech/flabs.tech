@@ -10,7 +10,8 @@ import {
   Schema,
   Row,
 } from "@once-ui-system/core";
-import { baseURL, about, person, social } from "@/resources";
+import { baseURL } from "@/config";
+import { about, person, social } from "@/content";
 
 export async function generateMetadata() {
   return Meta.generate({

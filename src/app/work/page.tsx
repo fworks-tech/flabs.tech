@@ -1,5 +1,6 @@
 import { Column, Row, Heading, Text, Meta, Schema, Tag, Line } from "@once-ui-system/core";
-import { baseURL, about, person, work, workExperience } from "@/resources";
+import { baseURL } from "@/config";
+import { about, person, work, workExperience } from "@/content";
 
 export async function generateMetadata() {
   return Meta.generate({
