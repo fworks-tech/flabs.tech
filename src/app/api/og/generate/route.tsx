@@ -3,10 +3,7 @@ import { baseURL, person } from "@/resources";
 
 export const runtime = "nodejs";
 
-export async function GET(request: Request) {
-  let url = new URL(request.url);
-  let title = url.searchParams.get("title") || "Portfolio";
-
+export async function GET() {
   async function loadGoogleFont(font: string) {
     const url = `https://fonts.googleapis.com/css2?family=${font}`;
     const css = await (await fetch(url)).text();
@@ -36,27 +33,13 @@ export async function GET(request: Request) {
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          gap: "1.5rem",
           flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
           fontStyle: "normal",
           color: "white",
         }}
       >
-        <span
-          style={{
-            padding: "0.5rem",
-            fontSize: "3.5rem",
-            lineHeight: "4rem",
-            letterSpacing: "-0.05em",
-            whiteSpace: "wrap",
-            textWrap: "balance",
-            overflow: "hidden",
-          }}
-        >
-          {title}
-        </span>
         <div
           style={{
             display: "flex",
