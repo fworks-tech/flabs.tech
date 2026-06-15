@@ -19,14 +19,14 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **Home** — Split hero with animated headline + CTAs, 3-column project grid, recent posts section
 - **Work** — Professional experience timeline: 7 companies across USA, Europe, and Brazil, plus education
 - **Projects** — 7 open-source projects with MDX detail pages and GitHub links: Agenthood, Driveline ELD, ApolloDroid, VeriHire, Jupyter Crypto Wizard, Fashionista, flabs.tech
-- **Posts** — Engineering blog with MDX posts on GraphQL Federation and multi-agent AI
+- **Blog** — Engineering blog with MDX posts on GraphQL Federation and multi-agent AI
 - **About** — Full professional bio, location, social links, and skill tags across Frontend · Backend & APIs · AI & Agents
 
 ### Technical
 - **Next.js 16** App Router with full TypeScript
 - **Once UI** design system — component-driven, SCSS Modules for overrides
 - **MDX** content pipeline for blog posts and project detail pages with gray-matter
-- **Dynamic OG images** via `next/og` — auto-generated for every page
+- **Dynamic OG images** via `next/og` — auto-generated for every page with 1200×630 (1.91:1)
 - **Profile photo favicon** generated server-side via `icon.tsx` (no binary files)
 - Deployed on **Vercel** with PR preview deployments
 
@@ -41,7 +41,33 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Language | TypeScript |
 | Content | MDX + gray-matter |
 | Styling | SCSS Modules |
+| Bundler | Turbopack |
 | Deployment | Vercel |
+
+---
+
+## Project structure
+
+```
+src/
+├── app/              # Next.js App Router (routes, API, layout)
+├── components/       # Presentational components by role
+│   ├── layout/       #   Header, Footer, Providers, RouteGuard
+│   ├── ui/           #   Mailchimp, HeadingLink, ProjectCard
+│   └── shared/       #   MDX renderer, shared utilities
+├── config/           # App configuration (Once UI, icons, barrel)
+├── content/          # Editorial data (bio, experience, MDX posts)
+│   ├── blog/         #   Blog post MDX files
+│   ├── work/         #   Work experience MDX files
+│   └── projects/     #   Project detail MDX files
+├── features/         # Domain-specific components (by page)
+├── hooks/            # Custom React hooks
+├── lib/              # Pure utility functions
+├── styles/           # Global SCSS/CSS
+└── types/            # Shared TypeScript types
+```
+
+Layered dependency rule: inner layers (`lib/`, `config/`) never import from outer layers (`features/`, `app/`).
 
 ---
 
@@ -60,10 +86,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | File | Purpose |
 |------|---------|
-| `src/resources/content.tsx` | Bio, work experience, skills, social links |
-| `src/resources/once-ui.config.ts` | Theme, colors, routes, SEO schema |
-| `src/app/blog/posts/*.mdx` | Blog posts |
-| `src/app/projects/projects/*.mdx` | Project detail pages |
+| `src/config/once-ui.config.ts` | Theme, colors, routes, SEO schema, newsletter |
+| `src/config/icons.ts` | Icon registry |
+| `src/content/index.tsx` | Bio, work experience, skills, social links |
+| `src/content/blog/*.mdx` | Blog posts |
+| `src/content/work/*.mdx` | Work experience entries |
+| `src/content/projects/*.mdx` | Project detail pages |
 
 ---
 

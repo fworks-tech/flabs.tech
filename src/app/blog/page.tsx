@@ -1,8 +1,9 @@
 import { Button, Column, Heading, Row, Tag, Text, Meta, Schema } from "@once-ui-system/core";
 import { Mailchimp } from "@/components";
-import { Posts } from "@/components/blog/Posts";
-import { baseURL, blog, person } from "@/resources";
-import { getPosts } from "@/utils/utils";
+import { Posts } from "@/features/blog/Posts";
+import { baseURL } from "@/config";
+import { blog, person } from "@/content";
+import { getPosts } from "@/lib/mdx";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -15,7 +16,7 @@ export async function generateMetadata() {
 }
 
 export default function Blog() {
-  const allPosts = getPosts(["src", "app", "blog", "posts"]);
+  const allPosts = getPosts(["src", "content", "blog"]);
   const hasPosts = allPosts.length > 0;
 
   const schema = (

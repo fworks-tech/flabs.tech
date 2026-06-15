@@ -8,10 +8,11 @@ import {
   Meta,
   SmartLink,
 } from "@once-ui-system/core";
-import { home, about, person, baseURL, routes } from "@/resources";
-import { getPosts } from "@/utils/utils";
-import { ProjectGrid } from "@/components/work/ProjectGrid";
-import { Posts } from "@/components/blog/Posts";
+import { baseURL, routes } from "@/config";
+import { home, about, person } from "@/content";
+import { getPosts } from "@/lib/mdx";
+import { ProjectGrid } from "@/features/work/ProjectGrid";
+import { Posts } from "@/features/blog/Posts";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -24,7 +25,7 @@ export async function generateMetadata() {
 }
 
 export default function Home() {
-  const hasBlogPosts = getPosts(["src", "app", "blog", "posts"]).length > 0;
+  const hasBlogPosts = getPosts(["src", "content", "blog"]).length > 0;
 
   return (
     <Column maxWidth="m" gap="xl" paddingY="12">

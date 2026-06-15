@@ -1,6 +1,6 @@
 import "@once-ui-system/core/css/styles.css";
 import "@once-ui-system/core/css/tokens.css";
-import "@/resources/custom.css";
+import "@/styles/custom.css";
 
 import classNames from "classnames";
 
@@ -14,8 +14,9 @@ import {
   SpacingToken,
 } from "@once-ui-system/core";
 import { Footer, Header, RouteGuard, Providers } from "@/components";
-import Particles from "@/components/Particles";
-import { baseURL, effects, fonts, style, dataStyle, home } from "@/resources";
+import Particles from "@/components/layout/Particles";
+import { baseURL, effects, fonts, style, dataStyle } from "@/config";
+import { home } from "@/content";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 

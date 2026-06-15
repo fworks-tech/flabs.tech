@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPosts } from "@/utils/utils";
+import { getPosts } from "@/lib/mdx";
 import {
   Meta,
   Schema,
@@ -13,14 +13,15 @@ import {
   Row,
   Line,
 } from "@once-ui-system/core";
-import { baseURL, about, person, projects } from "@/resources";
-import { formatDate } from "@/utils/formatDate";
+import { baseURL } from "@/config";
+import { about, person, projects } from "@/content";
+import { formatDate } from "@/lib/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components";
 import { Metadata } from "next";
-import { ProjectsList } from "@/components/work/ProjectsList";
+import { ProjectsList } from "@/features/projects/ProjectsList";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const posts = getPosts(["src", "app", "projects", "projects"]);
+  const posts = getPosts(["src", "content", "projects"]);
   return posts.map((post) => ({ slug: post.slug }));
 }
 
@@ -31,7 +32,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const routeParams = await params;
   const slugPath = Array.isArray(routeParams.slug) ? routeParams.slug.join("/") : routeParams.slug || "";
-  const posts = getPosts(["src", "app", "projects", "projects"]);
+  const posts = getPosts(["src", "content", "projects"]);
   const post = posts.find((p) => p.slug === slugPath);
   if (!post) return {};
   return Meta.generate({
@@ -50,7 +51,7 @@ export default async function ProjectDetail({
 }) {
   const routeParams = await params;
   const slugPath = Array.isArray(routeParams.slug) ? routeParams.slug.join("/") : routeParams.slug || "";
-  const post = getPosts(["src", "app", "projects", "projects"]).find((p) => p.slug === slugPath);
+  const post = getPosts(["src", "content", "projects"]).find((p) => p.slug === slugPath);
 
   if (!post) notFound();
 
