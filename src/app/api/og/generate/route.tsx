@@ -1,6 +1,6 @@
-import { ImageResponse } from "next/og";
 import { baseURL } from "@/config";
 import { person } from "@/content";
+import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
 
@@ -12,7 +12,7 @@ export async function GET() {
 
     if (resource) {
       const response = await fetch(resource[1]);
-      if (response.status == 200) {
+      if (response.status === 200) {
         return await response.arrayBuffer();
       }
     }
@@ -50,6 +50,7 @@ export async function GET() {
         >
           <img
             src={baseURL + person.avatar}
+            alt=""
             style={{
               width: "7rem",
               height: "7rem",

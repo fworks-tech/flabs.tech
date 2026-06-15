@@ -1,6 +1,6 @@
-import { Column, Row, Heading, Text, Meta, Schema, Tag, Line } from "@once-ui-system/core";
 import { baseURL } from "@/config";
 import { about, person, work, workExperience } from "@/content";
+import { Column, Heading, Line, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -43,17 +43,31 @@ export default function WorkPage() {
           <Column key={i} fillWidth gap="m">
             <Row fillWidth horizontal="between" vertical="start" wrap gap="8">
               <Column gap="4">
-                <Heading as="h2" variant="heading-strong-l">{exp.company}</Heading>
-                <Text variant="body-default-m" onBackground="brand-weak">{exp.role}</Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">{exp.location}</Text>
+                <Heading as="h2" variant="heading-strong-l">
+                  {exp.company}
+                </Heading>
+                <Text variant="body-default-m" onBackground="brand-weak">
+                  {exp.role}
+                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {exp.location}
+                </Text>
               </Column>
               <Tag size="m">{exp.timeframe}</Tag>
             </Row>
             <Column as="ul" gap="8" paddingLeft="m">
               {exp.achievements.map((item, j) => (
                 <Row key={j} as="li" gap="8" vertical="start">
-                  <Text as="span" onBackground="brand-weak" style={{ flexShrink: 0, marginTop: "2px" }}>–</Text>
-                  <Text variant="body-default-m" onBackground="neutral-weak">{item}</Text>
+                  <Text
+                    as="span"
+                    onBackground="brand-weak"
+                    style={{ flexShrink: 0, marginTop: "2px" }}
+                  >
+                    –
+                  </Text>
+                  <Text variant="body-default-m" onBackground="neutral-weak">
+                    {item}
+                  </Text>
                 </Row>
               ))}
             </Column>
@@ -63,12 +77,24 @@ export default function WorkPage() {
       </Column>
 
       <Column fillWidth gap="l" maxWidth="s" style={{ margin: "3rem auto 0" }}>
-        <Heading as="h2" variant="display-strong-s">Education</Heading>
+        <Heading as="h2" variant="display-strong-s">
+          Education
+        </Heading>
         {workExperience.education.map((edu, i) => (
-          <Row key={i} fillWidth horizontal="between" vertical="start" wrap gap="8" paddingBottom="m">
+          <Row
+            key={i}
+            fillWidth
+            horizontal="between"
+            vertical="start"
+            wrap
+            gap="8"
+            paddingBottom="m"
+          >
             <Column gap="4">
               <Text variant="heading-strong-m">{edu.institution}</Text>
-              <Text variant="body-default-m" onBackground="neutral-weak">{edu.degree}</Text>
+              <Text variant="body-default-m" onBackground="neutral-weak">
+                {edu.degree}
+              </Text>
             </Column>
             <Tag size="s">{edu.timeframe}</Tag>
           </Row>

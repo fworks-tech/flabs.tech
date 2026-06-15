@@ -4,19 +4,19 @@ import "@/styles/custom.css";
 
 import classNames from "classnames";
 
+import { Footer, Header, Providers, RouteGuard } from "@/components";
+import Particles from "@/components/layout/Particles";
+import { baseURL, dataStyle, effects, fonts, style } from "@/config";
+import { home } from "@/content";
 import {
   Background,
   Column,
   Flex,
   Meta,
-  opacity,
   RevealFx,
-  SpacingToken,
+  type SpacingToken,
+  type opacity,
 } from "@once-ui-system/core";
-import { Footer, Header, RouteGuard, Providers } from "@/components";
-import Particles from "@/components/layout/Particles";
-import { baseURL, effects, fonts, style, dataStyle } from "@/config";
-import { home } from "@/content";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 

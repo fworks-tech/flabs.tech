@@ -1,18 +1,9 @@
-import {
-  Heading,
-  Text,
-  Button,
-  Column,
-  Row,
-  Schema,
-  Meta,
-  SmartLink,
-} from "@once-ui-system/core";
 import { baseURL, routes } from "@/config";
-import { home, about, person } from "@/content";
-import { getPosts } from "@/lib/mdx";
-import { ProjectGrid } from "@/features/work/ProjectGrid";
+import { about, home, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
+import { ProjectGrid } from "@/features/work/ProjectGrid";
+import { getPosts } from "@/lib/mdx";
+import { Button, Column, Heading, Meta, Row, Schema, SmartLink, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -44,20 +35,12 @@ export default function Home() {
       />
 
       {/* Hero: split layout — text left, avatar right */}
-      <Row
-        fillWidth
-        gap="xl"
-        vertical="center"
-        paddingY="64"
-        s={{ direction: "column", gap: "l" }}
-      >
+      <Row fillWidth gap="xl" vertical="center" paddingY="64" s={{ direction: "column", gap: "l" }}>
         <Column flex={5} gap="l">
           <Text variant="label-default-m" onBackground="neutral-weak">
             Senior Full-Stack Engineer · Joinville, Brazil
           </Text>
-          <Heading variant="display-strong-xl">
-            {home.headline}
-          </Heading>
+          <Heading variant="display-strong-xl">{home.headline}</Heading>
           <Text variant="body-default-l" onBackground="neutral-weak">
             {home.subline}
           </Text>
@@ -70,7 +53,6 @@ export default function Home() {
             </Button>
           </Row>
         </Column>
-
       </Row>
 
       {/* Recent Work */}

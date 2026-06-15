@@ -1,5 +1,5 @@
-import { Row, IconButton, Text } from "@once-ui-system/core";
 import { person, social } from "@/content";
+import { IconButton, Row, Text } from "@once-ui-system/core";
 import styles from "./Footer.module.scss";
 
 export const Footer = () => {

@@ -8,7 +8,7 @@
 /* :root {
   /*
   /* Override default variables here */
-  /*
+/*
   --font-size-display-multiplier:   1;
   --font-size-heading-multiplier:   1;
   --font-size-body-multiplier:      1;
@@ -23,8 +23,8 @@
 
   /*
   /* Example setup for custom colors */
-  /* Generate at: https://once-ui.com/customize */
-  /*
+/* Generate at: https://once-ui.com/customize */
+/*
   --scheme-brand-100: #08002f;
   --scheme-brand-200:  #04025c;
   --scheme-brand-300:  #1f398e;
@@ -78,18 +78,12 @@
 /* ─── Neon animations ─────────────────────────────────────────── */
 
 @keyframes neon-pulse-indigo {
-  0%, 100% {
-    text-shadow:
-      0 0 4px #a5b4fc,
-      0 0 16px #818cf8,
-      0 0 28px #6366f1,
-      0 0 40px #6366f1;
+  0%,
+  100% {
+    text-shadow: 0 0 4px #a5b4fc, 0 0 16px #818cf8, 0 0 28px #6366f1, 0 0 40px #6366f1;
   }
   50% {
-    text-shadow:
-      0 0 2px #a5b4fc,
-      0 0 8px #818cf8,
-      0 0 14px #6366f1;
+    text-shadow: 0 0 2px #a5b4fc, 0 0 8px #818cf8, 0 0 14px #6366f1;
   }
 }
 
@@ -106,16 +100,11 @@
 
 .neon-cta-wrap {
   border-radius: 1rem;
-  box-shadow:
-    0 0 6px #818cf8,
-    0 0 14px #6366f1;
+  box-shadow: 0 0 6px #818cf8, 0 0 14px #6366f1;
   transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .neon-cta-wrap:hover {
-  box-shadow:
-    0 0 10px #a5b4fc,
-    0 0 24px #818cf8,
-    0 0 40px #6366f1;
+  box-shadow: 0 0 10px #a5b4fc, 0 0 24px #818cf8, 0 0 40px #6366f1;
   transform: scale(1.04);
 }

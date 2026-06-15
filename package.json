@@ -7,7 +7,7 @@
     "build": "next build",
     "biome-write": "npx @biomejs/biome format --write .",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "npx @biomejs/biome check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -41,6 +41,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9.25.0",
+    "eslint-config-next": "^16.2.9",
     "jsdom": "^29.1.1",
     "typescript": "^5.8.3",
     "tzdata": "^1.0.44",

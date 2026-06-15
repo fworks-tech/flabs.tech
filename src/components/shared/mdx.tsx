@@ -1,30 +1,31 @@
-import { MDXRemote, MDXRemoteProps } from "next-mdx-remote/rsc";
-import React, { ReactNode } from "react";
+import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
+import type React from "react";
+import type { ReactNode } from "react";
 import { slugify as transliterate } from "transliteration";
 
 import {
-  Heading,
-  HeadingLink,
-  Text,
-  InlineCode,
-  CodeBlock,
-  TextProps,
-  MediaProps,
   Accordion,
   AccordionGroup,
-  Table,
-  Feedback,
   Button,
   Card,
-  Grid,
-  Row,
+  CodeBlock,
   Column,
+  Feedback,
+  Grid,
+  Heading,
+  HeadingLink,
   Icon,
-  Media,
-  SmartLink,
+  InlineCode,
+  Line,
   List,
   ListItem,
-  Line,
+  Media,
+  type MediaProps,
+  Row,
+  SmartLink,
+  Table,
+  Text,
+  type TextProps,
 } from "@once-ui-system/core";
 
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -123,7 +124,7 @@ function createInlineCode({ children }: { children: ReactNode }) {
 
 function createCodeBlock(props: any) {
   // For pre tags that contain code blocks
-  if (props.children && props.children.props && props.children.props.className) {
+  if (props.children?.props?.className) {
     const { className, children } = props.children.props;
 
     // Extract language from className (format: language-xxx)
@@ -209,5 +210,11 @@ type CustomMDXProps = MDXRemoteProps & {
 };
 
 export function CustomMDX(props: CustomMDXProps) {
-  return <MDXRemote options={{ blockJS: false }} {...props} components={{ ...components, ...(props.components || {}) }} />;
+  return (
+    <MDXRemote
+      options={{ blockJS: false }}
+      {...props}
+      components={{ ...components, ...(props.components || {}) }}
+    />
+  );
 }

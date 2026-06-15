@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, Column, Media, Row, Avatar, Text } from "@once-ui-system/core";
-import { formatDate } from "@/lib/formatDate";
 import { person } from "@/content";
+import { formatDate } from "@/lib/formatDate";
+import { Avatar, Card, Column, Media, Row, Text } from "@once-ui-system/core";
 
 interface PostProps {
   post: any;
@@ -33,7 +33,7 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
           cursor="interactive"
           radius="l"
           src={post.metadata.image}
-          alt={"Thumbnail of " + post.metadata.title}
+          alt={`Thumbnail of ${post.metadata.title}`}
           aspectRatio="16 / 9"
         />
       )}

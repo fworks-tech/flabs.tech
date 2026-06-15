@@ -1,6 +1,6 @@
 "use client";
-import React, { useRef, useEffect, useCallback } from "react";
 import { useMousePosition } from "@/hooks/useMousePosition";
+import React, { useRef, useEffect, useCallback } from "react";
 
 interface Circle {
   x: number;
@@ -60,27 +60,30 @@ export default function Particles({
     const translateY = 0;
     const size = Math.floor(Math.random() * 2) + 0.1;
     const alpha = 0;
-    const targetAlpha = parseFloat((Math.random() * 0.6 + 0.1).toFixed(1));
+    const targetAlpha = Number.parseFloat((Math.random() * 0.6 + 0.1).toFixed(1));
     const dx = (Math.random() - 0.5) * 0.2;
     const dy = (Math.random() - 0.5) * 0.2;
     const magnetism = 0.1 + Math.random() * 4;
     return { x, y, translateX, translateY, size, alpha, targetAlpha, dx, dy, magnetism };
   };
 
-  const drawCircle = useCallback((circle: Circle, update = false) => {
-    if (context.current) {
-      const { x, y, translateX, translateY, size, alpha } = circle;
-      context.current.translate(translateX, translateY);
-      context.current.beginPath();
-      context.current.arc(x, y, size, 0, 2 * Math.PI);
-      context.current.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-      context.current.fill();
-      context.current.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (!update) {
-        circles.current.push(circle);
+  const drawCircle = useCallback(
+    (circle: Circle, update = false) => {
+      if (context.current) {
+        const { x, y, translateX, translateY, size, alpha } = circle;
+        context.current.translate(translateX, translateY);
+        context.current.beginPath();
+        context.current.arc(x, y, size, 0, 2 * Math.PI);
+        context.current.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        context.current.fill();
+        context.current.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!update) {
+          circles.current.push(circle);
+        }
       }
-    }
-  }, [dpr]);
+    },
+    [dpr],
+  );
 
   const clearContext = useCallback(() => {
     if (context.current) {
@@ -99,7 +102,13 @@ export default function Particles({
     }
   }, [quantity, drawCircle, resizeCanvas]);
 
-  const remapValue = (value: number, start1: number, end1: number, start2: number, end2: number) => {
+  const remapValue = (
+    value: number,
+    start1: number,
+    end1: number,
+    start2: number,
+    end2: number,
+  ) => {
     const remapped = ((value - start1) * (end2 - start2)) / (end1 - start1) + start2;
     return remapped > 0 ? remapped : 0;
   };
@@ -114,7 +123,7 @@ export default function Particles({
         canvasSize.current.h - circle.y - circle.translateY - circle.size,
       ];
       const closestEdge = edge.reduce((a, b) => Math.min(a, b));
-      const remapClosestEdge = parseFloat(remapValue(closestEdge, 0, 20, 0, 1).toFixed(2));
+      const remapClosestEdge = Number.parseFloat(remapValue(closestEdge, 0, 20, 0, 1).toFixed(2));
       if (remapClosestEdge > 1) {
         circle.alpha += 0.02;
         if (circle.alpha > circle.targetAlpha) circle.alpha = circle.targetAlpha;
@@ -123,8 +132,10 @@ export default function Particles({
       }
       circle.x += circle.dx;
       circle.y += circle.dy;
-      circle.translateX += (mouse.current.x / (staticity / circle.magnetism) - circle.translateX) / ease;
-      circle.translateY += (mouse.current.y / (staticity / circle.magnetism) - circle.translateY) / ease;
+      circle.translateX +=
+        (mouse.current.x / (staticity / circle.magnetism) - circle.translateX) / ease;
+      circle.translateY +=
+        (mouse.current.y / (staticity / circle.magnetism) - circle.translateY) / ease;
 
       if (
         circle.x < -circle.size ||
@@ -165,7 +176,12 @@ export default function Particles({
   }, [mousePosition]);
 
   return (
-    <div ref={canvasContainerRef} aria-hidden="true" style={{ width: "100%", height: "100%" }} className={className}>
+    <div
+      ref={canvasContainerRef}
+      aria-hidden="true"
+      style={{ width: "100%", height: "100%" }}
+      className={className}
+    >
       <canvas ref={canvasRef} />
     </div>
   );
