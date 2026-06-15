@@ -40,7 +40,7 @@ const social: Social = [
 
 const home: Home = {
   path: "/",
-  image: `/api/og/generate?title=${encodeURIComponent("Fabio Ritzel Borges")}`,
+  image: `/api/og/generate`,
   label: "Home",
   title: `${person.name}'s Portfolio`,
   description: `Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.`,

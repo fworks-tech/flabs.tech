@@ -26,6 +26,7 @@ export async function generateMetadata() {
     baseURL: baseURL,
     path: home.path,
     image: home.image,
+    canonical: baseURL,
   });
 
   return {
@@ -33,6 +34,13 @@ export async function generateMetadata() {
     openGraph: {
       ...(meta.openGraph || {}),
       siteName: "flabs.tech",
+      images: [
+        {
+          url: home.image,
+          width: 1200,
+          height: 630,
+        },
+      ],
     },
   };
 }
