@@ -20,13 +20,21 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export async function generateMetadata() {
-  return Meta.generate({
+  const meta = Meta.generate({
     title: home.title,
     description: home.description,
     baseURL: baseURL,
     path: home.path,
     image: home.image,
   });
+
+  return {
+    ...meta,
+    openGraph: {
+      ...(meta.openGraph || {}),
+      siteName: "flabs.tech",
+    },
+  };
 }
 
 export default async function RootLayout({
