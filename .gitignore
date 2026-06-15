@@ -35,3 +35,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.tstest-results/
 test-results/
+
+*storybook.log
+storybook-static
+storybook-static/
+Githubfworks-tech-profile/
