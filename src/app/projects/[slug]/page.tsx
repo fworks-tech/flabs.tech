@@ -1,24 +1,24 @@
-import { notFound } from "next/navigation";
+import { CustomMDX, ScrollToHash } from "@/components";
+import { baseURL } from "@/config";
+import { about, person, projects } from "@/content";
+import { ProjectsList } from "@/features/projects/ProjectsList";
+import { formatDate } from "@/lib/formatDate";
 import { getPosts } from "@/lib/mdx";
 import {
-  Meta,
-  Schema,
   AvatarGroup,
   Button,
   Column,
   Heading,
-  Media,
-  Text,
-  SmartLink,
-  Row,
   Line,
+  Media,
+  Meta,
+  Row,
+  Schema,
+  SmartLink,
+  Text,
 } from "@once-ui-system/core";
-import { baseURL } from "@/config";
-import { about, person, projects } from "@/content";
-import { formatDate } from "@/lib/formatDate";
-import { ScrollToHash, CustomMDX } from "@/components";
-import { Metadata } from "next";
-import { ProjectsList } from "@/features/projects/ProjectsList";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const posts = getPosts(["src", "content", "projects"]);
@@ -31,7 +31,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string | string[] }>;
 }): Promise<Metadata> {
   const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug) ? routeParams.slug.join("/") : routeParams.slug || "";
+  const slugPath = Array.isArray(routeParams.slug)
+    ? routeParams.slug.join("/")
+    : routeParams.slug || "";
   const posts = getPosts(["src", "content", "projects"]);
   const post = posts.find((p) => p.slug === slugPath);
   if (!post) return {};
@@ -50,7 +52,9 @@ export default async function ProjectDetail({
   params: Promise<{ slug: string | string[] }>;
 }) {
   const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug) ? routeParams.slug.join("/") : routeParams.slug || "";
+  const slugPath = Array.isArray(routeParams.slug)
+    ? routeParams.slug.join("/")
+    : routeParams.slug || "";
   const post = getPosts(["src", "content", "projects"]).find((p) => p.slug === slugPath);
 
   if (!post) notFound();
@@ -67,7 +71,9 @@ export default async function ProjectDetail({
         description={post.metadata.summary}
         datePublished={post.metadata.publishedAt}
         dateModified={post.metadata.publishedAt}
-        image={post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`}
+        image={
+          post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
+        }
         author={{
           name: person.name,
           url: `${baseURL}${about.path}`,

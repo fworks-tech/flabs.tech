@@ -1,17 +1,17 @@
+import { baseURL } from "@/config";
+import { about, person, social } from "@/content";
 import {
   Avatar,
   Button,
   Column,
   Heading,
   Icon,
+  Meta,
+  Row,
+  Schema,
   Tag,
   Text,
-  Meta,
-  Schema,
-  Row,
 } from "@once-ui-system/core";
-import { baseURL } from "@/config";
-import { about, person, social } from "@/content";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -47,11 +47,7 @@ export default function About() {
           <Heading variant="display-strong-xl" align="center">
             {person.name}
           </Heading>
-          <Text
-            variant="display-default-xs"
-            onBackground="neutral-weak"
-            align="center"
-          >
+          <Text variant="display-default-xs" onBackground="neutral-weak" align="center">
             {person.role}
           </Text>
           <Row gap="8" vertical="center" paddingTop="4">
@@ -61,9 +57,13 @@ export default function About() {
             </Text>
             {person.languages && person.languages.length > 0 && (
               <>
-                <Text variant="body-default-s" onBackground="neutral-weak">·</Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  ·
+                </Text>
                 {person.languages.map((lang, i) => (
-                  <Tag key={i} size="s">{lang}</Tag>
+                  <Tag key={i} size="s">
+                    {lang}
+                  </Tag>
                 ))}
               </>
             )}
@@ -94,13 +94,7 @@ export default function About() {
 
       {/* Introduction */}
       {about.intro.display && (
-        <Column
-          textVariant="body-default-l"
-          fillWidth
-          gap="m"
-          maxWidth="s"
-          align="center"
-        >
+        <Column textVariant="body-default-l" fillWidth gap="m" maxWidth="s" align="center">
           {about.intro.description}
         </Column>
       )}
@@ -120,11 +114,7 @@ export default function About() {
               {skill.tags && skill.tags.length > 0 && (
                 <Row wrap gap="8" paddingTop="8">
                   {skill.tags.map((tag, tagIndex) => (
-                    <Tag
-                      key={`${skill.title}-${tagIndex}`}
-                      size="l"
-                      prefixIcon={tag.icon}
-                    >
+                    <Tag key={`${skill.title}-${tagIndex}`} size="l" prefixIcon={tag.icon}>
                       {tag.name}
                     </Tag>
                   ))}

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getPosts } from "@/lib/mdx";
+import Link from "next/link";
 import styles from "./ProjectGrid.module.scss";
 
 interface ProjectGridProps {
@@ -11,33 +11,28 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
   let allProjects = getPosts(["src", "content", "work"]);
 
   if (exclude?.length) {
-    allProjects = allProjects.filter((p) => !exclude!.includes(p.slug));
+    allProjects = allProjects.filter((p) => !exclude.includes(p.slug));
   }
 
   const sorted = allProjects.sort(
     (a, b) =>
-      new Date(b.metadata.publishedAt).getTime() -
-      new Date(a.metadata.publishedAt).getTime(),
+      new Date(b.metadata.publishedAt).getTime() - new Date(a.metadata.publishedAt).getTime(),
   );
 
-  const displayed = range
-    ? sorted.slice(range[0] - 1, range[1] ?? sorted.length)
-    : sorted;
+  const displayed = range ? sorted.slice(range[0] - 1, range[1] ?? sorted.length) : sorted;
 
   return (
     <div className={styles.grid}>
       {displayed.map((post) => {
-        const tag = (post.metadata.tag || "")
-          .toLowerCase()
-          .replace(/[^a-z]/g, "-");
+        const tag = (post.metadata.tag || "").toLowerCase().replace(/[^a-z]/g, "-");
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
-        
+
         // Validate external links to prevent XSS - only allow http/https
         let href = `/work/${post.slug}`;
-        if (post.metadata.link && typeof post.metadata.link === 'string') {
+        if (post.metadata.link && typeof post.metadata.link === "string") {
           try {
             const url = new URL(post.metadata.link);
-            if (url.protocol === 'http:' || url.protocol === 'https:') {
+            if (url.protocol === "http:" || url.protocol === "https:") {
               // Safe URL after validation
               href = url.href;
             }
@@ -47,12 +42,14 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
         }
 
         // Sanitize slug for use as key
-        const safeSlug = String(post.slug).replace(/[^a-z0-9-_]/gi, '');
-        
+        const safeSlug = String(post.slug).replace(/[^a-z0-9-_]/gi, "");
+
         // Get tags - prefer 'tags' array, fall back to 'tag'
-        const projectTags = Array.isArray(post.metadata.tags) 
-          ? post.metadata.tags 
-          : (post.metadata.tag ? [post.metadata.tag] : []);
+        const projectTags = Array.isArray(post.metadata.tags)
+          ? post.metadata.tags
+          : post.metadata.tag
+            ? [post.metadata.tag]
+            : [];
 
         return (
           <Link key={safeSlug} href={href} className={styles.tile}>

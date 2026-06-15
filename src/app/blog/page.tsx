@@ -1,9 +1,9 @@
-import { Button, Column, Heading, Row, Tag, Text, Meta, Schema } from "@once-ui-system/core";
 import { Mailchimp } from "@/components";
-import { Posts } from "@/features/blog/Posts";
 import { baseURL } from "@/config";
 import { blog, person } from "@/content";
+import { Posts } from "@/features/blog/Posts";
 import { getPosts } from "@/lib/mdx";
+import { Button, Column, Heading, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -43,13 +43,9 @@ export default function Blog() {
           <Heading variant="display-strong-l" align="center">
             Blog
           </Heading>
-          <Text
-            variant="body-default-l"
-            onBackground="neutral-weak"
-            align="center"
-            wrap="balance"
-          >
-            Real-world notes on software engineering — architecture, frontend, backend, AI, DevOps, and everything in between.
+          <Text variant="body-default-l" onBackground="neutral-weak" align="center" wrap="balance">
+            Real-world notes on software engineering — architecture, frontend, backend, AI, DevOps,
+            and everything in between.
           </Text>
         </Column>
         <Row gap="12" wrap horizontal="center">

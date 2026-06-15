@@ -1,4 +1,4 @@
-import { About, Blog, Home, Newsletter, Person, Social, Work } from "@/types";
+import type { About, Blog, Home, Newsletter, Person, Social, Work } from "@/types";
 
 const person: Person = {
   firstName: "Fabio",
@@ -14,7 +14,12 @@ const person: Person = {
 const newsletter: Newsletter = {
   display: true,
   title: <>Stay in the loop</>,
-  description: <>Newsletter coming soon — stay tuned for updates on engineering, AI agents, and building production systems.</>,
+  description: (
+    <>
+      Newsletter coming soon — stay tuned for updates on engineering, AI agents, and building
+      production systems.
+    </>
+  ),
 };
 
 const social: Social = [
@@ -40,24 +45,26 @@ const social: Social = [
 
 const home: Home = {
   path: "/",
-  image: `/api/og/generate`,
+  image: "/api/og/generate",
   label: "Home",
   title: `${person.name}'s Portfolio`,
-  description: `Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.`,
+  description:
+    "Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.",
   headline: "Hey there, I'm Fabio Borges",
   featured: {
     display: false,
     title: <></>,
     href: "/projects",
   },
-  subline: "I design and build production-ready GraphQL APIs, federated backends, and autonomous AI agent frameworks.",
+  subline:
+    "I design and build production-ready GraphQL APIs, federated backends, and autonomous AI agent frameworks.",
 };
 
 const about: About = {
   path: "/about",
   label: "About",
   title: `About – ${person.name}`,
-  description: `Senior Full-Stack Engineer & AI Systems Architect from Joinville, Brazil.`,
+  description: "Senior Full-Stack Engineer & AI Systems Architect from Joinville, Brazil.",
   tableOfContent: {
     display: false,
     subItems: false,
@@ -77,26 +84,29 @@ const about: About = {
         I'm a Senior Full‑Stack Engineer & AI Systems Architect with 10+ years of experience across
         frontend, backend, and testing. I've shipped products for companies in the US, Europe, and
         Brazil, always balancing solid architecture with real‑world delivery.
-        <br /><br />
+        <br />
+        <br />
         On the backend, I design and build production GraphQL APIs and federated architectures with
         TypeScript and Node.js. At BairesDev I've engineered AI‑powered checkout systems for major
         US telecom partners using Apollo Federation and WunderGraph, handling 1,000+ transactions
         per day with CI‑enforced contracts and New Relic observability end‑to‑end.
-        <br /><br />
+        <br />
+        <br />
         On the frontend, I have deep experience building modern React and Next.js applications for
         e‑commerce, enterprise dashboards, and complex form workflows. I've led Core Web Vitals and
         SEO improvements, implemented WCAG 2.1 AA accessibility, and created reusable component
         systems using TypeScript, Storybook, Jest, and Playwright.
-        <br /><br />
-        I also build agentic AI systems and tooling. Agenthood is my open‑source multi‑agent
-        framework where 14 specialized agents enforce engineering standards, review code and commits,
-        manage multi‑tier memory, and continuously improve via eval‑driven feedback loops. Other
-        projects like ApolloDroid, Driveline ELD, and VeriHire explore how to bring LLMs into real
-        products with the same discipline I apply to production web systems.
-        <br /><br />
+        <br />
+        <br />I also build agentic AI systems and tooling. Agenthood is my open‑source multi‑agent
+        framework where 14 specialized agents enforce engineering standards, review code and
+        commits, manage multi‑tier memory, and continuously improve via eval‑driven feedback loops.
+        Other projects like ApolloDroid, Driveline ELD, and VeriHire explore how to bring LLMs into
+        real products with the same discipline I apply to production web systems.
+        <br />
+        <br />
         My best work happens where scalable GraphQL backends, high‑quality React frontends, and AI
-        agents meet — designing contracts, building the systems behind them, and shaping the UX
-        that teams and users actually rely on every day.
+        agents meet — designing contracts, building the systems behind them, and shaping the UX that
+        teams and users actually rely on every day.
       </>
     ),
   },
@@ -274,7 +284,8 @@ const work: Work = {
   path: "/work",
   label: "Work",
   title: "Work Experience",
-  description: `10+ years across USA, Europe, and Brazil — TypeScript, GraphQL, React, and AI systems`,
+  description:
+    "10+ years across USA, Europe, and Brazil — TypeScript, GraphQL, React, and AI systems",
 };
 
 const projects: Work = {

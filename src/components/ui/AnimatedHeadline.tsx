@@ -22,7 +22,7 @@ export function AnimatedHeadline({ text, className }: AnimatedHeadlineProps) {
     <span className={[styles.wrapper, className].filter(Boolean).join(" ")} aria-label={text}>
       {chars.map((char, i) => (
         <span
-          key={i}
+          key={`${char}-${i}`}
           className={styles.char}
           style={{
             animationDelay: visible ? `${i * 55}ms` : undefined,
@@ -32,7 +32,7 @@ export function AnimatedHeadline({ text, className }: AnimatedHeadlineProps) {
           data-visible={visible ? "true" : undefined}
           aria-hidden="true"
         >
-          {char === " " ? " " : char}
+          {char === " " ? "\u00A0" : char}
         </span>
       ))}
     </span>

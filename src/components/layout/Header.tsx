@@ -1,13 +1,13 @@
 "use client";
 
+import { Flex, Row, ToggleButton } from "@once-ui-system/core";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Flex, Row, ToggleButton } from "@once-ui-system/core";
 
-import { routes, display } from "@/config";
-import { person, about, blog, work, projects } from "@/content";
-import { ThemeToggle } from "./ThemeToggle";
+import { display, routes } from "@/config";
+import { about, blog, person, projects, work } from "@/content";
 import styles from "./Header.module.scss";
+import { ThemeToggle } from "./ThemeToggle";
 
 type TimeDisplayProps = {
   timeZone: string;
@@ -73,30 +73,54 @@ export const Header = () => {
         {routes["/work"] && (
           <div className={styles.navItem}>
             <Row s={{ hide: true }}>
-              <ToggleButton href="/work" label={work.label} selected={pathname.startsWith("/work")} />
+              <ToggleButton
+                href="/work"
+                label={work.label}
+                selected={pathname.startsWith("/work")}
+              />
             </Row>
             <Row hide s={{ hide: false }}>
-              <ToggleButton prefixIcon="grid" href="/work" selected={pathname.startsWith("/work")} />
+              <ToggleButton
+                prefixIcon="grid"
+                href="/work"
+                selected={pathname.startsWith("/work")}
+              />
             </Row>
           </div>
         )}
         {routes["/projects"] && (
           <div className={styles.navItem}>
             <Row s={{ hide: true }}>
-              <ToggleButton href="/projects" label={projects.label} selected={pathname.startsWith("/projects")} />
+              <ToggleButton
+                href="/projects"
+                label={projects.label}
+                selected={pathname.startsWith("/projects")}
+              />
             </Row>
             <Row hide s={{ hide: false }}>
-              <ToggleButton prefixIcon="code" href="/projects" selected={pathname.startsWith("/projects")} />
+              <ToggleButton
+                prefixIcon="code"
+                href="/projects"
+                selected={pathname.startsWith("/projects")}
+              />
             </Row>
           </div>
         )}
         {routes["/blog"] && (
           <div className={styles.navItem}>
             <Row s={{ hide: true }}>
-              <ToggleButton href="/blog" label={blog.label} selected={pathname.startsWith("/blog")} />
+              <ToggleButton
+                href="/blog"
+                label={blog.label}
+                selected={pathname.startsWith("/blog")}
+              />
             </Row>
             <Row hide s={{ hide: false }}>
-              <ToggleButton prefixIcon="book" href="/blog" selected={pathname.startsWith("/blog")} />
+              <ToggleButton
+                prefixIcon="book"
+                href="/blog"
+                selected={pathname.startsWith("/blog")}
+              />
             </Row>
           </div>
         )}

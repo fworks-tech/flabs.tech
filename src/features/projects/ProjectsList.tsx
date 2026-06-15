@@ -1,6 +1,6 @@
+import { ProjectCard } from "@/components";
 import { getPosts } from "@/lib/mdx";
 import { Column } from "@once-ui-system/core";
-import { ProjectCard } from "@/components";
 
 interface ProjectsListProps {
   range?: [number, number?];
@@ -11,11 +11,12 @@ export function ProjectsList({ range, exclude }: ProjectsListProps) {
   let allProjects = getPosts(["src", "content", "projects"]);
 
   if (exclude?.length) {
-    allProjects = allProjects.filter((p) => !exclude!.includes(p.slug));
+    allProjects = allProjects.filter((p) => !exclude.includes(p.slug));
   }
 
   const sorted = allProjects.sort(
-    (a, b) => new Date(b.metadata.publishedAt).getTime() - new Date(a.metadata.publishedAt).getTime(),
+    (a, b) =>
+      new Date(b.metadata.publishedAt).getTime() - new Date(a.metadata.publishedAt).getTime(),
   );
 
   const displayed = range ? sorted.slice(range[0] - 1, range[1] ?? sorted.length) : sorted;
