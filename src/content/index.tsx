@@ -57,7 +57,7 @@ const home: Home = {
     href: "/projects",
   },
   subline:
-    "I design and build production-ready GraphQL APIs, federated backends, and autonomous AI agent frameworks.",
+    "I'm a Senior Full-Stack & AI Engineer with 10+ years of experience across frontend, backend, and testing. I've shipped products for companies in the US, Europe, and Brazil, always balancing solid architecture with real‑world delivery.",
 };
 
 const about: About = {
