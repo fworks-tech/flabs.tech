@@ -9,7 +9,6 @@ export {
   work,
   projects,
   workExperience,
-  gallery,
 } from "./content";
 
 export {
