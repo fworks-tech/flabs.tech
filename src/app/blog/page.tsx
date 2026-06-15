@@ -48,7 +48,7 @@ export default function Blog() {
             align="center"
             wrap="balance"
           >
-            Real-world notes on building GraphQL APIs, AI agent systems, and production software — from architecture decisions to things that broke in staging.
+            Real-world notes on software engineering — architecture, frontend, backend, AI, DevOps, and everything in between.
           </Text>
         </Column>
         <Row gap="12" wrap horizontal="center">

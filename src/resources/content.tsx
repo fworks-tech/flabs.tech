@@ -267,7 +267,7 @@ const blog: Blog = {
   path: "/blog",
   label: "Blog",
   title: "Blog",
-  description: `Thoughts on engineering, GraphQL, and agentic AI from ${person.name}`,
+  description: `Thoughts on software engineering and technology from ${person.name}`,
 };
 
 const work: Work = {
