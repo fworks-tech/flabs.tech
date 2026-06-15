@@ -4,15 +4,13 @@ function createComponent(displayName: string) {
   const Component = React.forwardRef<HTMLElement, any>(({ children, ...props }, ref) => {
     const { as, href, onClick, ...rest } = props;
     const Tag = as || "div";
-    const extra: Record<string, any> = {};
-    if (href) extra.href = href;
-    if (onClick) extra.onClick = onClick;
     return (
       <Tag
         ref={ref}
         data-testid={displayName}
-        data-props={JSON.stringify(rest)}
-        {...extra}
+        {...rest}
+        {...(href ? { href } : {})}
+        {...(onClick ? { onClick } : {})}
       >
         {children}
       </Tag>
