@@ -1,0 +1,87 @@
+name: Bug Report
+description: Report a bug to help us improve
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Existing Issue Check
+      description: Please search existing issues first.
+      options:
+        - label: I have searched existing issues
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Bug Description
+      description: A clear description of the bug.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: Describe expected behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe actual behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Low - Minor inconvenience
+        - Medium - Some functionality affected
+        - High - Major functionality broken
+        - Critical - Site unusable
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Environment
+      description: OS, browser, device, etc.
+      placeholder: |
+        - OS: Windows 11
+        - Browser: Chrome 125
+        - Device: Desktop
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots.
+      placeholder: Drag and drop images here...
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Additional Context
+      description: Any other relevant info.
+      placeholder: Add context...
+    validations:
+      required: false
