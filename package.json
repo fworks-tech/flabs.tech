@@ -14,6 +14,7 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:chrome": "npx playwright test --project=chromium",
+    "test:e2e:ci": "npx playwright test --project=chromium --grep-invert \"visual snapshots\"",
     "test:e2e:update-snapshots": "npx playwright test --update-snapshots --project=chromium",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
