@@ -42,6 +42,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Content | MDX + gray-matter |
 | Styling | SCSS Modules |
 | Bundler | Turbopack |
+| Testing | Vitest 4 · Playwright |
 | Deployment | Vercel |
 
 ---
@@ -84,20 +85,59 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Testing
 
+### Unit tests
+
 | Command | Description |
 |---------|-------------|
 | `npm test` | Run all unit tests |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with v8 coverage report |
 
-**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 50 tests
 
 **Convention:** Tests live in `__tests__/` directories next to the files they cover.
 
 ```
-src/lib/mdx.ts          → src/lib/__tests__/mdx.test.ts
-src/hooks/useMousePosition.ts → src/hooks/__tests__/useMousePosition.test.ts
+src/lib/mdx.ts                     → src/lib/__tests__/mdx.test.ts
+src/hooks/useMousePosition.ts      → src/hooks/__tests__/useMousePosition.test.ts
 src/components/ui/AnimatedHeadline.tsx → src/components/ui/__tests__/AnimatedHeadline.test.tsx
+```
+
+### E2E tests
+
+| Command | Description |
+|---------|-------------|
+| `npm run test:e2e` | Run all E2E tests |
+| `npm run test:e2e:ui` | Interactive UI mode |
+| `npm run test:e2e:chrome` | Chromium only |
+| `npm run test:e2e:update-snapshots` | Update visual baselines |
+
+**Stack:** Playwright 1.x · axe-core · 37 tests — navigation, pages, a11y, visual snapshots
+
+**Browsers:** Chromium + WebKit (local) · Chromium only (CI)
+
+**Structure:**
+```
+e2e/
+├── navigation.spec.ts       # Header links, click nav, 404
+├── accessibility.spec.ts    # axe-core WCAG 2.1 AA scans
+├── smoke.spec.ts            # All routes return 200
+├── pages/
+│   ├── home.spec.ts         # Title, favicon, OG meta
+│   ├── about.spec.ts        # Title, social links
+│   ├── blog.spec.ts         # Listing, post nav
+│   ├── work.spec.ts         # Timeline
+│   └── projects.spec.ts     # Grid, detail nav
+└── screenshots/
+    └── pages.spec.ts        # Full-page desktop snapshots
+```
+
+### CI pipeline
+
+```
+push/PR to main
+  ├── test job: npm install → lint → vitest
+  └── e2e job: npm install → playwright install chromium → playwright test
 ```
 
 **Mocks:** Centralized in `__mocks__/` at project root:
