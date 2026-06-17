@@ -16,4 +16,12 @@ describe("ThemeToggle", () => {
     render(<ThemeToggle />);
     expect(screen.getByTestId("ToggleButton")).toHaveAttribute("aria-label");
   });
+
+  it("handles click without crashing", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const ue = userEvent.setup();
+    render(<ThemeToggle />);
+    await ue.click(screen.getByTestId("ToggleButton"));
+    expect(screen.getByTestId("ToggleButton")).toBeInTheDocument();
+  });
 });

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@once-ui-system/core");
@@ -41,5 +42,25 @@ describe("HeadingLink", () => {
       </HeadingLink>,
     );
     expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute("id", "custom-id");
+  });
+
+  it("handles click without crashing", async () => {
+    const user = userEvent.setup();
+    render(
+      <HeadingLink id="click-test" level={2}>
+        Click Me
+      </HeadingLink>,
+    );
+    await user.click(screen.getByTestId("Flex"));
+    expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
+  });
+
+  it("renders icon button for copy action", () => {
+    render(
+      <HeadingLink id="icon-test" level={2}>
+        Icon
+      </HeadingLink>,
+    );
+    expect(screen.getByTestId("IconButton")).toBeInTheDocument();
   });
 });
