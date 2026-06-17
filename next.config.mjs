@@ -1,5 +1,5 @@
-import mdx from "@next/mdx";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import mdx from "@next/mdx";
 
 const withMDX = mdx({
   extension: /\.mdx?$/,
