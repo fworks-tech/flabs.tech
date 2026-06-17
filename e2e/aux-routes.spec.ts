@@ -5,7 +5,7 @@ test.describe("auxiliary routes", () => {
     const response = await page.goto("/robots.txt");
     expect(response?.status()).toBe(200);
     const text = await response?.text();
-    expect(text).toContain("User-agent");
+    expect(text).toContain("User-Agent");
   });
 
   test("/sitemap.xml returns 200", async ({ page }) => {
