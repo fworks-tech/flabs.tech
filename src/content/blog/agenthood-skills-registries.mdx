@@ -1,0 +1,131 @@
+---
+title: "Agenthood is now on SkillsMP and Skills.sh"
+publishedAt: "2026-06-17"
+summary: "The full Society of 14 members now ships as open Agent Skills — one canonical SKILL.md each, installable from Skills.sh or browsable on SkillsMP."
+tag: "AI"
+---
+
+Every member of the Society now lives where agents look for skills.
+
+Agenthood — all 14 members — is published as open `SKILL.md` files following the Anthropic/Agent Skills open standard. That means they work with Claude Code, GitHub Copilot, Gemini CLI, OpenAI Codex CLI, and any other runtime that supports the standard.
+
+One file per member. No build step. No configuration. Just Markdown that an agent reads and follows.
+
+---
+
+## Where to find them
+
+### Skills.sh
+
+The Vercel-backed registry. Install the whole Society with one command:
+
+```bash
+npx skills add fworks-tech/agenthood
+```
+
+→ [View on Skills.sh](https://skills.sh/fworks-tech/agenthood)
+
+### SkillsMP
+
+The community registry, already indexing every member from the public repo:
+
+→ [Browse on SkillsMP](https://skillsmp.com/creators/fworks-tech)
+
+---
+
+## What you get
+
+14 specialized agents, each a single Markdown skill file:
+
+- **The Scribe** — commits, PRs, changelogs
+- **The Architect** — specs, ADRs, task decomposition
+- **The Reviewer** — five-axis code review
+- **The Tester** — TDD, coverage, regression-first testing
+- **The Debugger** — systematic error triage
+- **The Auditor** — security, dependencies, secrets
+- **The Herald** — versioning, releases, release notes
+- **The Librarian** — documentation, READMEs, ADRs
+- **The Doorman** — commit/PR validation, health checks
+- **The Oracle** — institutional knowledge, member authoring
+- **The Envoy** — cross-provider translation
+- **The Sentinel** — structural integrity, contradiction detection
+- **The Warden** — code smell, complexity, dead code
+- **The Steward** — context economy, member routing
+
+No lock-in. No configuration. Drop the skills into any compatible runtime and they start enforcing standards.
+
+---
+
+## What a skill actually looks like
+
+A `SKILL.md` is not a prompt template. It is a role definition an agent loads as context — identity, process, red flags, and a verification checklist. This is The Scribe's, abridged:
+
+```markdown
+## Red Flags
+
+- Any subject containing: fix, update, changes, misc, wip, asdf, test123
+- Subject starting with a capital letter
+- Subject ending with a period
+- Body that explains what the code does instead of why it was changed
+- PR description that is blank or says "see commits"
+- A PR whose description requires "and" to summarize — it should be two PRs
+```
+
+That is not a suggestion. The Scribe will refuse to write `fix stuff`. The Doorman will refuse to let the commit through. The Reviewer will flag the PR. Each member holds one lane and does not bend.
+
+---
+
+## One file, one source of truth
+
+Each member ships as a single canonical `SKILL.md`. No parallel internal copy, no org-specific overrides hardcoded into the skill — those belong in your project's `AGENTS.md` or `.agenthood/config.json`, not in the skill itself.
+
+The skill is project-independent. It uses placeholders like `repository owner` and `{owner}/{repo}` where a real repo path would go. When you install it, your runtime reads it as-is. When you need it to know your specific GitHub org, your labels, or your milestones, that lives in config — not pasted into the Markdown.
+
+This is what makes the same 14 files portable across any repo, any team, any provider.
+
+---
+
+## Works with your runtime
+
+The skills are agent-agnostic by design. Install once, load into whichever runtime you already use:
+
+| Runtime | Skill location |
+|---------|----------------|
+| Claude Code | `.claude/skills/` |
+| GitHub Copilot | `.github/agents/` |
+| Gemini CLI | `GEMINI.md` + skills |
+| OpenAI Codex CLI | `AGENTS.md` + skills |
+| CodeBuddy | `.codebuddy/skills/` |
+| Cursor | `.cursor/rules/` |
+
+The Envoy member exists specifically to translate between these formats — if a runtime ships next year with its own convention, The Envoy handles the mapping.
+
+---
+
+## Try one member
+
+You do not have to install all 14. Grab a single skill to see how it fits:
+
+```bash
+npx agenthood activate the-scribe
+```
+
+That drops The Scribe's `SKILL.md` into your project's skills directory. Load it in your runtime, stage a commit, and watch it refuse `update stuff`. If that is the kind of teammate you want, the rest of the Society is one command away.
+
+---
+
+## Why this matters
+
+Agent skills only become an open standard when they are discoverable, installable, and portable. Publishing to both registries is the next step in making Agenthood work everywhere — not just in our runtime.
+
+The repo already contains every `SKILL.md`. The registries just make them findable.
+
+---
+
+Install the Society:
+
+```bash
+npx skills add fworks-tech/agenthood
+```
+
+**→ [Explore Agenthood](https://github.com/fworks-tech/agenthood)**
