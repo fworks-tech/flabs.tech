@@ -6,13 +6,14 @@ import { Button, Row, Text, useToast } from "@once-ui-system/core";
 interface ShareSectionProps {
   title: string;
   url: string;
+  shareText?: string;
 }
 
 interface SocialPlatform {
   name: string;
   icon: string;
   label: string;
-  generateUrl: (title: string, url: string) => string;
+  generateUrl: (title: string, url: string, shareText?: string) => string;
 }
 
 const socialPlatforms: Record<string, SocialPlatform> = {
@@ -20,78 +21,79 @@ const socialPlatforms: Record<string, SocialPlatform> = {
     name: "x",
     icon: "twitter",
     label: "X",
-    generateUrl: (title, url) =>
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+    generateUrl: (title, url, shareText) =>
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText || title)}&url=${encodeURIComponent(url)}`,
   },
   linkedin: {
     name: "linkedin",
     icon: "linkedin",
     label: "LinkedIn",
-    generateUrl: (title, url) =>
+    generateUrl: (_title, url) =>
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
   },
   facebook: {
     name: "facebook",
     icon: "facebook",
     label: "Facebook",
-    generateUrl: (title, url) =>
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    generateUrl: (title, url, shareText) =>
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(shareText || title)}`,
   },
   pinterest: {
     name: "pinterest",
     icon: "pinterest",
     label: "Pinterest",
-    generateUrl: (title, url) =>
-      `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`,
+    generateUrl: (title, url, shareText) =>
+      `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(shareText || title)}`,
   },
   whatsapp: {
     name: "whatsapp",
     icon: "whatsapp",
     label: "WhatsApp",
-    generateUrl: (title, url) => `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+    generateUrl: (title, url, shareText) =>
+      `https://wa.me/?text=${encodeURIComponent(`${shareText || title} ${url}`)}`,
   },
   reddit: {
     name: "reddit",
     icon: "reddit",
     label: "Reddit",
-    generateUrl: (title, url) =>
-      `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+    generateUrl: (title, url, shareText) =>
+      `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(shareText || title)}`,
   },
   telegram: {
     name: "telegram",
     icon: "telegram",
     label: "Telegram",
-    generateUrl: (title, url) =>
-      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+    generateUrl: (title, url, shareText) =>
+      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText || title)}`,
   },
   email: {
     name: "email",
     icon: "email",
     label: "Email",
-    generateUrl: (title, url) =>
-      `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check out this post: ${url}`)}`,
+    generateUrl: (title, url, shareText) =>
+      `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText || `Check out this post: ${url}`)}`,
   },
 };
 
-export function ShareSection({ title, url }: ShareSectionProps) {
+export function ShareSection({ title, url, shareText }: ShareSectionProps) {
   const { addToast } = useToast();
   // Don't render if sharing is disabled
   if (!socialSharing.display) {
     return null;
   }
 
-  const handleCopy = async () => {
+  const handleCopy = async (text: string, message: string) => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(text);
       addToast({
         variant: "success",
-        message: "Link copied to clipboard",
+        message,
       });
     } catch (err) {
       console.error("Failed to copy: ", err);
       addToast({
         variant: "danger",
-        message: "Failed to copy link",
+        message: "Failed to copy",
       });
     }
   };
@@ -108,18 +110,47 @@ export function ShareSection({ title, url }: ShareSectionProps) {
         Share this post:
       </Text>
       <Row data-border="rounded" gap="16" horizontal="center" wrap>
-        {enabledPlatforms.map((platform, index) => (
-          <Button
-            key={index}
-            variant="secondary"
-            size="s"
-            href={platform.generateUrl(title, url)}
-            prefixIcon={platform.icon}
-          />
-        ))}
+        {enabledPlatforms.map((platform, index) => {
+          if (platform.name === "linkedin" && shareText) {
+            return (
+              <Button
+                key={index}
+                variant="secondary"
+                size="s"
+                onClick={() => handleCopy(shareText, "LinkedIn text copied — paste into your post")}
+                prefixIcon={platform.icon}
+                aria-label={`Copy ${platform.label} text`}
+                title={`Copy ${platform.label} text`}
+              />
+            );
+          }
+
+          return (
+            <Button
+              key={index}
+              variant="secondary"
+              size="s"
+              href={platform.generateUrl(title, url, shareText)}
+              prefixIcon={platform.icon}
+              aria-label={`Share on ${platform.label}`}
+              title={`Share on ${platform.label}`}
+            />
+          );
+        })}
 
         {socialSharing.platforms.copyLink && (
-          <Button variant="secondary" size="s" onClick={handleCopy} prefixIcon="openLink" />
+          <Button
+            variant="secondary"
+            size="s"
+            onClick={() =>
+              shareText
+                ? handleCopy(shareText, "Share text copied to clipboard")
+                : handleCopy(url, "Link copied to clipboard")
+            }
+            prefixIcon="openLink"
+            aria-label={shareText ? "Copy share text" : "Copy link"}
+            title={shareText ? "Copy share text" : "Copy link"}
+          />
         )}
       </Row>
     </Row>
