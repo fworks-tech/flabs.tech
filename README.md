@@ -42,7 +42,10 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Content | MDX + gray-matter |
 | Styling | SCSS Modules |
 | Bundler | Turbopack |
-| Testing | Vitest 4 · Playwright |
+| Testing | Vitest 4 · Playwright · axe-core · Lighthouse CI |
+| Storybook | Storybook 10 |
+| Bundle Audit | @next/bundle-analyzer |
+| CI/CD | GitHub Actions (test → e2e → lighthouse) |
 | Deployment | Vercel |
 
 ---
@@ -81,6 +84,13 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Storybook
+
+```bash
+npm run storybook       # Start at http://localhost:6006
+npm run build-storybook # Static build
+```
+
 ---
 
 ## Testing
@@ -93,14 +103,18 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with v8 coverage report |
 
-**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 50 tests
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 76 tests
 
 **Convention:** Tests live in `__tests__/` directories next to the files they cover.
 
 ```
-src/lib/mdx.ts                     → src/lib/__tests__/mdx.test.ts
-src/hooks/useMousePosition.ts      → src/hooks/__tests__/useMousePosition.test.ts
-src/components/ui/AnimatedHeadline.tsx → src/components/ui/__tests__/AnimatedHeadline.test.tsx
+src/lib/mdx.ts                         → src/lib/__tests__/mdx.test.ts
+src/lib/rateLimiter.ts                 → src/lib/__tests__/rateLimiter.test.ts
+src/hooks/useMousePosition.ts          → src/hooks/__tests__/useMousePosition.test.ts
+src/components/ui/ProjectCard.tsx      → src/components/ui/__tests__/ProjectCard.test.tsx
+src/features/work/ProjectGrid.tsx      → src/features/work/__tests__/ProjectGrid.test.tsx
+src/features/projects/ProjectsList.tsx → src/features/projects/__tests__/ProjectsList.test.tsx
+src/features/about/TableOfContents.tsx → src/features/about/__tests__/TableOfContents.test.tsx
 ```
 
 ### E2E tests
@@ -136,14 +150,42 @@ e2e/
 
 ```
 push/PR to main
-  ├── test job: npm install → lint → vitest
-  └── e2e job: npm install → playwright install chromium → playwright test
+  ├── test job:    npm install → lint → vitest
+  ├── e2e job:     npm install → playwright install chromium → playwright test
+  └── lighthouse:  npm install → npm run build → lhci autorun
 ```
 
 **Mocks:** Centralized in `__mocks__/` at project root:
 - `@once-ui-system/core` — all components, providers, hooks
 - `next/navigation` — useRouter, usePathname, notFound
 - `gray-matter` — frontmatter parser
+
+---
+
+## Security
+
+- **Security headers** via `vercel.json` — CSP, HSTS (preload), X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy
+- **Rate limiting** on `/api/authenticate` — 5 requests per 60s per IP
+- **Auth token** uses `crypto.randomUUID()` — httpOnly, SameSite: strict, Secure cookie
+
+---
+
+## Performance
+
+- **Image optimization** — AVIF & WebP auto-conversion, 1-week cache TTL, responsive sizes
+- **Viewport metadata** — theme-color for dark/light mode, device-width scaling
+- **Twitter cards** — `summary_large_image` for all pages
+- **Lighthouse CI** — performance, a11y, SEO, best-practices thresholds on 5 routes (3 runs each)
+- **Bundle analysis** — `npm run analyze` (ANALYZE=true) for visual bundle audit
+
+### Lighthouse CI
+
+| Command | Description |
+|---------|-------------|
+| `npm run lhci` | Run Lighthouse CI locally |
+| `npm run analyze` | Bundle analyzer (opens HTML report) |
+
+Budgets: performance ≥0.8, a11y ≥0.9, best-practices ≥0.9, SEO ≥0.9 · LCP ≤3000ms, CLS ≤0.1
 
 ---
 
