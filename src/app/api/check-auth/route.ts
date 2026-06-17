@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   const cookieHeader = request.headers.get("cookie") || "";
   const cookies = cookie.parse(cookieHeader);
 
-  if (cookies.authToken === "authenticated") {
+  if (cookies.authToken) {
     return NextResponse.json({ authenticated: true }, { status: 200 });
   }
   return NextResponse.json({ authenticated: false }, { status: 200 });
