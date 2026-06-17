@@ -50,7 +50,8 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
         setIsPasswordRequired(true);
 
         const response = await fetch("/api/check-auth");
-        if (response.ok) {
+        const data = await response.json();
+        if (data.authenticated) {
           setIsAuthenticated(true);
         }
       }

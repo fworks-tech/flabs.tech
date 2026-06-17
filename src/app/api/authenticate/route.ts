@@ -1,7 +1,21 @@
+import { rateLimit } from "@/lib/rateLimiter";
 import * as cookie from "cookie";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+
+  const { allowed, retryAfter } = rateLimit(ip);
+  if (!allowed) {
+    return NextResponse.json(
+      { message: `Too many attempts. Try again in ${retryAfter} seconds.` },
+      { status: 429 },
+    );
+  }
+
   const body = await request.json();
   const { password } = body;
   const correctPassword = process.env.PAGE_ACCESS_PASSWORD;
