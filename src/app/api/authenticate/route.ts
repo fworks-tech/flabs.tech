@@ -12,11 +12,12 @@ export async function POST(request: NextRequest) {
   }
 
   if (password === correctPassword) {
+    const authToken = crypto.randomUUID();
     const response = NextResponse.json({ success: true }, { status: 200 });
 
     response.headers.set(
       "Set-Cookie",
-      cookie.serialize("authToken", "authenticated", {
+      cookie.serialize("authToken", authToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60,
