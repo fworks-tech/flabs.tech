@@ -20,6 +20,19 @@ import {
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
+import type { Viewport } from "next";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+};
+
+export const metadataBase = new URL(baseURL);
+
 export async function generateMetadata() {
   const meta = Meta.generate({
     title: home.title,
@@ -32,6 +45,10 @@ export async function generateMetadata() {
 
   return {
     ...meta,
+    metadataBase: new URL(baseURL),
+    alternates: {
+      canonical: baseURL,
+    },
     openGraph: {
       ...(meta.openGraph || {}),
       siteName: "flabs.tech",
@@ -42,6 +59,12 @@ export async function generateMetadata() {
           height: 630,
         },
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: home.title,
+      description: home.description,
+      images: [home.image],
     },
   };
 }

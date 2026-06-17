@@ -34,10 +34,16 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.tstest-results/
-test-results/
+next-env.d.ts
 
+# test artifacts
+test-results/
+.lighthouseci/
+
+# bundle analysis
+.next/analyze/
+analyze/
+
+# storybook
 *storybook.log
 storybook-static
-storybook-static/
-Githubfworks-tech-profile/
