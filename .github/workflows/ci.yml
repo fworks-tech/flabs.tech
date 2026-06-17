@@ -67,9 +67,7 @@ jobs:
 
       - run: npm run build
 
-      - run: npm install -g @lhci/cli
-
-      - run: lhci autorun
+      - run: npx lhci autorun
 
       - uses: actions/upload-artifact@v4
         if: always()
