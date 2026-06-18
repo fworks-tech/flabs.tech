@@ -81,19 +81,19 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        I'm a Senior Full‑Stack Engineer & AI Systems Architect with 10+ years of experience across
-        frontend, backend, and testing. I've shipped products for companies in the US, Europe, and
+        I&apos;m a Senior Full‑Stack Engineer & AI Systems Architect with 10+ years of experience across
+        frontend, backend, and testing. I&apos;ve shipped products for companies in the US, Europe, and
         Brazil, always balancing solid architecture with real‑world delivery.
         <br />
         <br />
         On the backend, I design and build production GraphQL APIs and federated architectures with
-        TypeScript and Node.js. At BairesDev I've engineered AI‑powered checkout systems for major
+        TypeScript and Node.js. At BairesDev I&apos;ve engineered AI‑powered checkout systems for major
         US telecom partners using Apollo Federation and WunderGraph, handling 1,000+ transactions
         per day with CI‑enforced contracts and New Relic observability end‑to‑end.
         <br />
         <br />
         On the frontend, I have deep experience building modern React and Next.js applications for
-        e‑commerce, enterprise dashboards, and complex form workflows. I've led Core Web Vitals and
+        e‑commerce, enterprise dashboards, and complex form workflows. I&apos;ve led Core Web Vitals and
         SEO improvements, implemented WCAG 2.1 AA accessibility, and created reusable component
         systems using TypeScript, Storybook, Jest, and Playwright.
         <br />

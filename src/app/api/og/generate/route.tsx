@@ -48,6 +48,7 @@ export async function GET() {
             gap: "2rem",
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse (Satori) requires raw <img> */}
           <img
             src={baseURL + person.avatar}
             alt=""

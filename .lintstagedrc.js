@@ -1,7 +1,9 @@
 module.exports = {
   "*.{js,jsx,ts,tsx}": (filenames) => [
-    `biome check --write ${filenames.map((f) => `"${f}"`).join(" ")}`,
-    `biome format --write ${filenames.map((f) => `"${f}"`).join(" ")}`,
+    `eslint --fix ${filenames.map((f) => `"${f}"`).join(" ")}`,
+    `prettier --write ${filenames.map((f) => `"${f}"`).join(" ")}`,
   ],
-  "*.{json}": (filenames) => [`biome format --write ${filenames.map((f) => `"${f}"`).join(" ")}`],
+  "*.{json,css,scss,md,mdx}": (filenames) => [
+    `prettier --write ${filenames.map((f) => `"${f}"`).join(" ")}`,
+  ],
 };

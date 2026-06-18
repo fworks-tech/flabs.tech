@@ -152,7 +152,9 @@ function createCodeBlock(props: any) {
 }
 
 function createList(as: "ul" | "ol") {
-  return ({ children }: { children: ReactNode }) => <List as={as}>{children}</List>;
+  const Component = ({ children }: { children: ReactNode }) => <List as={as}>{children}</List>;
+  Component.displayName = `List(${as})`;
+  return Component;
 }
 
 function createListItem({ children }: { children: ReactNode }) {

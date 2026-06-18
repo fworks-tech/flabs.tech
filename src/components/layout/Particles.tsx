@@ -113,7 +113,7 @@ export default function Particles({
     return remapped > 0 ? remapped : 0;
   };
 
-  const animate = useCallback(() => {
+  const animate = useCallback(function animateFrame() {
     clearContext();
     circles.current.forEach((circle, i) => {
       const edge = [
@@ -150,7 +150,7 @@ export default function Particles({
         drawCircle(circle, true);
       }
     });
-    rafId.current = window.requestAnimationFrame(animate);
+    rafId.current = window.requestAnimationFrame(animateFrame);
   }, [clearContext, staticity, ease, drawCircle]);
 
   useEffect(() => {
