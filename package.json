@@ -5,9 +5,8 @@
     "dev": "next dev",
     "export": "next export",
     "build": "next build",
-    "biome-write": "npx @biomejs/biome format --write .",
     "start": "next start",
-    "lint": "npx @biomejs/biome check .",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -19,7 +18,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "analyze": "cross-env ANALYZE=true next build",
-    "lhci": "lhci autorun"
+    "lhci": "lhci autorun",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -41,7 +41,6 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
-    "@biomejs/biome": "^1.9.4",
     "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "^16.2.9",
     "@playwright/test": "^1.61.0",
@@ -61,8 +60,10 @@
     "cross-env": "^10.1.0",
     "eslint": "^9.25.0",
     "eslint-config-next": "^16.2.9",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-storybook": "^10.4.5",
     "jsdom": "^29.1.1",
+    "prettier": "^3.8.4",
     "storybook": "^10.4.5",
     "typescript": "^5.8.3",
     "tzdata": "^1.0.44",
