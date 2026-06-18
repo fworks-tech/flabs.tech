@@ -1,4 +1,5 @@
 import { getPosts } from "@/lib/mdx";
+import Image from "next/image";
 import Link from "next/link";
 import styles from "./ProjectGrid.module.scss";
 
@@ -55,9 +56,10 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
           <Link key={safeSlug} href={href} className={styles.tile}>
             <div className={styles.tileImage} data-tag={tag}>
               {hasImages ? (
-                <img
+                <Image
                   src={post.metadata.images[0]}
                   alt={post.metadata.title}
+                  fill
                   className={styles.img}
                 />
               ) : (

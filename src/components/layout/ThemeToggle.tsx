@@ -2,21 +2,21 @@
 
 import { Row, ToggleButton, useTheme } from "@once-ui-system/core";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
+
+function getSnapshot() {
+  return document.documentElement.getAttribute("data-theme") || "light";
+}
+
+function getServerSnapshot() {
+  return "light";
+}
 
 export const ThemeToggle: React.FC = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState("light");
-
-  useEffect(() => {
-    setMounted(true);
-    setCurrentTheme(document.documentElement.getAttribute("data-theme") || "light");
-  }, []);
-
-  useEffect(() => {
-    setCurrentTheme(document.documentElement.getAttribute("data-theme") || "light");
-  }, [theme]);
+  const { setTheme } = useTheme();
+  const currentTheme = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
 
   const icon = currentTheme === "dark" ? "light" : "dark";
   const nextTheme = currentTheme === "light" ? "dark" : "light";

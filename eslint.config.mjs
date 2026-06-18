@@ -4,7 +4,15 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 const eslintConfig = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'dist/**', 'build/**', 'coverage/**', 'out/**'],
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      'coverage/**',
+      'out/**',
+      'storybook-static/**',
+    ],
   },
   ...nextVitals,
   ...storybook.configs['flat/recommended'],
