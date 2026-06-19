@@ -2,7 +2,6 @@
 
 import {
   AvatarGroup,
-  Card,
   Carousel,
   Column,
   Flex,
@@ -37,13 +36,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   const tagKey = (tag || "").toLowerCase().replace(/[^a-z]/g, "-");
 
   return (
-    <Card
-      fillWidth
-      radius="l-4"
-      border="neutral-alpha-weak"
-      padding="4"
-      className={styles.card}
-    >
+    <Column fillWidth gap="m" className={styles.card}>
       {images.length > 0 ? (
         <Carousel
           sizes="(max-width: 960px) 100vw, 960px"
@@ -104,6 +97,6 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </Column>
         )}
       </Flex>
-    </Card>
+    </Column>
   );
 };
