@@ -5,7 +5,7 @@ const person: Person = {
   lastName: "Ritzel Borges",
   name: "Fabio Ritzel Borges",
   role: "Senior Full-Stack Engineer · AI Engineering",
-  avatar: "/images/avatar.png",
+  avatar: "/images/avatar.webp",
   email: "fritzelborges@gmail.com",
   location: "America/Sao_Paulo",
   languages: ["English", "Portuguese"],

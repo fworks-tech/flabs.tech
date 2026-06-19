@@ -1,6 +1,6 @@
-import { Mailchimp } from "@/components";
 import { baseURL } from "@/config";
 import { blog, person } from "@/content";
+import ClientMailchimp from "@/components/ui/ClientMailchimp";
 import { Posts } from "@/features/blog/Posts";
 import { getPosts } from "@/lib/mdx";
 import { Button, Column, Heading, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
@@ -84,8 +84,8 @@ export default function Blog() {
       <Column fillWidth flex={1} gap="40">
         <Posts range={[1, 1]} thumbnail />
         <Posts range={[2, 3]} columns="2" thumbnail direction="column" />
-        <Mailchimp marginBottom="l" />
-        <Heading as="h2" variant="heading-strong-xl" marginLeft="l">
+        <ClientMailchimp marginBottom="l" padding="m" />
+        <Heading as="h2" variant="heading-strong-xl">
           Earlier posts
         </Heading>
         <Posts range={[4]} columns="2" />

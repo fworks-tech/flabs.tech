@@ -29,6 +29,9 @@
     left: 50%;
     transform: translateX(-50%);
     width: auto;
+    max-width: calc(100vw - 32px);
+    overflow-x: auto;
+    white-space: nowrap;
     border-radius: 9999px;
     border: 1px solid var(--neutral-alpha-weak);
     padding: 6px 16px;
