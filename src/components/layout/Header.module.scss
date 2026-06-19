@@ -36,3 +36,31 @@
     background: var(--neutral-background-medium);
   }
 }
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.desktopLabel {
+  display: block;
+  
+  @include bp.s {
+    display: none;
+  }
+}
+
+.mobileIcon {
+  display: none;
+  
+  @include bp.s {
+    display: flex;
+  }
+}
+
+.desktopLabel:focus-visible,
+.mobileIcon:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}

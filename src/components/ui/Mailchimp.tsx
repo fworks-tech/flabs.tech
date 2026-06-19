@@ -5,6 +5,7 @@ import { newsletter } from "@/content";
 import { Background, Button, Column, Heading, Input, Row, Text } from "@once-ui-system/core";
 import type { SpacingToken, opacity } from "@once-ui-system/core";
 import { useState } from "react";
+import styles from "./Mailchimp.module.scss";
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T {
   let timeout: ReturnType<typeof setTimeout>;
@@ -18,6 +19,7 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
   const [email, setEmail] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [touched, setTouched] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const validateEmail = (email: string): boolean => {
     if (email === "") {
@@ -131,23 +133,38 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
           s={{ direction: "column" }}
           gap="8"
         >
-          <Input
-            formNoValidate
-            id="mce-EMAIL"
-            name="EMAIL"
-            type="email"
-            placeholder="Email"
-            required
-            onChange={(e) => {
-              if (error) {
-                handleChange(e);
-              } else {
-                debouncedHandleChange(e);
-              }
-            }}
-            onBlur={handleBlur}
-            errorMessage={error}
-          />
+          <div className={styles.formGroup}>
+            <label htmlFor="mce-EMAIL">Email Address</label>
+            <Input
+              formNoValidate
+              id="mce-EMAIL"
+              name="EMAIL"
+              type="email"
+              placeholder="your@email.com"
+              required
+              aria-describedby="email-help email-error"
+              onChange={(e) => {
+                if (error) {
+                  handleChange(e);
+                } else {
+                  debouncedHandleChange(e);
+                }
+              }}
+              onBlur={handleBlur}
+              errorMessage={error}
+            />
+            <span id="email-help" className={styles.hint}>
+              We'll never share your email.
+            </span>
+            <span 
+              id="email-error" 
+              role="alert"
+              className={styles.error}
+              hidden={!error}
+            >
+              {error}
+            </span>
+          </div>
           <div style={{ display: "none" }}>
             <input
               type="checkbox"
@@ -158,7 +175,7 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
               checked
             />
           </div>
-          <div id="mce-responses" className="clearfalse">
+          <div id="mc-responses" className="clearfalse">
             <div className="response" id="mce-error-response" style={{ display: "none" }} />
             <div className="response" id="mce-success-response" style={{ display: "none" }} />
           </div>
@@ -173,8 +190,8 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
           </div>
           <div className="clear">
             <Row height="48" vertical="center">
-              <Button id="mc-embedded-subscribe" value="Subscribe" size="m" fillWidth>
-                Subscribe
+              <Button id="mc-embedded-subscribe" value="Subscribe" size="m" fillWidth aria-busy={isLoading}>
+                {isLoading ? "Subscribing..." : "Subscribe"}
               </Button>
             </Row>
           </div>

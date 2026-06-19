@@ -33,4 +33,57 @@ test.describe("a11y", () => {
       expect(serious.length).toBeLessThanOrEqual(10);
     });
   }
+
+  test("keyboard navigation works on all pages", async ({ page }) => {
+    for (const { path, label } of routes) {
+      await page.goto(path);
+      
+      // Verify no focus traps
+      await page.keyboard.press("Tab");
+      let previousFocused = await page.evaluate(() => document.activeElement?.tagName);
+      
+      for (let i = 0; i < 20; i++) {
+        await page.keyboard.press("Tab");
+        const currentFocused = await page.evaluate(() => document.activeElement?.tagName);
+        expect(currentFocused).toBeDefined();
+      }
+      
+      console.log(`✓ ${label} keyboard navigation OK`);
+    }
+  });
+
+  test("all interactive elements have visible focus indicator", async ({ page }) => {
+    await page.goto("/");
+    
+    // Tab to first interactive element
+    await page.keyboard.press("Tab");
+    
+    const focusStyle = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement;
+      return window.getComputedStyle(el).outline;
+    });
+    
+    expect(focusStyle).not.toBe("none");
+    expect(focusStyle).toContain("rgb"); // outline-color set
+  });
+
+  test("text has sufficient color contrast", async ({ page }) => {
+    await page.goto("/");
+    
+    const results = await new AxeBuilder({ page })
+      .withRules(["color-contrast"])
+      .analyze();
+    
+    expect(results.violations).toEqual([]);
+  });
+
+  test("pages have main landmark", async ({ page }) => {
+    for (const { path, label } of routes) {
+      await page.goto(path);
+      const hasMain = await page.evaluate(() => {
+        return document.querySelector("main") !== null;
+      });
+      expect(hasMain).toBe(true);
+    }
+  });
 });

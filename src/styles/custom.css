@@ -75,7 +75,105 @@
   /*
 }*/
 
-/* ─── Neon animations ─────────────────────────────────────────── */
+/* ============================================================================
+   ACCESSIBILITY: Focus Visible Styles (WCAG 2.4.7)
+   ============================================================================ */
+
+/* Global focus-visible for all interactive elements */
+*:focus-visible {
+  outline: 2px solid var(--color-accent-strong, #5E60EB);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Explicit rules for common interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid var(--color-accent-strong, #5E60EB);
+  outline-offset: 2px;
+}
+
+/* Ensure dark mode contrast */
+@media (prefers-color-scheme: dark) {
+  *:focus-visible {
+    outline-color: #5E60EB;
+  }
+}
+
+/* Ensure light mode contrast */
+@media (prefers-color-scheme: light) {
+  *:focus-visible {
+    outline-color: #4F51DB;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  *:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+}
+
+/* Form styles for accessibility */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+input[type="email"] {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 14px;
+  
+  &:focus-visible {
+    outline: 2px solid var(--color-accent-strong);
+    outline-offset: 2px;
+  }
+  
+  &:invalid {
+    border-color: var(--color-error);
+  }
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  font-size: 12px;
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
 
 @keyframes neon-pulse-indigo {
   0%,

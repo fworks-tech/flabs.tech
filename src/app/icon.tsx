@@ -22,7 +22,11 @@ export default async function Icon() {
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse (Satori) requires raw <img> */}
-      <img src={avatarBase64} alt="" style={{ width: 32, height: 32, objectFit: "cover" }} />
+      <img 
+        src={avatarBase64} 
+        alt="Fábio Ritzel Borges - Senior Full-Stack Engineer and AI Systems Architect" 
+        style={{ width: 32, height: 32, objectFit: "cover" }} 
+      />
     </div>,
     { ...size },
   );

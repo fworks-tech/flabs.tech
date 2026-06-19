@@ -182,7 +182,12 @@ export default function Particles({
       style={{ width: "100%", height: "100%" }}
       className={className}
     >
-      <canvas ref={canvasRef} />
+      <canvas 
+        ref={canvasRef}
+        aria-hidden="true"
+        role="presentation"
+        tabIndex={-1}
+      />
     </div>
   );
 }
