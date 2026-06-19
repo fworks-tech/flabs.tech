@@ -29,6 +29,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **MDX** content pipeline for blog posts and project detail pages with gray-matter
 - **Dynamic OG images** via `next/og` — auto-generated for every page with 1200×630 (1.91:1)
 - **Profile photo favicon** generated server-side via `icon.tsx` (no binary files)
+- **AGENTS.md** — AI agent instructions (build/test commands, conventions, git workflow) for Claude Code, Cursor, Copilot, Gemini, and 21+ tools
 - Deployed on **Vercel** with PR preview deployments
 
 ---
