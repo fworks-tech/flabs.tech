@@ -4,19 +4,15 @@ import "@/styles/custom.css";
 
 import classNames from "classnames";
 
-import { Footer, Header, Providers, RouteGuard } from "@/components";
-import Particles from "@/components/layout/Particles";
+import { Footer, Header, Providers } from "@/components";
+import ClientParticles from "@/components/layout/ClientParticles";
 import { SkipLink } from "@/components/layout/SkipLink";
-import { baseURL, dataStyle, effects, fonts, style } from "@/config";
+import { baseURL, dataStyle, fonts, style } from "@/config";
 import { home } from "@/content";
 import {
-  Background,
   Column,
   Flex,
   Meta,
-  RevealFx,
-  type SpacingToken,
-  type opacity,
 } from "@once-ui-system/core";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -158,50 +154,9 @@ export default async function RootLayout({
           horizontal="center"
         >
           <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-            <Particles quantity={60} staticity={30} ease={40} />
+            <ClientParticles quantity={60} staticity={30} ease={40} />
           </div>
-          <RevealFx fill position="absolute">
-            <Background
-              mask={{
-                x: effects.mask.x,
-                y: effects.mask.y,
-                radius: effects.mask.radius,
-                cursor: effects.mask.cursor,
-              }}
-              gradient={{
-                display: effects.gradient.display,
-                opacity: effects.gradient.opacity as opacity,
-                x: effects.gradient.x,
-                y: effects.gradient.y,
-                width: effects.gradient.width,
-                height: effects.gradient.height,
-                tilt: effects.gradient.tilt,
-                colorStart: effects.gradient.colorStart,
-                colorEnd: effects.gradient.colorEnd,
-              }}
-              dots={{
-                display: effects.dots.display,
-                opacity: effects.dots.opacity as opacity,
-                size: effects.dots.size as SpacingToken,
-                color: effects.dots.color,
-              }}
-              grid={{
-                display: effects.grid.display,
-                opacity: effects.grid.opacity as opacity,
-                color: effects.grid.color,
-                width: effects.grid.width,
-                height: effects.grid.height,
-              }}
-              lines={{
-                display: effects.lines.display,
-                opacity: effects.lines.opacity as opacity,
-                size: effects.lines.size as SpacingToken,
-                thickness: effects.lines.thickness,
-                angle: effects.lines.angle,
-                color: effects.lines.color,
-              }}
-            />
-          </RevealFx>
+
           <Flex fillWidth minHeight="16" s={{ hide: true }} />
           <SkipLink />
           <Header />
@@ -216,7 +171,7 @@ export default async function RootLayout({
             role="main"
           >
             <Flex horizontal="center" fillWidth minHeight="0">
-              <RouteGuard>{children}</RouteGuard>
+              {children}
             </Flex>
           </Flex>
           <Footer />

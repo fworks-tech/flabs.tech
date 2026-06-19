@@ -2,7 +2,7 @@
 
 import { person } from "@/content";
 import { formatDate } from "@/lib/formatDate";
-import { Avatar, Card, Column, Media, Row, Text } from "@once-ui-system/core";
+import { Avatar, Card, Column, Media, Row, Tag, Text } from "@once-ui-system/core";
 
 interface PostProps {
   post: any;
@@ -38,7 +38,7 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
         />
       )}
       <Row fillWidth>
-        <Column maxWidth={28} paddingY="24" paddingX="l" gap="20" vertical="center">
+        <Column paddingY="24" gap="20" vertical="center">
           <Row gap="24" vertical="center">
             <Row vertical="center" gap="16">
               <Avatar src={person.avatar} size="s" aria-label={`Photo of ${person.name}`} />
@@ -51,11 +51,24 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
           <Text variant="heading-strong-l" wrap="balance">
             {post.metadata.title}
           </Text>
-          {post.metadata.tag && (
-            <Text variant="label-strong-s" onBackground="neutral-weak">
-              {post.metadata.tag}
+          {post.metadata.summary && (
+            <Text variant="body-default-m" onBackground="neutral-weak" wrap="balance">
+              {post.metadata.summary}
             </Text>
           )}
+          <Row gap="8" wrap>
+            {post.metadata.tags?.length
+              ? post.metadata.tags.map((t: string) => (
+                  <Tag key={t} size="m">
+                    {t}
+                  </Tag>
+                ))
+              : post.metadata.tag && (
+                  <Tag size="m">
+                    {post.metadata.tag}
+                  </Tag>
+                )}
+          </Row>
         </Column>
       </Row>
     </Card>

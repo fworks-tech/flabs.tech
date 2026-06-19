@@ -5,7 +5,6 @@ import {
   Carousel,
   Column,
   Flex,
-  Heading,
   SmartLink,
   Text,
 } from "@once-ui-system/core";
@@ -21,6 +20,7 @@ interface ProjectCardProps {
   avatars: { src: string; "aria-label"?: string }[];
   link: string;
   tag?: string;
+  tags?: string[];
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -32,8 +32,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   avatars,
   link,
   tag,
+  tags,
 }) => {
-  const tagKey = (tag || "").toLowerCase().replace(/[^a-z]/g, "-");
+  const allTags = tags?.length ? tags : tag ? [tag] : [];
+  const tagKey = (tag || (tags?.[0] ?? "")).toLowerCase().replace(/[^a-z]/g, "-");
 
   return (
     <Column fillWidth gap="m">
@@ -47,9 +49,17 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         />
       ) : (
         <div className={styles.visualHeader} data-tag={tagKey}>
-          {tag && <span className={styles.visualTag}>{tag}</span>}
           <span className={styles.visualTitle}>{title}</span>
         </div>
+      )}
+      {allTags.length > 0 && (
+        <Flex paddingX="s" gap="8" wrap>
+          {allTags.map((t) => (
+            <span key={t} className={styles.visualTag}>
+              {t}
+            </span>
+          ))}
+        </Flex>
       )}
       <Flex
         s={{ direction: "column" }}
@@ -59,18 +69,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         paddingBottom="24"
         gap="l"
       >
-        {title && (
-          <Flex flex={5}>
-            <Heading as="h2" wrap="balance" variant="heading-strong-xl">
-              {title}
-            </Heading>
-          </Flex>
-        )}
         {(avatars?.length > 0 || description?.trim() || content?.trim()) && (
-          <Column flex={7} gap="16">
+          <Column gap="16">
             {avatars?.length > 0 && <AvatarGroup avatars={avatars} size="m" reverse />}
             {description?.trim() && (
-              <Text wrap="balance" variant="body-default-s" onBackground="neutral-weak">
+              <Text variant="body-default-s" onBackground="neutral-weak">
                 {description}
               </Text>
             )}

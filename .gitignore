@@ -50,3 +50,6 @@ storybook-static
 
 # temp folder
 __temp__
+
+# opencode AI coding agent workspace
+.opencode/

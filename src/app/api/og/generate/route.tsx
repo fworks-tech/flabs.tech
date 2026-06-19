@@ -1,24 +1,18 @@
-import { baseURL } from "@/config";
 import { person } from "@/content";
 import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
 
-export async function GET() {
-  async function loadGoogleFont(font: string) {
-    const url = `https://fonts.googleapis.com/css2?family=${font}`;
-    const css = await (await fetch(url)).text();
-    const resource = css.match(/src: url\((.+)\) format\('(opentype|truetype)'\)/);
+const INITIALS = person.name
+  .split(" ")
+  .map((n) => n[0])
+  .join("")
+  .toUpperCase()
+  .slice(0, 2);
 
-    if (resource) {
-      const response = await fetch(resource[1]);
-      if (response.status === 200) {
-        return await response.arrayBuffer();
-      }
-    }
-
-    throw new Error("failed to load font data");
-  }
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const title = searchParams.get("title") || person.name;
 
   return new ImageResponse(
     <div
@@ -29,6 +23,7 @@ export async function GET() {
         height: "100%",
         padding: "3rem",
         background: "#151515",
+        fontFamily: "system-ui, sans-serif",
       }}
     >
       <div
@@ -37,7 +32,6 @@ export async function GET() {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          fontStyle: "normal",
           color: "white",
         }}
       >
@@ -48,17 +42,22 @@ export async function GET() {
             gap: "2rem",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse (Satori) requires raw <img> */}
-          <img
-            src={baseURL + person.avatar}
-            alt="Fábio Ritzel Borges - Senior Full-Stack Engineer and AI Systems Architect"
+          <div
             style={{
               width: "7rem",
               height: "7rem",
-              objectFit: "cover",
               borderRadius: "100%",
+              background: "#2a2848",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "2rem",
+              fontWeight: 700,
+              color: "#a8a0d0",
             }}
-          />
+          >
+            {INITIALS}
+          </div>
           <div
             style={{
               display: "flex",
@@ -70,18 +69,15 @@ export async function GET() {
               style={{
                 fontSize: "2.5rem",
                 lineHeight: "2.5rem",
-                whiteSpace: "pre-wrap",
-                textWrap: "balance",
+                fontWeight: 700,
               }}
             >
-              {person.name}
+              {title}
             </span>
             <span
               style={{
                 fontSize: "1.25rem",
                 lineHeight: "1.5rem",
-                whiteSpace: "pre-wrap",
-                textWrap: "balance",
                 opacity: "0.6",
               }}
             >
@@ -105,13 +101,6 @@ export async function GET() {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: "Geist",
-          data: await loadGoogleFont("Geist:wght@400"),
-          style: "normal",
-        },
-      ],
     },
   );
 }
