@@ -42,7 +42,7 @@ export default function About() {
 
       {/* Header: Avatar + Name + Role + Location + Social */}
       <Column horizontal="center" align="center" gap="m" fillWidth>
-        {about.avatar.display && <Avatar src={person.avatar} size="xl" />}
+        {about.avatar.display && <Avatar src={person.avatar} size="xl" aria-label={`Photo of ${person.name}`} />}
         <Column horizontal="center" align="center" gap="4">
           <Heading variant="display-strong-xl" align="center">
             {person.name}
