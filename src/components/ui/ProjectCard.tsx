@@ -18,7 +18,7 @@ interface ProjectCardProps {
   title: string;
   content: string;
   description: string;
-  avatars: { src: string }[];
+  avatars: { src: string; "aria-label"?: string }[];
   link: string;
   tag?: string;
 }

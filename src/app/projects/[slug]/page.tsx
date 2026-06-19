@@ -59,7 +59,7 @@ export default async function ProjectDetail({
 
   if (!post) notFound();
 
-  const avatars = post.metadata.team?.map((person) => ({ src: person.avatar })) || [];
+  const avatars = post.metadata.team?.map((person) => ({ src: person.avatar, "aria-label": `Photo of ${person.name}` })) || [];
 
   return (
     <Column as="section" maxWidth="m" horizontal="center" gap="l">

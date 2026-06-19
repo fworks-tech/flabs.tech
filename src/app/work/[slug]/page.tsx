@@ -72,6 +72,7 @@ export default async function Project({
   const avatars =
     post.metadata.team?.map((person) => ({
       src: person.avatar,
+      "aria-label": `Photo of ${person.name}`,
     })) || [];
 
   return (

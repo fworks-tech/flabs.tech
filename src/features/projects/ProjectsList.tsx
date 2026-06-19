@@ -32,7 +32,7 @@ export function ProjectsList({ range, exclude }: ProjectsListProps) {
           title={post.metadata.title}
           description={post.metadata.summary}
           content={post.content}
-          avatars={post.metadata.team?.map((member) => ({ src: member.avatar })) || []}
+          avatars={post.metadata.team?.map((member) => ({ src: member.avatar, "aria-label": `Photo of ${member.name}` })) || []}
           link={post.metadata.link || ""}
           tag={post.metadata.tag || ""}
         />
