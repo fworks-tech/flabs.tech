@@ -62,7 +62,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           <Column gap="16">
             {avatars?.length > 0 && <AvatarGroup avatars={avatars} size="m" reverse />}
             {description?.trim() && (
-              <Text wrap="balance" variant="body-default-s" onBackground="neutral-weak">
+              <Text variant="body-default-s" onBackground="neutral-weak">
                 {description}
               </Text>
             )}
