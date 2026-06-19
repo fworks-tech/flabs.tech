@@ -5,7 +5,6 @@ import {
   Carousel,
   Column,
   Flex,
-  Heading,
   SmartLink,
   Text,
 } from "@once-ui-system/core";
@@ -36,7 +35,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   const tagKey = (tag || "").toLowerCase().replace(/[^a-z]/g, "-");
 
   return (
-    <Column fillWidth gap="m" className={styles.card}>
+    <Column fillWidth gap="m">
       {images.length > 0 ? (
         <Carousel
           sizes="(max-width: 960px) 100vw, 960px"
@@ -59,15 +58,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         paddingBottom="24"
         gap="l"
       >
-        {title && (
-          <Flex flex={5}>
-            <Heading as="h2" wrap="balance" variant="heading-strong-xl">
-              {title}
-            </Heading>
-          </Flex>
-        )}
         {(avatars?.length > 0 || description?.trim() || content?.trim()) && (
-          <Column flex={7} gap="16">
+          <Column gap="16">
             {avatars?.length > 0 && <AvatarGroup avatars={avatars} size="m" reverse />}
             {description?.trim() && (
               <Text wrap="balance" variant="body-default-s" onBackground="neutral-weak">

@@ -1,16 +1,11 @@
 @use "../../styles/breakpoints" as bp;
 
-.card {
-  background-color: #1a1838;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .visualHeader {
   position: relative;
   width: 100%;
   height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
