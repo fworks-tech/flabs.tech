@@ -154,7 +154,7 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
               errorMessage={error}
             />
             <span id="email-help" className={styles.hint}>
-              We'll never share your email.
+              We&apos;ll never share your email.
             </span>
             <span 
               id="email-error" 

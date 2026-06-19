@@ -21,7 +21,7 @@ export default async function Icon() {
         justifyContent: "center",
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse (Satori) requires raw <img> */}
+      {/* next/og ImageResponse (Satori) requires raw <img> */}
       <img 
         src={avatarBase64} 
         alt="Fábio Ritzel Borges - Senior Full-Stack Engineer and AI Systems Architect" 
