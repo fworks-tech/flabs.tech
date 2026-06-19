@@ -3,7 +3,6 @@
 import { person } from "@/content";
 import { formatDate } from "@/lib/formatDate";
 import { Avatar, Card, Column, Media, Row, Tag, Text } from "@once-ui-system/core";
-import styles from "./Post.module.scss";
 
 interface PostProps {
   post: any;
@@ -19,12 +18,12 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
       href={`/blog/${post.slug}`}
       transition="micro-medium"
       direction={direction}
-      border="neutral-alpha-weak"
+      border="transparent"
+      background="transparent"
       padding="4"
       radius="l-4"
       gap={direction === "column" ? undefined : "24"}
       s={{ direction: "column" }}
-      className={styles.card}
     >
       {post.metadata.image && thumbnail && (
         <Media
