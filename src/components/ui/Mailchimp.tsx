@@ -126,33 +126,37 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
         id="mc-embedded-subscribe-form"
         name="mc-embedded-subscribe-form"
       >
-        <Row
+        <Column
           id="mc_embed_signup_scroll"
           fillWidth
           maxWidth={24}
-          s={{ direction: "column" }}
           gap="8"
         >
           <div className={styles.formGroup}>
             <label htmlFor="mce-EMAIL">Email Address</label>
-            <Input
-              formNoValidate
-              id="mce-EMAIL"
-              name="EMAIL"
-              type="email"
-              placeholder="your@email.com"
-              required
-              aria-describedby="email-help email-error"
-              onChange={(e) => {
-                if (error) {
-                  handleChange(e);
-                } else {
-                  debouncedHandleChange(e);
-                }
-              }}
-              onBlur={handleBlur}
-              errorMessage={error}
-            />
+            <Row gap="8" s={{ direction: "column" }} fillWidth wrap>
+              <Input
+                formNoValidate
+                id="mce-EMAIL"
+                name="EMAIL"
+                type="email"
+                placeholder="your@email.com"
+                required
+                aria-describedby="email-help email-error"
+                onChange={(e) => {
+                  if (error) {
+                    handleChange(e);
+                  } else {
+                    debouncedHandleChange(e);
+                  }
+                }}
+                onBlur={handleBlur}
+                errorMessage={error}
+              />
+              <Button id="mc-embedded-subscribe" value="Subscribe" size="m" aria-busy={isLoading}>
+                {isLoading ? "Subscribing..." : "Subscribe"}
+              </Button>
+            </Row>
             <span id="email-help" className={styles.hint}>
               We&apos;ll never share your email.
             </span>
@@ -188,14 +192,7 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
               value=""
             />
           </div>
-          <div className="clear">
-            <Row height="48" vertical="center">
-              <Button id="mc-embedded-subscribe" value="Subscribe" size="m" fillWidth aria-busy={isLoading}>
-                {isLoading ? "Subscribing..." : "Subscribe"}
-              </Button>
-            </Row>
-          </div>
-        </Row>
+        </Column>
       </form>
     </Column>
   );
