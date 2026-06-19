@@ -1,24 +1,24 @@
-import { baseURL } from "@/config";
 import { person } from "@/content";
 import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
 
-export async function GET() {
-  async function loadGoogleFont(font: string) {
-    const url = `https://fonts.googleapis.com/css2?family=${font}`;
-    const css = await (await fetch(url)).text();
-    const resource = css.match(/src: url\((.+)\) format\('(opentype|truetype)'\)/);
+async function loadGoogleFont(font: string) {
+  const url = `https://fonts.googleapis.com/css2?family=${font}`;
+  const css = await (await fetch(url)).text();
+  const resource = css.match(/src: url\((.+)\) format\('(\w+)'\)/);
 
-    if (resource) {
-      const response = await fetch(resource[1]);
-      if (response.status === 200) {
-        return await response.arrayBuffer();
-      }
+  if (resource) {
+    const response = await fetch(resource[1]);
+    if (response.status === 200) {
+      return await response.arrayBuffer();
     }
-
-    throw new Error("failed to load font data");
   }
+}
+
+export async function GET(request: Request) {
+  const fontData = await loadGoogleFont("Geist:wght@400").catch(() => undefined);
+  const avatarUrl = new URL(person.avatar, request.url).toString();
 
   return new ImageResponse(
     <div
@@ -50,7 +50,7 @@ export async function GET() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse (Satori) requires raw <img> */}
           <img
-            src={baseURL + person.avatar}
+            src={avatarUrl}
             alt="Fábio Ritzel Borges - Senior Full-Stack Engineer and AI Systems Architect"
             style={{
               width: "7rem",
@@ -105,13 +105,15 @@ export async function GET() {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: "Geist",
-          data: await loadGoogleFont("Geist:wght@400"),
-          style: "normal",
-        },
-      ],
+      fonts: fontData
+        ? [
+            {
+              name: "Geist",
+              data: fontData,
+              style: "normal",
+            },
+          ]
+        : undefined,
     },
   );
 }
