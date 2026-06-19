@@ -3,7 +3,6 @@
 .visualHeader {
   position: relative;
   width: 100%;
-  height: 220px;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -39,9 +38,7 @@
     pointer-events: none;
   }
 
-  @include bp.s {
-    height: 160px;
-  }
+
 }
 
 .visualTag {

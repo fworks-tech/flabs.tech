@@ -20,6 +20,7 @@ interface ProjectCardProps {
   avatars: { src: string; "aria-label"?: string }[];
   link: string;
   tag?: string;
+  tags?: string[];
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -31,8 +32,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   avatars,
   link,
   tag,
+  tags,
 }) => {
-  const tagKey = (tag || "").toLowerCase().replace(/[^a-z]/g, "-");
+  const allTags = tags?.length ? tags : tag ? [tag] : [];
+  const tagKey = (tag || (tags?.[0] ?? "")).toLowerCase().replace(/[^a-z]/g, "-");
 
   return (
     <Column fillWidth gap="m">
@@ -46,9 +49,17 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         />
       ) : (
         <div className={styles.visualHeader} data-tag={tagKey}>
-          {tag && <span className={styles.visualTag}>{tag}</span>}
           <span className={styles.visualTitle}>{title}</span>
         </div>
+      )}
+      {allTags.length > 0 && (
+        <Flex paddingX="s" gap="8" wrap>
+          {allTags.map((t) => (
+            <span key={t} className={styles.visualTag}>
+              {t}
+            </span>
+          ))}
+        </Flex>
       )}
       <Flex
         s={{ direction: "column" }}
