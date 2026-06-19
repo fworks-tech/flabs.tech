@@ -2,7 +2,8 @@
 
 import { person } from "@/content";
 import { formatDate } from "@/lib/formatDate";
-import { Avatar, Card, Column, Media, Row, Text } from "@once-ui-system/core";
+import { Avatar, Card, Column, Media, Row, Tag, Text } from "@once-ui-system/core";
+import styles from "./Post.module.scss";
 
 interface PostProps {
   post: any;
@@ -18,12 +19,12 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
       href={`/blog/${post.slug}`}
       transition="micro-medium"
       direction={direction}
-      border="transparent"
-      background="transparent"
+      border="neutral-alpha-weak"
       padding="4"
       radius="l-4"
       gap={direction === "column" ? undefined : "24"}
       s={{ direction: "column" }}
+      className={styles.card}
     >
       {post.metadata.image && thumbnail && (
         <Media
@@ -51,11 +52,24 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
           <Text variant="heading-strong-l" wrap="balance">
             {post.metadata.title}
           </Text>
-          {post.metadata.tag && (
-            <Text variant="label-strong-s" onBackground="neutral-weak">
-              {post.metadata.tag}
+          {post.metadata.summary && (
+            <Text variant="body-default-m" onBackground="neutral-weak" wrap="balance">
+              {post.metadata.summary}
             </Text>
           )}
+          <Row gap="8" wrap>
+            {post.metadata.tags?.length
+              ? post.metadata.tags.map((t: string) => (
+                  <Tag key={t} size="m">
+                    {t}
+                  </Tag>
+                ))
+              : post.metadata.tag && (
+                  <Tag size="m">
+                    {post.metadata.tag}
+                  </Tag>
+                )}
+          </Row>
         </Column>
       </Row>
     </Card>
