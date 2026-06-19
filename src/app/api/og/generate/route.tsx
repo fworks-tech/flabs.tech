@@ -51,7 +51,7 @@ export async function GET() {
           {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse (Satori) requires raw <img> */}
           <img
             src={baseURL + person.avatar}
-            alt=""
+            alt="Fábio Ritzel Borges - Senior Full-Stack Engineer and AI Systems Architect"
             style={{
               width: "7rem",
               height: "7rem",

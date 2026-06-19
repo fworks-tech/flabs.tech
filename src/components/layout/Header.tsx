@@ -57,84 +57,83 @@ export const Header = () => {
       paddingY="12"
       vertical="center"
       suppressHydrationWarning
+      role="banner"
     >
       {/* Center: Flat nav */}
+      <nav>
       <Row horizontal="center" gap="4" vertical="center" textVariant="body-default-s">
         {routes["/"] && (
           <div className={styles.navItem}>
-            <Row s={{ hide: true }}>
-              <ToggleButton href="/" label="Home" selected={pathname === "/"} />
-            </Row>
-            <Row hide s={{ hide: false }}>
-              <ToggleButton prefixIcon="home" href="/" selected={pathname === "/"} />
-            </Row>
+            <ToggleButton 
+              href="/" 
+              label="Home" 
+              selected={pathname === "/"}
+              className={styles.desktopLabel}
+            />
+            <ToggleButton 
+              href="/" 
+              prefixIcon="home" 
+              selected={pathname === "/"}
+              className={styles.mobileIcon}
+            />
           </div>
         )}
         {routes["/work"] && (
           <div className={styles.navItem}>
-            <Row s={{ hide: true }}>
-              <ToggleButton
-                href="/work"
-                label={work.label}
-                selected={pathname.startsWith("/work")}
-              />
-            </Row>
-            <Row hide s={{ hide: false }}>
-              <ToggleButton
-                prefixIcon="grid"
-                href="/work"
-                selected={pathname.startsWith("/work")}
-              />
-            </Row>
+            <ToggleButton
+              href="/work"
+              label={work.label}
+              selected={pathname.startsWith("/work")}
+              className={styles.desktopLabel}
+            />
+            <ToggleButton
+              prefixIcon="grid"
+              href="/work"
+              selected={pathname.startsWith("/work")}
+              className={styles.mobileIcon}
+            />
           </div>
         )}
         {routes["/projects"] && (
           <div className={styles.navItem}>
-            <Row s={{ hide: true }}>
-              <ToggleButton
-                href="/projects"
-                label={projects.label}
-                selected={pathname.startsWith("/projects")}
-              />
-            </Row>
-            <Row hide s={{ hide: false }}>
-              <ToggleButton
-                prefixIcon="code"
-                href="/projects"
-                selected={pathname.startsWith("/projects")}
-              />
-            </Row>
+            <ToggleButton
+              href="/projects"
+              label={projects.label}
+              selected={pathname.startsWith("/projects")}
+              className={styles.desktopLabel}
+            />
+            <ToggleButton
+              prefixIcon="code"
+              href="/projects"
+              selected={pathname.startsWith("/projects")}
+              className={styles.mobileIcon}
+            />
           </div>
         )}
         {routes["/blog"] && (
           <div className={styles.navItem}>
-            <Row s={{ hide: true }}>
-              <ToggleButton
-                href="/blog"
-                label={blog.label}
-                selected={pathname.startsWith("/blog")}
-              />
-            </Row>
-            <Row hide s={{ hide: false }}>
-              <ToggleButton
-                prefixIcon="book"
-                href="/blog"
-                selected={pathname.startsWith("/blog")}
-              />
-            </Row>
+            <ToggleButton
+              href="/blog"
+              label={blog.label}
+              selected={pathname.startsWith("/blog")}
+              className={styles.desktopLabel}
+            />
+            <ToggleButton
+              prefixIcon="book"
+              href="/blog"
+              selected={pathname.startsWith("/blog")}
+              className={styles.mobileIcon}
+            />
           </div>
         )}
         {routes["/about"] && (
           <div className={styles.navItem}>
-            <Row s={{ hide: true }}>
-              <ToggleButton href="/about" label={about.label} selected={pathname === "/about"} />
-            </Row>
-            <Row hide s={{ hide: false }}>
-              <ToggleButton prefixIcon="person" href="/about" selected={pathname === "/about"} />
-            </Row>
+            <ToggleButton href="/about" label={about.label} selected={pathname === "/about"} className={styles.desktopLabel} />
+            <ToggleButton prefixIcon="person" href="/about" selected={pathname === "/about"} className={styles.mobileIcon} />
           </div>
         )}
       </Row>
+      </nav>
 
       {/* Right: Time + Theme toggle */}
       <Flex flex={1} horizontal="end" vertical="center" gap="16" textVariant="body-default-s">

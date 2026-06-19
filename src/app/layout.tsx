@@ -6,6 +6,7 @@ import classNames from "classnames";
 
 import { Footer, Header, Providers, RouteGuard } from "@/components";
 import Particles from "@/components/layout/Particles";
+import { SkipLink } from "@/components/layout/SkipLink";
 import { baseURL, dataStyle, effects, fonts, style } from "@/config";
 import { home } from "@/content";
 import {
@@ -202,8 +203,18 @@ export default async function RootLayout({
             />
           </RevealFx>
           <Flex fillWidth minHeight="16" s={{ hide: true }} />
+          <SkipLink />
           <Header />
-          <Flex zIndex={0} fillWidth padding="l" horizontal="center" flex={1}>
+          <Flex 
+            as="main" 
+            zIndex={0} 
+            fillWidth 
+            padding="l" 
+            horizontal="center" 
+            flex={1}
+            id="main-content"
+            role="main"
+          >
             <Flex horizontal="center" fillWidth minHeight="0">
               <RouteGuard>{children}</RouteGuard>
             </Flex>

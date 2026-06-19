@@ -1,0 +1,24 @@
+@use "../../styles/breakpoints" as breakpoints;
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  font-size: 12px;
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+@include breakpoints.s {
+  .formGroup {
+    max-width: 24;
+  }
+}

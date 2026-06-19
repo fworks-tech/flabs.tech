@@ -47,3 +47,6 @@ analyze/
 # storybook
 *storybook.log
 storybook-static
+
+# temp folder
+__temp__
