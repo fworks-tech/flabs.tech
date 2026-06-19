@@ -14,12 +14,13 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **Animated headline** — Character-by-character stagger entrance with shimmer sweep on load
 - **Responsive layout** — Full desktop nav, mobile bottom pill nav; hero and grids collapse gracefully
 - **Theme-aware header** — Background adapts to light/dark using CSS variables
+- **WCAG 2.1 AA** — Skip-to-content link, semantic landmarks, focus-visible styles, aria-labels, keyboard nav, 44px touch targets
 
 ### Pages
 - **Home** — Split hero with animated headline + CTAs, 3-column project grid, recent posts section
 - **Work** — Professional experience timeline: 7 companies across USA, Europe, and Brazil, plus education
 - **Projects** — 7 open-source projects with MDX detail pages and GitHub links: Agenthood, Driveline ELD, ApolloDroid, VeriHire, Jupyter Crypto Wizard, Fashionista, flabs.tech
-- **Blog** — Engineering blog with MDX posts on GraphQL Federation and multi-agent AI
+- **Blog** — Engineering blog with MDX posts on GraphQL Federation, multi-agent AI, and skills registries
 - **About** — Full professional bio, location, social links, and skill tags across Frontend · Backend & APIs · AI & Agents
 
 ### Technical
@@ -41,7 +42,9 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Language | TypeScript |
 | Content | MDX + gray-matter |
 | Styling | SCSS Modules |
+| Linting | ESLint 9 (flat config) + Prettier |
 | Bundler | Turbopack |
+| Type Checking | TypeScript 5.8 (`tsc --noEmit`) |
 | Testing | Vitest 4 · Playwright · axe-core · Lighthouse CI |
 | Storybook | Storybook 10 |
 | Bundle Audit | @next/bundle-analyzer |
@@ -103,7 +106,7 @@ npm run build-storybook # Static build
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with v8 coverage report |
 
-**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 76 tests
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 210 assertions across 20 test files
 
 **Convention:** Tests live in `__tests__/` directories next to the files they cover.
 
@@ -126,7 +129,7 @@ src/features/about/TableOfContents.tsx → src/features/about/__tests__/TableOfC
 | `npm run test:e2e:chrome` | Chromium only |
 | `npm run test:e2e:update-snapshots` | Update visual baselines |
 
-**Stack:** Playwright 1.x · axe-core · 37 tests — navigation, pages, a11y, visual snapshots
+**Stack:** Playwright 1.x · axe-core · 24 tests — navigation, pages, a11y, visual snapshots, API routes
 
 **Browsers:** Chromium + WebKit (local) · Chromium only (CI)
 
@@ -150,7 +153,7 @@ e2e/
 
 ```
 push/PR to main
-  ├── test job:    npm install → lint → vitest
+  ├── test job:    npm install → npm run lint → npm run typecheck → vitest
   ├── e2e job:     npm install → playwright install chromium → playwright test
   └── lighthouse:  npm install → npm run build → lhci autorun
 ```
