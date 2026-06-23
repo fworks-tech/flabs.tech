@@ -1,0 +1,7 @@
+.post {
+  transition: background-color 0.2s ease;
+}
+
+.post:hover {
+  background-color: var(--neutral-alpha-weak);
+}

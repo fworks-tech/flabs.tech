@@ -18,6 +18,7 @@ export async function generateMetadata() {
 export default function Blog() {
   const allPosts = getPosts(["src", "content", "blog"]);
   const hasPosts = allPosts.length > 0;
+  const hasEarlierPosts = allPosts.length > 3;
 
   const schema = (
     <Schema
@@ -78,17 +79,26 @@ export default function Blog() {
   return (
     <Column maxWidth="m" paddingTop="24">
       {schema}
-      <Heading marginBottom="l" variant="heading-strong-xl" marginLeft="24">
-        Blog
-      </Heading>
-      <Column fillWidth flex={1} gap="40">
-        <Posts range={[1, 1]} thumbnail />
-        <Posts range={[2, 3]} thumbnail />
-        <ClientMailchimp marginBottom="l" padding="m" />
-        <Heading as="h2" variant="heading-strong-xl">
-          Earlier posts
+      <Column fillWidth horizontal="center" align="center" gap="8" marginBottom="xl">
+        <Heading variant="display-strong-l" align="center">
+          Blog
         </Heading>
-        <Posts range={[4]} />
+        <Text variant="body-default-l" onBackground="neutral-weak" align="center" wrap="balance">
+          Real-world notes on software engineering — architecture, frontend, backend, AI, DevOps,
+          and everything in between.
+        </Text>
+      </Column>
+      <Column fillWidth flex={1} gap="40">
+        <Posts range={[1, 3]} thumbnail />
+        {hasEarlierPosts && (
+          <>
+            <Heading as="h2" variant="heading-strong-xl">
+              Earlier posts
+            </Heading>
+            <Posts range={[4]} />
+          </>
+        )}
+        <ClientMailchimp marginBottom="l" padding="m" />
       </Column>
     </Column>
   );
