@@ -35,7 +35,7 @@ export function Posts({
   return (
     <>
       {displayedBlogs.length > 0 && (
-        <Grid columns={columns} s={{ columns: 1 }} fillWidth marginBottom="40" gap="16">
+        <Grid columns={columns} s={{ columns: 1 }} fillWidth marginBottom="40" gap="24">
           {displayedBlogs.map((post) => (
             <Post key={post.slug} post={post} thumbnail={thumbnail} direction={direction} />
           ))}
