@@ -184,7 +184,7 @@ const mailchimp: MailchimpConfig = {
 
 // default schema data
 const schema: SchemaConfig = {
-  logo: "",
+  logo: "/images/avatar.webp",
   type: "Person",
   name: "Fabio Ritzel Borges",
   description: home.description,
@@ -196,6 +196,7 @@ const sameAs: SameAsConfig = {
   threads: "",
   linkedin: "https://www.linkedin.com/in/fabiorborges/",
   discord: "",
+  github: "https://github.com/fworks-tech",
 };
 
 // social sharing configuration for blog posts

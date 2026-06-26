@@ -1,5 +1,5 @@
 import { CustomMDX, ScrollToHash } from "@/components";
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { about, person, projects } from "@/content";
 import { ProjectsList } from "@/features/projects/ProjectsList";
 import { formatDate } from "@/lib/formatDate";
@@ -66,6 +66,7 @@ export default async function ProjectDetail({
       <Schema
         as="blogPosting"
         baseURL={baseURL}
+        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
         path={`${projects.path}/${post.slug}`}
         title={post.metadata.title}
         description={post.metadata.summary}

@@ -1,4 +1,4 @@
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { about, person, work, workExperience } from "@/content";
 import { Column, Heading, Line, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
 
@@ -18,6 +18,7 @@ export default function WorkPage() {
       <Schema
         as="webPage"
         baseURL={baseURL}
+        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
         path={work.path}
         title={work.title}
         description={work.description}

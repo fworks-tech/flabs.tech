@@ -1,4 +1,4 @@
-import { baseURL, routes } from "@/config";
+import { baseURL, routes, sameAs } from "@/config";
 import { about, home, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ProjectGrid } from "@/features/work/ProjectGrid";
@@ -23,6 +23,7 @@ export default function Home() {
       <Schema
         as="webPage"
         baseURL={baseURL}
+        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
         path={home.path}
         title={home.title}
         description={home.description}

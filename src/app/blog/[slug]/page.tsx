@@ -1,5 +1,5 @@
 import { CustomMDX, ScrollToHash } from "@/components";
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { about, blog, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ShareSection } from "@/features/blog/ShareSection";
@@ -79,6 +79,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           <Schema
             as="blogPosting"
             baseURL={baseURL}
+            sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
             path={`${blog.path}/${post.slug}`}
             title={post.metadata.title}
             description={post.metadata.summary}
