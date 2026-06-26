@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 
 const Particles = dynamic(() => import("@/components/layout/Particles"), { ssr: false });
@@ -11,15 +11,25 @@ interface ClientParticlesProps {
   ease?: number;
 }
 
-export default function ClientParticles({ quantity, staticity, ease }: ClientParticlesProps) {
-  const [isDesktop, setIsDesktop] = useState(false);
+function getDesktopQuery() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(min-width: 768px)");
+}
 
-  useEffect(() => {
-    setIsDesktop(window.innerWidth >= 768);
-    const onResize = () => setIsDesktop(window.innerWidth >= 768);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+function subscribeToDesktop(callback: () => void) {
+  const mq = getDesktopQuery();
+  if (!mq) return () => {};
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getDesktopSnapshot() {
+  const mq = getDesktopQuery();
+  return mq ? mq.matches : false;
+}
+
+export default function ClientParticles({ quantity, staticity, ease }: ClientParticlesProps) {
+  const isDesktop = useSyncExternalStore(subscribeToDesktop, getDesktopSnapshot, () => false);
 
   if (!isDesktop) return null;
 
