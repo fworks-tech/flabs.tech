@@ -1,0 +1,106 @@
+---
+title: "Agenthood v3.0.0 — M5 Intelligence is shipped"
+publishedAt: "2026-06-26"
+summary: "v3.0.0 ships hierarchical RAG, agent-controlled retrieval, 14-member orchestration, OpenCode providers, governance docs, and 527 passing tests."
+tag: "AI"
+shareText: |
+  Agenthood v3.0.0 is out — M5 Intelligence milestone complete.
+
+  What shipped:
+  • HierarchicalChunkStrategy — parent-child chunking for markdown and code
+  • AgenticRAG — agent decides when and how to retrieve
+  • MemberOrchestrator — detect which member should handle any task
+  • OpenCode Zen + Go providers — OpenAI-compatible, DeepSeek V4 Flash
+  • Governance docs — RACI matrix, release policy
+  • 527 tests, 49 files, all green
+
+  npm i agenthood
+  → github.com/fworks-tech/agenthood
+---
+
+M5 — Intelligence is shipped. v3.0.0 is on npm.
+
+This release closes the M5 milestone: three months of work across hierarchical chunking, agent-controlled retrieval, multi-member orchestration, provider expansion, and governance.
+
+**→ [npm install agenthood](https://www.npmjs.com/package/agenthood/v/3.0.0)**
+
+---
+
+## What shipped
+
+### HierarchicalChunkStrategy
+
+Two new chunking strategies that understand document structure instead of treating everything as a flat array of tokens:
+
+- **MarkdownHierarchicalChunkStrategy** — parses H1/H2 headings as parent sections, paragraphs as child chunks. Retrieval can target a precise paragraph and automatically resolve its parent section for context.
+- **CodeHierarchicalChunkStrategy** — parses top-level declarations (classes, functions, interfaces) as parent blocks with their inner code as children. Uses Tree-sitter for deterministic AST parsing.
+
+Both strategies produce `ParentChunk` and `ChildChunk` types. The Indexer stores parent content atomically; the Retriever resolves parents with a 30-second TTL cache.
+
+### AgenticRAG
+
+Not every query needs a vector search. AgenticRAG wraps the Retriever with a classifier that decides the strategy based on keyword analysis:
+
+- **skip** — the agent already knows the answer (requires 2+ word overlap with short-term memory)
+- **vector** — semantic similarity search only
+- **graph** — Knowledge Graph traversal (falls back to vector when no KGS is configured)
+- **both** — parallel vector + graph with results merged
+
+Provenance tracking captures the chosen strategy, match count, graph hop depth, and source paths.
+
+### MemberOrchestrator
+
+The Society now detects which member should handle a given task without being told. `MemberTriggers` defines keyword patterns, file globs, and stage mappings for all 14 members. `detectMembers()` scores each member against the input with a threshold of 2+.
+
+The `--detect` flag on the CLI runs detection before any LLM call — no API key needed for routing decisions.
+
+### OpenCode Zen + Go providers
+
+Agenthood now ships with first-class support for OpenCode:
+
+- **OpenCode Zen** — pay-as-you-go at `api.opencode.ai/zen/v1`
+- **OpenCode Go** — subscription at `api.opencode.ai/zen/go/v1`, defaults to `deepseek-v4-flash` ($0.14/$0.28 per 1M tokens)
+
+Both are OpenAI-compatible. The provider includes a `toOpenAIMessages` converter that handles DeepSeek's tool format requirements (snake_case `tool_calls`, correct `tool_call_id` ordering). Set `OPENCODE_API_KEY` in your environment and pass `--provider opencode` or `--provider opencode-go`.
+
+### Governance docs
+
+Two new documents in `governance/`:
+
+- **member-map.md** — RACI matrix for all 14 members plus 3 planned M6 roles
+- **release-policy.md** — change approval rules, version numbering, breaking change announcements, deprecation policy, compliance
+
+### CI improvements
+
+- Shared composite action (`.github/actions/agent-analysis/`) eliminates duplicated agent analysis blocks across 3 workflows
+- `continue-on-error` with separate stderr capture — agent failures are visible, not silently swallowed
+- File capping (10 files max) and API key guards keep costs at ~$0.01 per run
+- Gitleaks pinned to a specific commit SHA
+- `npm audit` added to 3 workflows
+- All `gh` commands now have explicit `GITHUB_TOKEN` auth
+
+---
+
+## By the numbers
+
+| Metric | Count |
+|--------|-------|
+| Commits | 22 since v2.5.1 |
+| Files changed | 62 |
+| Lines added | 5,037 |
+| New source files | 12 |
+| New test files | 7 |
+| Total tests | 527 (49 files, all green) |
+| CI checks | 13 workflows |
+| Warden findings resolved | 10/10 |
+| Auditor findings resolved | 6/6 |
+
+---
+
+## What's next
+
+M6 — The Full Society. Three new members planned (The Amplifier, The Weaver, The Integrator), deeper skill-to-skill collaboration, and the first pass at the member marketplace.
+
+The Society does not ship features. It ships standards.
+
+**→ [GitHub](https://github.com/fworks-tech/agenthood) · [npm](https://www.npmjs.com/package/agenthood) · [Docs](https://agenthood.flabs.tech)**

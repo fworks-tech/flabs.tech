@@ -112,7 +112,7 @@ const about: About = {
   },
   work: {
     display: false,
-    title: "Work Experience",
+  title: "Work Experience — Fabio Ritzel Borges",
     experiences: [],
   },
   studies: {
@@ -276,7 +276,7 @@ const workExperience = {
 const blog: Blog = {
   path: "/blog",
   label: "Blog",
-  title: "Blog",
+  title: "Blog — Fabio Ritzel Borges",
   description: `Thoughts on software engineering and technology from ${person.name}`,
 };
 
@@ -291,7 +291,7 @@ const work: Work = {
 const projects: Work = {
   path: "/projects",
   label: "Projects",
-  title: "Projects",
+  title: "Projects — Fabio Ritzel Borges",
   description: `Open-source tools, AI experiments, and personal builds by ${person.name}`,
 };
 
