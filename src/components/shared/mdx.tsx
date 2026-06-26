@@ -1,7 +1,10 @@
 import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
 import type React from "react";
 import type { ReactNode } from "react";
+import remarkGfm from "remark-gfm";
 import { slugify as transliterate } from "transliteration";
+
+import tableStyles from "./mdx-table.module.scss";
 
 import {
   Accordion,
@@ -23,7 +26,6 @@ import {
   type MediaProps,
   Row,
   SmartLink,
-  Table,
   Text,
   type TextProps,
 } from "@once-ui-system/core";
@@ -173,6 +175,26 @@ function createHR() {
   );
 }
 
+function createTable({ children }: { children: ReactNode }) {
+  return <table className={tableStyles.table}>{children}</table>;
+}
+
+function createTableSection({ children }: { children: ReactNode }) {
+  return <>{children}</>;
+}
+
+function createTableRow({ children }: { children: ReactNode }) {
+  return <tr>{children}</tr>;
+}
+
+function createTableHeader({ children }: { children: ReactNode }) {
+  return <th>{children}</th>;
+}
+
+function createTableCell({ children }: { children: ReactNode }) {
+  return <td>{children}</td>;
+}
+
 const components = {
   p: createParagraph as any,
   h1: createHeading("h1") as any,
@@ -189,13 +211,18 @@ const components = {
   ul: createList("ul") as any,
   li: createListItem as any,
   hr: createHR as any,
+  table: createTable as any,
+  thead: createTableSection as any,
+  tbody: createTableSection as any,
+  tr: createTableRow as any,
+  th: createTableHeader as any,
+  td: createTableCell as any,
   Heading,
   Text,
   CodeBlock,
   InlineCode,
   Accordion,
   AccordionGroup,
-  Table,
   Feedback,
   Button,
   Card,
@@ -214,7 +241,7 @@ type CustomMDXProps = MDXRemoteProps & {
 export function CustomMDX(props: CustomMDXProps) {
   return (
     <MDXRemote
-      options={{ blockJS: false }}
+      options={{ blockJS: false, parseFrontmatter: false, mdxOptions: { remarkPlugins: [remarkGfm] } }}
       {...props}
       components={{ ...components, ...(props.components || {}) }}
     />

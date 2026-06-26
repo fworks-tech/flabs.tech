@@ -18,11 +18,11 @@ shareText: |
   → github.com/fworks-tech/agenthood
 ---
 
-M5 — Intelligence is shipped. v3.0.0 is on npm.
+M5 — Intelligence is shipped. [v3.0.0 is on npm](https://www.npmjs.com/package/agenthood/v/3.0.0).
 
 This release closes the M5 milestone: three months of work across hierarchical chunking, agent-controlled retrieval, multi-member orchestration, provider expansion, and governance.
 
-**→ [npm install agenthood](https://www.npmjs.com/package/agenthood/v/3.0.0)**
+**→ [npm install agenthood](https://www.npmjs.com/package/agenthood/v/3.0.0) · [GitHub](https://github.com/fworks-tech/agenthood) · [Docs](https://agenthood.flabs.tech)**
 
 ---
 
@@ -58,8 +58,8 @@ The `--detect` flag on the CLI runs detection before any LLM call — no API key
 
 Agenthood now ships with first-class support for OpenCode:
 
-- **OpenCode Zen** — pay-as-you-go at `api.opencode.ai/zen/v1`
-- **OpenCode Go** — subscription at `api.opencode.ai/zen/go/v1`, defaults to `deepseek-v4-flash` ($0.14/$0.28 per 1M tokens)
+- **OpenCode Zen** — pay-as-you-go at [`api.opencode.ai/zen/v1`](https://api.opencode.ai/zen/v1)
+- **OpenCode Go** — subscription at [`api.opencode.ai/zen/go/v1`](https://api.opencode.ai/zen/go/v1), defaults to `deepseek-v4-flash` ($0.14/$0.28 per 1M tokens)
 
 Both are OpenAI-compatible. The provider includes a `toOpenAIMessages` converter that handles DeepSeek's tool format requirements (snake_case `tool_calls`, correct `tool_call_id` ordering). Set `OPENCODE_API_KEY` in your environment and pass `--provider opencode` or `--provider opencode-go`.
 
@@ -67,8 +67,8 @@ Both are OpenAI-compatible. The provider includes a `toOpenAIMessages` converter
 
 Two new documents in `governance/`:
 
-- **member-map.md** — RACI matrix for all 14 members plus 3 planned M6 roles
-- **release-policy.md** — change approval rules, version numbering, breaking change announcements, deprecation policy, compliance
+- **[member-map.md](https://github.com/fworks-tech/agenthood/blob/main/governance/member-map.md)** — RACI matrix for all 14 members plus 3 planned M6 roles
+- **[release-policy.md](https://github.com/fworks-tech/agenthood/blob/main/governance/release-policy.md)** — change approval rules, version numbering, breaking change announcements, deprecation policy, compliance
 
 ### CI improvements
 

@@ -1,0 +1,27 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--static-space-16) 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: var(--static-space-12) var(--static-space-16);
+  text-align: left;
+  border-bottom: 1px solid var(--neutral-alpha-weak);
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+  background: var(--neutral-alpha-weak);
+}
+
+.table td {
+  color: var(--neutral-on-background-medium);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
