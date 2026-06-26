@@ -41,7 +41,7 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
         />
       )}
       <Row fillWidth>
-        <Column paddingY="24" gap="20" vertical="center">
+        <Column fillWidth paddingY="24" gap="20" vertical="center">
           <Row gap="24" vertical="center">
             <Row vertical="center" gap="16">
               <Avatar src={person.avatar} size="s" aria-label={`Photo of ${person.name}`} />

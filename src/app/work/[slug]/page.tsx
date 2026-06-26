@@ -96,8 +96,8 @@ export default async function Project({
         }}
       />
       <Column maxWidth="s" gap="16" horizontal="center" align="center">
-        <SmartLink href="/projects">
-          <Text variant="label-strong-m">Projects</Text>
+        <SmartLink href="/work">
+          <Text variant="label-strong-m">Work</Text>
         </SmartLink>
         <Text variant="body-default-xs" onBackground="neutral-weak" marginBottom="12">
           {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
@@ -130,7 +130,7 @@ export default async function Project({
       <Column fillWidth gap="40" horizontal="center" marginTop="40">
         <Line maxWidth="40" />
         <Heading as="h2" variant="heading-strong-xl" marginBottom="24">
-          Related projects
+          Related work
         </Heading>
         <Projects exclude={[post.slug]} range={[2]} />
       </Column>
