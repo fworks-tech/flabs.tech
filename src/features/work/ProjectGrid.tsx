@@ -9,7 +9,7 @@ interface ProjectGridProps {
 }
 
 export function ProjectGrid({ range, exclude }: ProjectGridProps) {
-  let allProjects = getPosts(["src", "content", "work"]);
+  let allProjects = getPosts(["src", "content", "projects"]);
 
   if (exclude?.length) {
     allProjects = allProjects.filter((p) => !exclude.includes(p.slug));
@@ -29,7 +29,7 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
         const hasImages = Array.isArray(post.metadata.images) && post.metadata.images.length > 0;
 
         // Validate external links to prevent XSS - only allow http/https
-        let href = `/work/${post.slug}`;
+        let href = `/projects/${post.slug}`;
         if (post.metadata.link && typeof post.metadata.link === "string") {
           try {
             const url = new URL(post.metadata.link);
