@@ -45,6 +45,9 @@ export async function generateMetadata() {
     metadataBase: new URL(baseURL),
     alternates: {
       canonical: baseURL,
+      types: {
+        "application/rss+xml": `${baseURL}/api/rss`,
+      },
     },
     openGraph: {
       ...(meta.openGraph || {}),

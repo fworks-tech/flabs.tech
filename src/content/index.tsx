@@ -7,6 +7,7 @@ const person: Person = {
   role: "Senior Full-Stack Engineer · AI Engineering",
   avatar: "/images/avatar.webp",
   email: "fritzelborges@gmail.com",
+  resume: "/resume.pdf",
   location: "America/Sao_Paulo",
   languages: ["English", "Portuguese"],
 };
