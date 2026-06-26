@@ -56,8 +56,8 @@ __mocks__/       Vitest manual mocks
 - TypeScript strict mode, `@/` path alias for `src/`
 - SCSS Modules for styling (`.module.scss`), global styles in `src/styles/`
 - Tests co-located in `__tests__/` dirs next to source files
-- Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`
-- Pre-commit hook runs lint-staged (ESLint --fix + Prettier on staged files)
+- Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `ci:`, `perf:`
+- No pre-commit hooks; CI enforces quality gates
 - PRs require CI to pass (lint → typecheck → test → e2e)
 
 ## Testing

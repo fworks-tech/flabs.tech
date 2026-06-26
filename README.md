@@ -18,7 +18,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 
 ### Pages
 - **Home** — Split hero with animated headline + CTAs, 3-column project grid, recent posts section
-- **Work** — Professional experience timeline: 7 companies across USA, Europe, and Brazil, plus education
+- **Work** — Professional experience timeline: 7 roles across 6 companies in the USA, Europe, and Brazil, plus education
 - **Projects** — 7 open-source projects with MDX detail pages and GitHub links: Agenthood, Driveline ELD, ApolloDroid, VeriHire, Jupyter Crypto Wizard, Fashionista, flabs.tech
 - **Blog** — Engineering blog with MDX posts on GraphQL Federation, multi-agent AI, and skills registries
 - **About** — Full professional bio, location, social links, and skill tags across Frontend · Backend & APIs · AI & Agents
@@ -29,7 +29,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **MDX** content pipeline for blog posts and project detail pages with gray-matter
 - **Dynamic OG images** via `next/og` — auto-generated for every page with 1200×630 (1.91:1)
 - **Profile photo favicon** generated server-side via `icon.tsx` (no binary files)
-- **AGENTS.md** — AI agent instructions (build/test commands, conventions, git workflow) for Claude Code, Cursor, Copilot, Gemini, and 21+ tools
+- **AGENTS.md** — AI agent instructions (build/test commands, conventions, git workflow)
 - Deployed on **Vercel** with PR preview deployments
 
 ---
@@ -49,7 +49,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Testing | Vitest 4 · Playwright · axe-core · Lighthouse CI |
 | Storybook | Storybook 10 |
 | Bundle Audit | @next/bundle-analyzer |
-| CI/CD | GitHub Actions (test → e2e → lighthouse) |
+| CI/CD | GitHub Actions (lint → typecheck → test + e2e parallel, lighthouse → test) |
 | Deployment | Vercel |
 
 ---
@@ -107,7 +107,7 @@ npm run build-storybook # Static build
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with v8 coverage report |
 
-**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 210 assertions across 20 test files
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 88 tests across 20 test files
 
 **Convention:** Tests live in `__tests__/` directories next to the files they cover.
 
@@ -130,21 +130,26 @@ src/features/about/TableOfContents.tsx → src/features/about/__tests__/TableOfC
 | `npm run test:e2e:chrome` | Chromium only |
 | `npm run test:e2e:update-snapshots` | Update visual baselines |
 
-**Stack:** Playwright 1.x · axe-core · 24 tests — navigation, pages, a11y, visual snapshots, API routes
+**Stack:** Playwright 1.x · axe-core · navigation, pages, a11y, visual snapshots, API routes, responsive
 
 **Browsers:** Chromium + WebKit (local) · Chromium only (CI)
 
 **Structure:**
 ```
 e2e/
-├── navigation.spec.ts       # Header links, click nav, 404
+├── navigation.spec.ts       # Header links, click nav
 ├── accessibility.spec.ts    # axe-core WCAG 2.1 AA scans
 ├── smoke.spec.ts            # All routes return 200
+├── errors.spec.ts           # 404, error states
+├── api-routes.spec.ts       # API endpoint checks
+├── aux-routes.spec.ts       # Sitemap, robots, RSS
+├── responsive.spec.ts       # Viewport breakpoints
 ├── pages/
 │   ├── home.spec.ts         # Title, favicon, OG meta
 │   ├── about.spec.ts        # Title, social links
 │   ├── blog.spec.ts         # Listing, post nav
 │   ├── work.spec.ts         # Timeline
+│   ├── work-detail.spec.ts  # Case study pages
 │   └── projects.spec.ts     # Grid, detail nav
 └── screenshots/
     └── pages.spec.ts        # Full-page desktop snapshots
@@ -154,9 +159,9 @@ e2e/
 
 ```
 push/PR to main
-  ├── test job:    npm install → npm run lint → npm run typecheck → vitest
-  ├── e2e job:     npm install → playwright install chromium → playwright test
-  └── lighthouse:  npm install → npm run build → lhci autorun
+  ├── test job:       npm install → npm run lint → npm run typecheck → vitest
+  ├── e2e job:        npm install → playwright install chromium → playwright test
+  └── lighthouse job: npm install → npm run build → lhci autorun (needs: test)
 ```
 
 **Mocks:** Centralized in `__mocks__/` at project root:
