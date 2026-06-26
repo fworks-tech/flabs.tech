@@ -23,6 +23,8 @@ export type Person = {
   avatar: string;
   /** Email address */
   email: string;
+  /** Path to resume/CV PDF */
+  resume?: string;
   /** IANA time zone location */
   location: IANATimeZone;
   /** Languages spoken */

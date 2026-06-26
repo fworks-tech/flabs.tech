@@ -89,6 +89,14 @@ export default function About() {
                     />
                   ),
               )}
+            {person.resume && (
+              <Button
+                href={person.resume}
+                label="Download CV"
+                size="s"
+                variant="secondary"
+              />
+            )}
           </Row>
         )}
       </Column>
