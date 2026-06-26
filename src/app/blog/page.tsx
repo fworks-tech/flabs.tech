@@ -1,4 +1,4 @@
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { blog, person } from "@/content";
 import ClientMailchimp from "@/components/ui/ClientMailchimp";
 import { Posts } from "@/features/blog/Posts";
@@ -24,6 +24,7 @@ export default function Blog() {
     <Schema
       as="blogPosting"
       baseURL={baseURL}
+      sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
       title={blog.title}
       description={blog.description}
       path={blog.path}

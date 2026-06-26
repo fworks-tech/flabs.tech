@@ -1,4 +1,4 @@
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { about, person, social } from "@/content";
 import {
   Avatar,
@@ -29,6 +29,7 @@ export default function About() {
       <Schema
         as="webPage"
         baseURL={baseURL}
+        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
         title={about.title}
         description={about.description}
         path={about.path}

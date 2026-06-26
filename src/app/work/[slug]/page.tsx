@@ -1,5 +1,5 @@
 import { CustomMDX, ScrollToHash } from "@/components";
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { about, person, work } from "@/content";
 import { Projects } from "@/features/work/Projects";
 import { formatDate } from "@/lib/formatDate";
@@ -80,6 +80,7 @@ export default async function Project({
       <Schema
         as="blogPosting"
         baseURL={baseURL}
+        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
         path={`${work.path}/${post.slug}`}
         title={post.metadata.title}
         description={post.metadata.summary}
@@ -95,7 +96,7 @@ export default async function Project({
         }}
       />
       <Column maxWidth="s" gap="16" horizontal="center" align="center">
-        <SmartLink href="/work">
+        <SmartLink href="/projects">
           <Text variant="label-strong-m">Projects</Text>
         </SmartLink>
         <Text variant="body-default-xs" onBackground="neutral-weak" marginBottom="12">

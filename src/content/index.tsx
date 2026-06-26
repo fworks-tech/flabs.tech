@@ -12,7 +12,7 @@ const person: Person = {
 };
 
 const newsletter: Newsletter = {
-  display: true,
+  display: false,
   title: <>Stay in the loop</>,
   description: (
     <>
@@ -277,7 +277,7 @@ const blog: Blog = {
   path: "/blog",
   label: "Blog",
   title: "Blog — Fabio Ritzel Borges",
-  description: `Thoughts on software engineering and technology from ${person.name}`,
+  description: "Engineering blog by Fabio Ritzel Borges — GraphQL Federation, multi-agent AI systems, TypeScript, React, and production full-stack engineering.",
 };
 
 const work: Work = {

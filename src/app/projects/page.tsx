@@ -1,4 +1,4 @@
-import { baseURL } from "@/config";
+import { baseURL, sameAs } from "@/config";
 import { about, person, projects } from "@/content";
 import { ProjectsList } from "@/features/projects/ProjectsList";
 import { Column, Heading, Meta, Schema, Text } from "@once-ui-system/core";
@@ -19,6 +19,7 @@ export default function ProjectsPage() {
       <Schema
         as="webPage"
         baseURL={baseURL}
+        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
         path={projects.path}
         title={projects.title}
         description={projects.description}

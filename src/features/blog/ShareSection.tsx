@@ -111,20 +111,6 @@ export function ShareSection({ title, url, shareText }: ShareSectionProps) {
       </Text>
       <Row data-border="rounded" gap="16" horizontal="center" wrap>
         {enabledPlatforms.map((platform, index) => {
-          if (platform.name === "linkedin" && shareText) {
-            return (
-              <Button
-                key={index}
-                variant="secondary"
-                size="s"
-                onClick={() => handleCopy(shareText, "LinkedIn text copied — paste into your post")}
-                prefixIcon={platform.icon}
-                aria-label={`Copy ${platform.label} text`}
-                title={`Copy ${platform.label} text`}
-              />
-            );
-          }
-
           return (
             <Button
               key={index}
