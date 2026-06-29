@@ -19,7 +19,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 ### Pages
 - **Home** — Split hero with animated headline + CTAs, 3-column project grid, recent posts section
 - **Work** — Professional experience timeline: 7 roles across 6 companies in the USA, Europe, and Brazil, plus education
-- **Projects** — 7 open-source projects with MDX detail pages and GitHub links: Agenthood, Driveline ELD, ApolloDroid, VeriHire, Jupyter Crypto Wizard, Fashionista, flabs.tech
+- **Projects** — 6 open-source projects with MDX detail pages and GitHub links: Agenthood, ApolloDroid, VeriHire, Jupyter Crypto Wizard, Fashionista, flabs.tech
 - **Blog** — Engineering blog with MDX posts on GraphQL Federation, multi-agent AI, and skills registries
 - **About** — Full professional bio, location, social links, and skill tags across Frontend · Backend & APIs · AI & Agents
 

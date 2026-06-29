@@ -99,10 +99,11 @@ const about: About = {
         systems using TypeScript, Storybook, Jest, and Playwright.
         <br />
         <br />I also build agentic AI systems and tooling. Agenthood is my open‑source multi‑agent
-        framework where 14 specialized agents enforce engineering standards, review code and
-        commits, manage multi‑tier memory, and continuously improve via eval‑driven feedback loops.
-        Other projects like ApolloDroid, Driveline ELD, and VeriHire explore how to bring LLMs into
-        real products with the same discipline I apply to production web systems.
+        framework where 16 specialized agents enforce engineering standards, review code and
+        commits, manage multi‑tier memory, and run autonomously via a TypeScript CLI.
+        The project includes a browser‑based Studio playground with SSE streaming, 6 providers,
+        and server‑side rate limiting. Other projects like ApolloDroid and VeriHire explore how
+        to bring LLMs into real products with the same discipline I apply to production web systems.
         <br />
         <br />
         My best work happens where scalable GraphQL backends, high‑quality React frontends, and AI
@@ -158,12 +159,16 @@ const about: About = {
         description: <></>,
         tags: [
           { name: "Claude AI" },
+          { name: "OpenCode" },
+          { name: "Groq" },
+          { name: "Ollama" },
           { name: "RAG pipelines" },
           { name: "LanceDB" },
           { name: "Chroma" },
           { name: "ReAct loops" },
           { name: "Multi-agent orchestration" },
           { name: "Vector search" },
+          { name: "Tree-sitter" },
         ],
         images: [],
       },
