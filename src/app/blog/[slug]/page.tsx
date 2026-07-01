@@ -4,6 +4,7 @@ import { about, blog, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ShareSection } from "@/features/blog/ShareSection";
 import { formatDate } from "@/lib/formatDate";
+import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import {
   Avatar,
@@ -63,6 +64,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
   const post = getPosts(["src", "content", "blog"]).find((post) => post.slug === slugPath);
 
   if (!post) {
+    logger.warn({ slug: slugPath }, "blog post not found");
     notFound();
   }
 

@@ -3,6 +3,7 @@ import { baseURL, sameAs } from "@/config";
 import { about, person, projects } from "@/content";
 import { ProjectsList } from "@/features/projects/ProjectsList";
 import { formatDate } from "@/lib/formatDate";
+import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import {
   AvatarGroup,
@@ -57,7 +58,10 @@ export default async function ProjectDetail({
     : routeParams.slug || "";
   const post = getPosts(["src", "content", "projects"]).find((p) => p.slug === slugPath);
 
-  if (!post) notFound();
+  if (!post) {
+    logger.warn({ slug: slugPath }, "project post not found");
+    notFound();
+  }
 
   const avatars = post.metadata.team?.map((person) => ({ src: person.avatar, "aria-label": `Photo of ${person.name}` })) || [];
 
