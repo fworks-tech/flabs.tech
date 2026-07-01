@@ -3,6 +3,7 @@ import { baseURL, sameAs } from "@/config";
 import { about, person, work } from "@/content";
 import { Projects } from "@/features/work/Projects";
 import { formatDate } from "@/lib/formatDate";
+import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import {
   Avatar,
@@ -66,6 +67,7 @@ export default async function Project({
   const post = getPosts(["src", "content", "work"]).find((post) => post.slug === slugPath);
 
   if (!post) {
+    logger.warn({ slug: slugPath }, "work post not found");
     notFound();
   }
 
