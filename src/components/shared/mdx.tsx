@@ -3,6 +3,8 @@ import type React from "react";
 import type { ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import { slugify as transliterate } from "transliteration";
+import { BlogLinks } from "@/components/shared/blog-links";
+import { logger } from "@/lib/logger";
 
 import tableStyles from "./mdx-table.module.scss";
 
@@ -61,7 +63,7 @@ function CustomLink({ href, children, ...props }: CustomLinkProps) {
 
 function createImage({ alt, src, ...props }: MediaProps & { src: string }) {
   if (!src) {
-    console.error("Media requires a valid 'src' property.");
+    logger.error("Media requires a valid 'src' property.");
     return null;
   }
 
@@ -169,7 +171,7 @@ function createListItem({ children }: { children: ReactNode }) {
 
 function createHR() {
   return (
-    <Row fillWidth horizontal="center">
+    <Row fillWidth horizontal="center" padding="m">
       <Line maxWidth="40" />
     </Row>
   );
@@ -179,8 +181,14 @@ function createTable({ children }: { children: ReactNode }) {
   return <table className={tableStyles.table}>{children}</table>;
 }
 
-function createTableSection({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+function createTableSection(as: "thead" | "tbody" | "tfoot") {
+  const Component = ({ children }: { children: ReactNode }) => {
+    if (as === "thead") return <thead>{children}</thead>;
+    if (as === "tbody") return <tbody>{children}</tbody>;
+    return <tfoot>{children}</tfoot>;
+  };
+  Component.displayName = `TableSection(${as})`;
+  return Component;
 }
 
 function createTableRow({ children }: { children: ReactNode }) {
@@ -212,8 +220,8 @@ const components = {
   li: createListItem as any,
   hr: createHR as any,
   table: createTable as any,
-  thead: createTableSection as any,
-  tbody: createTableSection as any,
+  thead: createTableSection("thead") as any,
+  tbody: createTableSection("tbody") as any,
   tr: createTableRow as any,
   th: createTableHeader as any,
   td: createTableCell as any,
@@ -232,17 +240,32 @@ const components = {
   Icon,
   Media,
   SmartLink,
+  BlogLinks,
 };
 
 type CustomMDXProps = MDXRemoteProps & {
   components?: typeof components;
 };
 
+const mdxComponents = { ...components };
+const defaultOptions = {
+  blockJS: false,
+  parseFrontmatter: false,
+  scope: mdxComponents,
+  mdxOptions: { remarkPlugins: [remarkGfm] },
+};
+
 export function CustomMDX(props: CustomMDXProps) {
+  const mergedOptions = {
+    ...defaultOptions,
+    ...props.options,
+    scope: { ...mdxComponents, ...((props.options?.scope || {}) as Record<string, unknown>) },
+    mdxOptions: { ...defaultOptions.mdxOptions, ...((props.options?.mdxOptions || {}) as Record<string, unknown>) },
+  };
   return (
     <MDXRemote
-      options={{ blockJS: false, parseFrontmatter: false, mdxOptions: { remarkPlugins: [remarkGfm] } }}
       {...props}
+      options={mergedOptions}
       components={{ ...components, ...(props.components || {}) }}
     />
   );
