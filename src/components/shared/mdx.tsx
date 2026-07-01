@@ -222,6 +222,7 @@ const components = {
   table: createTable as any,
   thead: createTableSection("thead") as any,
   tbody: createTableSection("tbody") as any,
+  tfoot: createTableSection("tfoot") as any,
   tr: createTableRow as any,
   th: createTableHeader as any,
   td: createTableCell as any,
