@@ -1,0 +1,25 @@
+---
+title: "LogRoute — ELD & Route Planner"
+publishedAt: "2026-06-29"
+summary: "FMCSA-compliant ELD logbook & multi-stop route planner — Django REST API, React 19 frontend, real-time OSRM routing."
+images: []
+tag: "Full-Stack"
+team: []
+link: "https://logroute-app.vercel.app"
+---
+
+## Overview
+
+LogRoute is a full-stack trucking compliance and route planning platform for FMCSA Hours of Service (HOS) regulations. Drivers plan multi-stop routes, and the system enforces all five core HOS rules automatically — 11-hour driving limit, 14-hour window, 30-minute break, 10-hour reset, 70-hour weekly cycle — generating digital ELD logbook sheets ready for roadside inspection.
+
+**Stack:** Django · React 19 · TypeScript · OSRM · Nominatim · Leaflet · jsPDF · PostgreSQL
+
+**Links:** [logroute-app.vercel.app](https://logroute-app.vercel.app) · [GitHub](https://github.com/fworks-tech/logroute)
+
+## Features
+
+- **Multi-stop route optimization** — real-time OSRM routing with drag-and-drop waypoint reordering
+- **HOS compliance engine** — simulates all 6 FMCSA rules simultaneously, flagging violations per segment
+- **ELD logbook PDF** — canvas-based DOT log sheet with jsPDF, formatted for roadside inspection
+- **Geocoding** — Nominatim-based address search with auto-complete
+- **Interactive maps** — Leaflet map with route polylines, waypoints, and driver status overlay
