@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { logger } from "@/lib/logger";
 
 type Team = {
   name: string;
@@ -9,6 +10,7 @@ type Team = {
   linkedIn: string;
 };
 
+/** Frontmatter metadata extracted from an MDX content file. */
 type Metadata = {
   title: string;
   subtitle?: string;
@@ -27,19 +29,41 @@ import { notFound } from "next/navigation";
 
 function getMDXFiles(dir: string) {
   if (!fs.existsSync(dir)) {
+    logger.warn({ dir }, "content directory not found");
     notFound();
   }
 
-  return fs.readdirSync(dir).filter((file) => path.extname(file) === ".mdx");
+  try {
+    return fs.readdirSync(dir).filter((file) => path.extname(file) === ".mdx");
+  } catch (error) {
+    logger.error(error, "failed to read content directory");
+    notFound();
+  }
 }
 
 function readMDXFile(filePath: string) {
   if (!fs.existsSync(filePath)) {
+    logger.warn({ filePath }, "content file not found");
     notFound();
   }
 
-  const rawContent = fs.readFileSync(filePath, "utf-8");
-  const { data, content } = matter(rawContent);
+  let rawContent: string;
+  try {
+    rawContent = fs.readFileSync(filePath, "utf-8");
+  } catch (error) {
+    logger.error(error, "failed to read content file");
+    notFound();
+  }
+
+  let parsed: matter.GrayMatterFile<string>;
+  try {
+    parsed = matter(rawContent);
+  } catch (error) {
+    logger.error(error, "failed to parse frontmatter");
+    notFound();
+  }
+
+  const { data, content } = parsed;
 
   const metadata: Metadata = {
     title: data.title || "",
@@ -72,6 +96,16 @@ function getMDXData(dir: string) {
   });
 }
 
+/**
+ * Reads all MDX content files from the specified directory path segments
+ * relative to the project root.
+ *
+ * Each file is parsed for frontmatter metadata and MDX body content.
+ * Returns the collection sorted alphabetically by slug.
+ *
+ * @param customPath - Directory path segments (e.g. `["src", "content", "blog"]`)
+ * @returns Array of objects with `metadata`, `slug`, and `content`
+ */
 export function getPosts(customPath = ["", "", "", ""]) {
   const postsDir = path.join(process.cwd(), ...customPath);
   return getMDXData(postsDir);
