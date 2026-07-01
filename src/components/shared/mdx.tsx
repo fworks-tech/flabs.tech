@@ -82,6 +82,16 @@ function createImage({ alt, src, ...props }: MediaProps & { src: string }) {
   );
 }
 
+function extractText(node: ReactNode): string {
+  if (typeof node === "string") return node;
+  if (typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (node && typeof node === "object" && "props" in node) {
+    return extractText((node as { props: { children?: ReactNode } }).props?.children ?? "");
+  }
+  return "";
+}
+
 function slugify(str: string): string {
   const strWithAnd = str.replace(/&/g, " and "); // Replace & with 'and'
   return transliterate(strWithAnd, {
@@ -95,7 +105,7 @@ function createHeading(as: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
     children,
     ...props
   }: Omit<React.ComponentProps<typeof HeadingLink>, "as" | "id">) => {
-    const slug = slugify(children as string);
+    const slug = slugify(extractText(children));
     return (
       <HeadingLink marginTop="24" marginBottom="12" as={as} id={slug} {...props}>
         {children}
@@ -248,15 +258,14 @@ type CustomMDXProps = MDXRemoteProps & {
   components?: typeof components;
 };
 
-const mdxComponents = { ...components };
-const defaultOptions = {
-  blockJS: false,
-  parseFrontmatter: false,
-  scope: mdxComponents,
-  mdxOptions: { remarkPlugins: [remarkGfm] },
-};
-
 export function CustomMDX(props: CustomMDXProps) {
+  const mdxComponents = { ...components };
+  const defaultOptions = {
+    blockJS: false,
+    parseFrontmatter: false,
+    scope: mdxComponents,
+    mdxOptions: { remarkPlugins: [remarkGfm] },
+  };
   const mergedOptions = {
     ...defaultOptions,
     ...props.options,
