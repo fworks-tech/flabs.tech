@@ -180,7 +180,7 @@ const workExperience = {
   experiences: [
     {
       company: "BairesDev",
-      timeframe: "Dec 2025 – Present",
+      timeframe: "Dec 2025 – Jun 2026",
       role: "Full Stack Engineer",
       location: "United States (remote)",
       achievements: [
