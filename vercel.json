@@ -1,4 +1,7 @@
 {
+  "env": {
+    "LOG_LEVEL": "info"
+  },
   "headers": [
     {
       "source": "/(.*)",
