@@ -1,7 +1,16 @@
+import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rateLimiter";
 import * as cookie from "cookie";
 import { type NextRequest, NextResponse } from "next/server";
 
+/**
+ * POST /api/authenticate
+ *
+ * Validates a password submitted via the password-protected route form.
+ * On success, sets an HTTP-only `authToken` cookie with a random UUID
+ * and returns 200. On failure, returns 401. Rate-limited per IP address
+ * (5 attempts per 60-second window).
+ */
 export async function POST(request: NextRequest) {
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -16,12 +25,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
+  let body: { password?: string };
+  try {
+    body = await request.json();
+  } catch (error) {
+    logger.error(error, "failed to parse request body");
+    return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
+  }
   const { password } = body;
   const correctPassword = process.env.PAGE_ACCESS_PASSWORD;
 
   if (!correctPassword) {
-    console.error("PAGE_ACCESS_PASSWORD environment variable is not set");
+    logger.error("PAGE_ACCESS_PASSWORD environment variable is not set");
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 
