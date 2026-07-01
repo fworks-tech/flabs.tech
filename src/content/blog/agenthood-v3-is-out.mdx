@@ -1,106 +1,163 @@
 ---
 title: "Agenthood v3.0.0 — M5 Intelligence is shipped"
 publishedAt: "2026-06-26"
-summary: "v3.0.0 ships hierarchical RAG, agent-controlled retrieval, 14-member orchestration, OpenCode providers, governance docs, and 527 passing tests."
+summary: "v3.0.0 introduces hierarchical RAG, agent-controlled retrieval, 14-member orchestration, OpenCode providers, governance docs, and 527 passing tests."
 tag: "AI"
 shareText: |
   Agenthood v3.0.0 is out — M5 Intelligence milestone complete.
 
   What shipped:
-  • HierarchicalChunkStrategy — parent-child chunking for markdown and code
-  • AgenticRAG — agent decides when and how to retrieve
-  • MemberOrchestrator — detect which member should handle any task
-  • OpenCode Zen + Go providers — OpenAI-compatible, DeepSeek V4 Flash
-  • Governance docs — RACI matrix, release policy
-  • 527 tests, 49 files, all green
+  - HierarchicalChunkStrategy — parent-child chunking for markdown and code
+  - AgenticRAG — agent decides when and how to retrieve
+  - MemberOrchestrator — detect which member should handle any task
+  - OpenCode Zen + Go providers — OpenAI-compatible, DeepSeek V4 Flash
+  - Governance docs — RACI matrix, release policy
+  - 527 tests, 49 files, all green
 
-  npm i agenthood
-  → github.com/fworks-tech/agenthood
+  
+## See [v3.0.0 available on npm.js](https://www.npmjs.com/package/agenthood/v/3.0.0).
 ---
 
-M5 — Intelligence is shipped. [v3.0.0 is on npm](https://www.npmjs.com/package/agenthood/v/3.0.0).
+## The road so far
 
-This release closes the M5 milestone: three months of work across hierarchical chunking, agent-controlled retrieval, multi-member orchestration, provider expansion, and governance.
+Three months of work. Hierarchical chunking, agent-controlled retrieval,
+multi-member orchestration, two new LLM providers, and a governance layer
+the Society can actually enforce.
 
-**→ [npm install agenthood](https://www.npmjs.com/package/agenthood/v/3.0.0) · [GitHub](https://github.com/fworks-tech/agenthood) · [Docs](https://agenthood.flabs.tech)**
+All this free for everyone at:
+
+- **[NPM](https://www.npmjs.com/package/agenthood/v/3.0.0)**
+- **[GitHub](https://github.com/fworks-tech/agenthood)**
+- **[Production Live](https://agenthood.flabs.tech)**
 
 ---
 
 ## What shipped
 
+Most RAG systems treat documents as a flat array of tokens.
+This release ships two chunking strategies that understand structure.
+
 ### HierarchicalChunkStrategy
 
-Two new chunking strategies that understand document structure instead of treating everything as a flat array of tokens:
 
-- **MarkdownHierarchicalChunkStrategy** — parses H1/H2 headings as parent sections, paragraphs as child chunks. Retrieval can target a precise paragraph and automatically resolve its parent section for context.
-- **CodeHierarchicalChunkStrategy** — parses top-level declarations (classes, functions, interfaces) as parent blocks with their inner code as children. Uses Tree-sitter for deterministic AST parsing.
 
-Both strategies produce `ParentChunk` and `ChildChunk` types. The Indexer stores parent content atomically; the Retriever resolves parents with a 30-second TTL cache.
+- **MarkdownHierarchicalChunkStrategy** — parses H1/H2 headings as parent
+sections and paragraphs as child chunks. Retrieval can target a precise
+paragraph and automatically resolve its parent section for context.
+
+- **CodeHierarchicalChunkStrategy** — parses top-level declarations (classes,
+functions, interfaces) as parent blocks with their inner members as children.
+Backed by Tree-sitter for deterministic AST parsing — no regex heuristics.
+
+Both strategies produce typed `ParentChunk` and `ChildChunk` pairs.
+The Indexer stores parent content atomically; the Retriever resolves parents
+with a 30-second TTL cache.
+
+---
 
 ### AgenticRAG
 
-Not every query needs a vector search. AgenticRAG wraps the Retriever with a classifier that decides the strategy based on keyword analysis:
+Not every query needs a vector search. AgenticRAG wraps the Retriever with
+a lightweight classifier that picks a strategy based on keyword analysis:
 
-- **skip** — the agent already knows the answer (requires 2+ word overlap with short-term memory)
-- **vector** — semantic similarity search only
-- **graph** — Knowledge Graph traversal (falls back to vector when no KGS is configured)
-- **both** — parallel vector + graph with results merged
+| Strategy | When it fires                                                |
+| -------- | ------------------------------------------------------------ |
+| `skip`   | Agent already knows — 2+ word overlap with short-term memory |
+| `vector` | Standard semantic similarity search                          |
+| `graph`  | Knowledge Graph traversal (falls back to vector if no KGS)   |
+| `both`   | Parallel vector + graph, results merged                      |
 
-Provenance tracking captures the chosen strategy, match count, graph hop depth, and source paths.
+Every query records provenance: chosen strategy, match count,
+graph hop depth, and source paths. No black-box retrieval.
+
+---
 
 ### MemberOrchestrator
 
-The Society now detects which member should handle a given task without being told. `MemberTriggers` defines keyword patterns, file globs, and stage mappings for all 14 members. `detectMembers()` scores each member against the input with a threshold of 2+.
+The Society now routes tasks to the right member without being told who to call.
 
-The `--detect` flag on the CLI runs detection before any LLM call — no API key needed for routing decisions.
+- `MemberTriggers` defines keyword patterns, file globs, and stage mappings
+for all 14 members.
+- `detectMembers()` scores every member against the input
+with a threshold of 2 or more matches required to qualify.
+
+The `--detect` flag runs routing decisions before any LLM call — **no API key needed** for member detection.
+
+---
 
 ### OpenCode Zen + Go providers
 
-Agenthood now ships with first-class support for OpenCode:
+Agenthood now ships first-class support for two new OpenAI-compatible providers:
 
-- **OpenCode Zen** — pay-as-you-go at [`api.opencode.ai/zen/v1`](https://api.opencode.ai/zen/v1)
-- **OpenCode Go** — subscription at [`api.opencode.ai/zen/go/v1`](https://api.opencode.ai/zen/go/v1), defaults to `deepseek-v4-flash` ($0.14/$0.28 per 1M tokens)
+- **OpenCode Zen** — pay-as-you-go at `api.opencode.ai/zen/v1`
+- **OpenCode Go** — subscription tier at `api.opencode.ai/zen/go/v1`,
+  defaults to `deepseek-v4-flash` ($0.14 / $0.28 per 1M tokens)
 
-Both are OpenAI-compatible. The provider includes a `toOpenAIMessages` converter that handles DeepSeek's tool format requirements (snake_case `tool_calls`, correct `tool_call_id` ordering). Set `OPENCODE_API_KEY` in your environment and pass `--provider opencode` or `--provider opencode-go`.
+Both providers include a `toOpenAIMessages` converter that handles
+DeepSeek's tool format requirements — `snake_case` tool calls,
+correct `tool_call_id` ordering.
+
+Set `OPENCODE_API_KEY` in your environment
+and pass `--provider opencode` or `--provider opencode-go`.
+
+---
 
 ### Governance docs
 
-Two new documents in `governance/`:
-
-- **[member-map.md](https://github.com/fworks-tech/agenthood/blob/main/governance/member-map.md)** — RACI matrix for all 14 members plus 3 planned M6 roles
+Two new documents live in `governance/`:
+- **[member-map.md](https://github.com/fworks-tech/agenthood/blob/main/governance/member-map.md)** — RACI matrix for all Society members
 - **[release-policy.md](https://github.com/fworks-tech/agenthood/blob/main/governance/release-policy.md)** — change approval rules, version numbering, breaking change announcements, deprecation policy, compliance
 
 ### CI improvements
 
-- Shared composite action (`.github/actions/agent-analysis/`) eliminates duplicated agent analysis blocks across 3 workflows
+- Shared composite action at `.github/actions/agent-analysis/`) — eliminates duplicated agent analysis blocks across 3 workflows
 - `continue-on-error` with separate stderr capture — agent failures are visible, not silently swallowed
-- File capping (10 files max) and API key guards keep costs at ~$0.01 per run
+- File capping (10 files max) and API key guards keep cost at **~$0.01 per run** 
 - Gitleaks pinned to a specific commit SHA
 - `npm audit` added to 3 workflows
-- All `gh` commands now have explicit `GITHUB_TOKEN` auth
+- All `gh` commands now carry explicit `GITHUB_TOKEN` auth
 
 ---
 
 ## By the numbers
 
-| Metric | Count |
-|--------|-------|
-| Commits | 22 since v2.5.1 |
-| Files changed | 62 |
-| Lines added | 5,037 |
-| New source files | 12 |
-| New test files | 7 |
-| Total tests | 527 (49 files, all green) |
-| CI checks | 13 workflows |
-| Warden findings resolved | 10/10 |
-| Auditor findings resolved | 6/6 |
+| Metric                    | Count                         |
+| ------------------------- | ----------------------------- |
+| Commits since v2.5.1      | 22                            |
+| Files changed             | 62                            |
+| Lines added               | 5,037                         |
+| New source files          | 12                            |
+| New test files            | 7                             |
+| Total tests               | **527** (49 files, all green) |
+| CI workflows              | 13                            |
+| Warden findings resolved  | 10 / 10                       |
+| Auditor findings resolved | 6 / 6                         |
 
 ---
 
 ## What's next
 
-M6 — The Full Society. Three new members planned (The Amplifier, The Weaver, The Integrator), deeper skill-to-skill collaboration, and the first pass at the member marketplace.
+**M6 — The Full Society.**
 
-The Society does not ship features. It ships standards.
+- Three new members are planned: The Amplifier, The Weaver, and The Integrator.
+- The focus shifts to deeper skill-to-skill collaboration and the first pass
+- at the member marketplace.
 
-**→ [GitHub](https://github.com/fworks-tech/agenthood) · [npm](https://www.npmjs.com/package/agenthood) · [Docs](https://agenthood.flabs.tech)**
+**M7 — Observability** (due August 17, 2026)
+
+- **Members** — Every member invocation produces a cost + quality trace. 
+- **Observability** — A powerful tool of techniques for a complete observability stack:
+- **Tracing** — `Tracer`, standard invocation trace envelope, correlation IDs,
+  trace persistence to a queryable store, `npx agenthood trace` CLI command
+- **Evals** — `EvalRunner` engine, JSON suite definitions, benchmark fixtures,
+  baseline comparison with regression reporting, replay-based evaluation
+- **Metrics** — `TokenCounter`, `CostEstimator`, per-member cost and quality
+  summaries, anomaly detection for cost spikes and quality drops
+- **Integrations** — `EpisodeLearner` learning status exposure, embedding index
+  integration, optional Sentry error reporting, health check endpoint
+- **Governance** — redaction and privacy rules for traces, trace retention
+  and export policy
+
+---
+
+*The Society does not ship features. It ships standards.*
