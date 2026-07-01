@@ -5,6 +5,8 @@ import "@/styles/custom.css";
 import classNames from "classnames";
 
 import { Footer, Header, Providers } from "@/components";
+import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
+import { logger } from "@/lib/logger";
 import ClientParticles from "@/components/layout/ClientParticles";
 import { SkipLink } from "@/components/layout/SkipLink";
 import { baseURL, dataStyle, fonts, style } from "@/config";
@@ -79,6 +81,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       as="html"
       lang="en"
+      data-scroll-behavior="smooth"
       fillWidth
       className={classNames(
         fonts.heading.variable,
@@ -138,7 +141,7 @@ export default async function RootLayout({
                     }
                   });
                 } catch (e) {
-                  console.error('Failed to initialize theme:', e);
+                  logger.error(e, 'Failed to initialize theme');
                   document.documentElement.setAttribute('data-theme', 'dark');
                 }
               })();
@@ -146,6 +149,7 @@ export default async function RootLayout({
           }}
         />
       </head>
+      <UnhandledErrorLogger />
       <Providers>
         <Column
           as="body"
