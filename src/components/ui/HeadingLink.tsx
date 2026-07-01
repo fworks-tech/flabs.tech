@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { Flex, Heading, IconButton, useToast } from "@once-ui-system/core";
 import type React from "react";
 import type { JSX } from "react";
@@ -7,12 +8,23 @@ import type { JSX } from "react";
 import styles from "@/components/ui/HeadingLink.module.scss";
 
 interface HeadingLinkProps {
+  /** The `id` attribute for the heading element, used for anchor linking */
   id: string;
+  /** HTML heading level (1–6) */
   level: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Heading text content */
   children: React.ReactNode;
+  /** Optional inline styles */
   style?: React.CSSProperties;
 }
 
+/**
+ * Renders a heading with an anchor-link button.
+ *
+ * Clicking the heading or the link icon copies the page URL with the heading
+ * ID hash to the clipboard. The visual style maps heading levels to Once UI
+ * typography variants.
+ */
 export const HeadingLink: React.FC<HeadingLinkProps> = ({ id, level, children, style }) => {
   const { addToast } = useToast();
 
@@ -25,7 +37,8 @@ export const HeadingLink: React.FC<HeadingLinkProps> = ({ id, level, children, s
           message: "Link copied to clipboard.",
         });
       },
-      () => {
+      (error) => {
+        logger.error(error, "failed to copy heading link");
         addToast({
           variant: "danger",
           message: "Failed to copy link.",
