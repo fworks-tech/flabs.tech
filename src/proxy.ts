@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 
 /**
- * Next.js middleware that logs all incoming requests.
+ * Next.js proxy that logs all incoming requests.
  *
  * Every request matching the configured path matcher is logged with
  * its HTTP method and URL path. A `Server-Timing` header is added
@@ -22,7 +22,7 @@ export function proxy(request: NextRequest) {
 }
 
 /**
- * Middleware matcher — skips static assets and image files to avoid
+ * Proxy matcher — skips static assets and image files to avoid
  * unnecessary log noise and edge function invocations.
  */
 export const config = {
