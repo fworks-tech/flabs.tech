@@ -1,14 +1,9 @@
 @use "../../styles/breakpoints" as bp;
 
 .visualHeader {
-  width: 100%;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.5rem;
-  gap: 0.5rem;
 }
 
 .visualTag {
