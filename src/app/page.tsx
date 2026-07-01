@@ -36,7 +36,7 @@ export default function Home() {
       />
 
       {/* Hero: split layout — text left, avatar right */}
-      <Row fillWidth gap="xl" vertical="center" paddingY="64" s={{ direction: "column", gap: "l" }}>
+      <Row fillWidth gap="xl" vertical="center" paddingY="64" s={{ direction: "column" }}>
         <Column flex={5} gap="l">
           <Text variant="label-default-m" onBackground="neutral-weak">
             Senior Full-Stack Engineer · Joinville, Brazil
