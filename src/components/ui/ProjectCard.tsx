@@ -36,10 +36,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const allTags = tags?.length ? tags : tag ? [tag] : [];
   const tagKey = (tag || (tags?.[0] ?? "")).toLowerCase().replace(/[^a-z]/g, "-");
-
+  
   return (
     <Column fillWidth gap="m">
-      {images.length > 0 ? (
+      {images.length > 0 && (
         <Carousel
           sizes="(max-width: 960px) 100vw, 960px"
           items={images.map((image) => ({
@@ -47,20 +47,23 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             alt: `Screenshot of ${title} - project showcase image`,
           }))}
         />
-      ) : (
-        <div className={styles.visualHeader} data-tag={tagKey}>
-          <span className={styles.visualTitle}>{title}</span>
-        </div>
       )}
-      {allTags.length > 0 && (
-        <Flex paddingX="s" gap="8" wrap>
-          {allTags.map((t) => (
-            <span key={t} className={styles.visualTag}>
-              {t}
-            </span>
-          ))}
-        </Flex>
-      )}
+      <Flex fillWidth flex='1' direction='row' paddingX="s" style={{ alignItems: "center", justifyContent: "space-between" }} >
+        {
+          <div className={styles.visualHeader} data-tag={tagKey}>
+            <span className={styles.visualTitle}>{title}</span>
+          </div>
+        }
+        {allTags.length > 0 && (
+          <Flex paddingX="s" gap="8" wrap>
+            {allTags.map((t) => (
+              <span key={t} className={styles.visualTag}>
+                {t}
+              </span>
+            ))}
+          </Flex>
+        )}
+      </Flex>
       <Flex
         s={{ direction: "column" }}
         fillWidth
