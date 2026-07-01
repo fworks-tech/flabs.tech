@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import NotFound from "@/app/not-found";
 import { protectedRoutes, routes } from "@/config";
 import { Button, Column, Flex, Heading, PasswordInput, Spinner } from "@once-ui-system/core";
@@ -7,9 +8,20 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface RouteGuardProps {
+  /** Child components rendered inside the guard */
   children: React.ReactNode;
 }
 
+/**
+ * Client component that guards routes based on the site configuration.
+ *
+ * Checks whether the current pathname is enabled in the `routes` config,
+ * and — if the route is password-protected (`protectedRoutes`) — prompts
+ * the user for a password before rendering children.
+ *
+ * Shows a loading spinner while initial auth checks run, and renders the
+ * `NotFound` component for disabled routes.
+ */
 const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   const pathname = usePathname();
   const [isRouteEnabled, setIsRouteEnabled] = useState(false);
@@ -49,10 +61,14 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       if (protectedRoutes[pathname as keyof typeof protectedRoutes]) {
         setIsPasswordRequired(true);
 
-        const response = await fetch("/api/check-auth");
-        const data = await response.json();
-        if (data.authenticated) {
-          setIsAuthenticated(true);
+        try {
+          const response = await fetch("/api/check-auth");
+          const data = await response.json();
+          if (data.authenticated) {
+            setIsAuthenticated(true);
+          }
+        } catch (error) {
+          logger.error(error, "failed to check auth status");
         }
       }
 
@@ -63,17 +79,23 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   }, [pathname]);
 
   const handlePasswordSubmit = async () => {
-    const response = await fetch("/api/authenticate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
+    try {
+      const response = await fetch("/api/authenticate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
 
-    if (response.ok) {
-      setIsAuthenticated(true);
-      setError(undefined);
-    } else {
-      setError("Incorrect password");
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setError(undefined);
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data.message || "Incorrect password");
+      }
+    } catch (error) {
+      logger.error(error, "failed to authenticate");
+      setError("Network error. Please try again.");
     }
   };
 

@@ -1,10 +1,32 @@
 import { baseURL } from "@/config";
 import { blog, person } from "@/content";
+import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import { NextResponse } from "next/server";
 
+/**
+ * GET /api/rss
+ *
+ * Generates an RSS 2.0 feed of all blog posts sorted by publication date
+ * (newest first). Returns XML with a 1-hour cache time.
+ *
+ * Falls back to a minimal feed with only channel metadata if blog posts
+ * cannot be loaded (e.g. missing content directory).
+ */
 export async function GET() {
-  const posts = getPosts(["src", "content", "blog"]);
+  let posts;
+  try {
+    posts = getPosts(["src", "content", "blog"]);
+  } catch (error) {
+    logger.error(error, "failed to load blog posts for RSS feed");
+    return new NextResponse(
+      `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>${blog.title}</title><description>${blog.description}</description></channel></rss>`,
+      {
+        headers: { "Content-Type": "application/xml" },
+        status: 200,
+      },
+    );
+  }
 
   // Sort posts by date (newest first)
   const sortedPosts = posts.sort((a, b) => {
