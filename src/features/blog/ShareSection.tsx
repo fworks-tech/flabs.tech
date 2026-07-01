@@ -1,6 +1,7 @@
 "use client";
 
 import { socialSharing } from "@/config";
+import { logger } from "@/lib/logger";
 import { Button, Row, Text, useToast } from "@once-ui-system/core";
 
 interface ShareSectionProps {
@@ -90,7 +91,7 @@ export function ShareSection({ title, url, shareText }: ShareSectionProps) {
         message,
       });
     } catch (err) {
-      console.error("Failed to copy: ", err);
+      logger.error(err, "Failed to copy");
       addToast({
         variant: "danger",
         message: "Failed to copy",

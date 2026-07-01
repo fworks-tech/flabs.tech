@@ -1,13 +1,23 @@
+import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./ProjectGrid.module.scss";
 
 interface ProjectGridProps {
+  /** Slice range: `[start, end]` (1-indexed). Omitting end shows all remaining. */
   range?: [number, number?];
+  /** Slug values to exclude from the grid */
   exclude?: string[];
 }
 
+/**
+ * Renders a responsive grid of project tiles from MDX content.
+ *
+ * Supports optional range slicing and exclusion by slug. External links
+ * are validated to only allow `http:` and `https:` protocols before
+ * being used as link targets.
+ */
 export function ProjectGrid({ range, exclude }: ProjectGridProps) {
   let allProjects = getPosts(["src", "content", "projects"]);
 
@@ -37,8 +47,8 @@ export function ProjectGrid({ range, exclude }: ProjectGridProps) {
               // Safe URL after validation
               href = url.href;
             }
-          } catch {
-            // Invalid URL, fall back to default internal link
+          } catch (error) {
+            logger.warn(error, "invalid project link URL, falling back to internal link");
           }
         }
 
