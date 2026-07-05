@@ -27,7 +27,7 @@ test.describe("AI assistant visual snapshots", () => {
     await page.waitForLoadState("networkidle");
 
     await page.locator('button[aria-label="Open AI assistant"]').click();
-    await expect(page.locator("text=AI Assistant")).toBeVisible();
+    await expect(page.getByText("AI Assistant", { exact: true })).toBeVisible();
 
     await expect(page).toHaveScreenshot("ai-assistant-open.png", {
       maxDiffPixelRatio: 0.01,

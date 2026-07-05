@@ -7,7 +7,7 @@
   height: 48px;
   border-radius: 50%;
   border: 4px;
-  background: var(--brand-background-strong);
+  background: linear-gradient(135deg, #0a0916 0%, #131128 55%, #1a1838 100%);
   color: var(--brand-on-background-strong);
   cursor: pointer;
   display: flex;
@@ -28,13 +28,14 @@
 .toggleHidden {
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
 }
 
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 90;
-  // background: transparent;
+  background: transparent;
 }
 
 .chat {
@@ -44,7 +45,7 @@
   z-index: 100;
   width: 360px;
   max-height: 500px;
-  background: var(--brand-background-strong);
+  background: linear-gradient(135deg, #0a0916 0%, #131128 55%, #1a1838 100%);
   border: 1px solid var(--neutral-alpha-medium);
   border-radius: 12px;
   display: flex;
@@ -53,10 +54,12 @@
   transform: translateY(16px);
   opacity: 1;
   pointer-events: none;
-  transition: opacity 0.2s, transform 0.2s;
+  visibility: hidden;
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
 }
 
 .chatOpen {
+  visibility: visible;
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
