@@ -6,7 +6,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: none;
+  border: 4px;
   background: var(--brand-background-strong);
   color: var(--brand-on-background-strong);
   cursor: pointer;
@@ -34,7 +34,7 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: transparent;
+  // background: transparent;
 }
 
 .chat {
@@ -44,14 +44,14 @@
   z-index: 100;
   width: 360px;
   max-height: 500px;
-  background: var(--surface-default);
+  background: var(--brand-background-strong);
   border: 1px solid var(--neutral-alpha-medium);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transform: translateY(16px);
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
 }

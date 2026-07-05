@@ -1,3 +1,19 @@
+/**
+ * Client-side button wrapper that fires an analytics event on click.
+ *
+ * Use this in server components where you can't use onClick directly.
+ * Renders as an Once UI Button with the same visual appearance.
+ *
+ * @example
+ * ```tsx
+ * import { TrackedButton } from "@/components/ui/TrackedButton";
+ *
+ * <TrackedButton href="/projects" eventName="cta_click" eventLabel="View Projects">
+ *   View Projects
+ * </TrackedButton>
+ * ```
+ */
+
 "use client";
 
 import { Button } from "@once-ui-system/core";

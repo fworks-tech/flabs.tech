@@ -1,3 +1,24 @@
+/**
+ * AI assistant floating chat widget.
+ *
+ * Mounted globally in the root layout. Visitors can ask questions about
+ * the portfolio — experience, skills, projects, blog posts.
+ *
+ * **Backend**: `POST /api/chat` streams responses from OpenCode Zen
+ * (`deepseek-v4-flash-free`) via the Vercel AI SDK.
+ *
+ * **Usage** (already mounted — no action needed):
+ * ```tsx
+ * // layout.tsx
+ * import { AiAssistant } from "@/components/ai";
+ *
+ * <body>
+ *   {children}
+ *   <AiAssistant />
+ * </body>
+ * ```
+ */
+
 "use client";
 
 import { useChat } from "@ai-sdk/react";
