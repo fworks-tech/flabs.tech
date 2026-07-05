@@ -10,7 +10,7 @@ test.describe("AI assistant", () => {
   test("opens chat panel on toggle click", async ({ page }) => {
     await page.goto("/");
     await page.locator('button[aria-label="Open AI assistant"]').click();
-    const panel = page.locator("text=AI Assistant");
+    const panel = page.getByText("AI Assistant", { exact: true });
     await expect(panel).toBeVisible();
   });
 
@@ -23,10 +23,10 @@ test.describe("AI assistant", () => {
   test("closes chat panel on close button click", async ({ page }) => {
     await page.goto("/");
     await page.locator('button[aria-label="Open AI assistant"]').click();
-    await expect(page.locator("text=AI Assistant")).toBeVisible();
+    await expect(page.getByText("AI Assistant", { exact: true })).toBeVisible();
 
     await page.locator('button[aria-label="Close AI assistant"]').click();
-    await expect(page.locator("text=AI Assistant")).not.toBeVisible();
+    await expect(page.getByText("AI Assistant", { exact: true })).not.toBeVisible();
   });
 
   test("send button is disabled when input is empty", async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe("AI assistant", () => {
     await page.goto("/");
     const toggle = page.locator('button[aria-label="Open AI assistant"]');
     await toggle.click();
-    await expect(toggle).not.toBeVisible();
+    await expect(toggle).toBeHidden();
   });
 
   test("Enter key sends message", async ({ page }) => {
