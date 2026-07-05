@@ -88,7 +88,7 @@ export function AiAssistant() {
         <div ref={chatRef} className={styles.messages}>
           {messages.length === 0 && (
             <div className={styles.welcome}>
-              <p className={styles.welcomeTitle}>Hi, I'm Fabio's AI assistant!</p>
+              <p className={styles.welcomeTitle}>Hi, I&apos;m Fabio&apos;s AI assistant!</p>
               <p className={styles.welcomeText}>
                 Ask me about his experience, skills, projects, or anything related to his portfolio.
               </p>
