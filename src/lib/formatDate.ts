@@ -1,17 +1,11 @@
 import { logger } from "@/lib/logger";
 
-/**
- * Formats an ISO date string into a human-readable format.
- *
- * When `includeRelative` is `true`, appends a relative time label (e.g.
- * `"3d ago"`, `"2mo ago"`, `"just now"`). When `false`, returns only the
- * full date (e.g. `"June 26, 2026"`).
- *
- * @param date - ISO date string (e.g. `"2026-06-26"` or `"2026-06-26T12:00:00"`)
- * @param includeRelative - Whether to append a relative time suffix
- * @returns Formatted date string, or `"Invalid date"` if parsing fails
- */
 export function formatDate(date: string, includeRelative = false) {
+  if (typeof date !== "string" || !date) {
+    logger.warn({ date }, "invalid date argument in formatDate");
+    return "Invalid date";
+  }
+
   const currentDate = new Date();
 
   const normalizedDate = !date.includes("T") ? `${date}T00:00:00` : date;
