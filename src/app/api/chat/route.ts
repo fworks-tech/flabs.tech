@@ -2,6 +2,8 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText } from "ai";
 import { about, home, person, workExperience } from "@/content";
 import { getPosts } from "@/lib/mdx";
+import { rateLimit } from "@/lib/rateLimiter";
+import { type NextRequest } from "next/server";
 
 const zen = createOpenAICompatible({
   name: "zen",
@@ -11,7 +13,7 @@ const zen = createOpenAICompatible({
   },
 });
 
-const model = zen.chatModel("deepseek-v4-flash-free");
+const model = zen.chatModel("deepseek-v4-flash");
 
 function buildSystemPrompt(): string {
   const projects = getPosts(["src", "content", "projects"]);
@@ -71,12 +73,74 @@ ${blogList}
 - Do not fabricate information. Only answer based on the data provided.`;
 }
 
-export async function POST(req: Request) {
+function normalizeMessages(raw: any[]): Array<{ role: "user" | "assistant"; content: string }> {
+  return raw.map((m: any) => {
+    const role: "user" | "assistant" = m.role === "assistant" ? "assistant" : "user";
+    if (m.parts && Array.isArray(m.parts)) {
+      const text = m.parts
+        .filter((p: any) => p.type === "text" || !p.type)
+        .map((p: any) => p.text || "")
+        .join("");
+      return { role, content: text };
+    }
+    if (typeof m.content === "string") {
+      return { role, content: m.content };
+    }
+    return { role, content: "" };
+  });
+}
+
+const MAX_MESSAGES_PER_REQUEST = 20;
+const MAX_INPUT_LENGTH = 500;
+
+export async function POST(req: NextRequest) {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
+
+  const { allowed, retryAfter } = rateLimit(ip, 30, 60_000);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({
+        error: `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
+      }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const { messages } = await req.json();
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return new Response(JSON.stringify({ error: "Invalid messages" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (messages.length > MAX_MESSAGES_PER_REQUEST) {
+    return new Response(
+      JSON.stringify({ error: `Maximum ${MAX_MESSAGES_PER_REQUEST} messages per request.` }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const lastMsg = messages[messages.length - 1];
+  const text = lastMsg.parts
+    ? lastMsg.parts.filter((p: any) => p.type === "text").map((p: any) => p.text).join("")
+    : lastMsg.content || "";
+  if (text.length > MAX_INPUT_LENGTH) {
+    return new Response(
+      JSON.stringify({ error: `Message too long (max ${MAX_INPUT_LENGTH} characters).` }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const normalized = normalizeMessages(messages);
 
   const result = streamText({
     model,
-    messages,
+    messages: normalized,
     system: buildSystemPrompt(),
   });
 
