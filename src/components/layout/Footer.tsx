@@ -1,5 +1,8 @@
+"use client";
+
 import { person, social } from "@/content";
 import { IconButton, Row, Text } from "@once-ui-system/core";
+import { trackEvent } from "@/lib/analytics";
 import styles from "./Footer.module.scss";
 
 export const Footer = () => {
@@ -36,6 +39,7 @@ export const Footer = () => {
                   variant="ghost"
                   aria-label={`Visit my ${item.name} profile`}
                   className={styles.socialIcon}
+                  onClick={() => trackEvent("social_link", { platform: item.name })}
                 />
               ),
           )}

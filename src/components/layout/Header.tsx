@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { display, routes } from "@/config";
 import { about, blog, person, projects, work } from "@/content";
+import { trackEvent } from "@/lib/analytics";
 import styles from "./Header.module.scss";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -69,12 +70,14 @@ export const Header = () => {
               label="Home" 
               selected={pathname === "/"}
               className={styles.desktopLabel}
+              onClick={() => trackEvent("nav_click", { page: "/" })}
             />
             <ToggleButton 
               href="/" 
               prefixIcon="home" 
               selected={pathname === "/"}
               className={styles.mobileIcon}
+              onClick={() => trackEvent("nav_click", { page: "/" })}
             />
           </div>
         )}
@@ -85,12 +88,14 @@ export const Header = () => {
               label={work.label}
               selected={pathname.startsWith("/work")}
               className={styles.desktopLabel}
+              onClick={() => trackEvent("nav_click", { page: "/work" })}
             />
             <ToggleButton
               prefixIcon="grid"
               href="/work"
               selected={pathname.startsWith("/work")}
               className={styles.mobileIcon}
+              onClick={() => trackEvent("nav_click", { page: "/work" })}
             />
           </div>
         )}
@@ -101,12 +106,14 @@ export const Header = () => {
               label={projects.label}
               selected={pathname.startsWith("/projects")}
               className={styles.desktopLabel}
+              onClick={() => trackEvent("nav_click", { page: "/projects" })}
             />
             <ToggleButton
               prefixIcon="code"
               href="/projects"
               selected={pathname.startsWith("/projects")}
               className={styles.mobileIcon}
+              onClick={() => trackEvent("nav_click", { page: "/projects" })}
             />
           </div>
         )}
@@ -117,19 +124,21 @@ export const Header = () => {
               label={blog.label}
               selected={pathname.startsWith("/blog")}
               className={styles.desktopLabel}
+              onClick={() => trackEvent("nav_click", { page: "/blog" })}
             />
             <ToggleButton
               prefixIcon="book"
               href="/blog"
               selected={pathname.startsWith("/blog")}
               className={styles.mobileIcon}
+              onClick={() => trackEvent("nav_click", { page: "/blog" })}
             />
           </div>
         )}
         {routes["/about"] && (
           <div className={styles.navItem}>
-            <ToggleButton href="/about" label={about.label} selected={pathname === "/about"} className={styles.desktopLabel} />
-            <ToggleButton prefixIcon="person" href="/about" selected={pathname === "/about"} className={styles.mobileIcon} />
+            <ToggleButton href="/about" label={about.label} selected={pathname === "/about"} className={styles.desktopLabel} onClick={() => trackEvent("nav_click", { page: "/about" })} />
+            <ToggleButton prefixIcon="person" href="/about" selected={pathname === "/about"} className={styles.mobileIcon} onClick={() => trackEvent("nav_click", { page: "/about" })} />
           </div>
         )}
       </Row>

@@ -4,6 +4,7 @@ import "@/styles/custom.css";
 
 import classNames from "classnames";
 
+import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
 import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
 import { logger } from "@/lib/logger";
@@ -186,6 +187,7 @@ export default async function RootLayout({
       </Providers>
       <Analytics />
       <SpeedInsights />
+      <AiAssistant />
     </Flex>
   );
 }
