@@ -2,8 +2,9 @@ import { baseURL, routes, sameAs } from "@/config";
 import { about, home, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ProjectGrid } from "@/features/work/ProjectGrid";
+import { TrackedButton } from "@/components/ui/TrackedButton";
 import { getPosts } from "@/lib/mdx";
-import { Button, Column, Heading, Meta, Row, Schema, SmartLink, Text } from "@once-ui-system/core";
+import { Column, Heading, Meta, Row, Schema, SmartLink, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -46,12 +47,12 @@ export default function Home() {
             {home.subline}
           </Text>
           <Row gap="12" wrap>
-            <Button href="/projects" variant="primary" size="m" arrowIcon>
+            <TrackedButton href="/projects" variant="primary" size="m" arrowIcon eventName="cta_click" eventLabel="View Projects">
               View Projects
-            </Button>
-            <Button href={about.path} variant="secondary" size="m">
+            </TrackedButton>
+            <TrackedButton href={about.path} variant="secondary" size="m" eventName="cta_click" eventLabel="About Me">
               About Me
-            </Button>
+            </TrackedButton>
           </Row>
         </Column>
       </Row>

@@ -11,3 +11,4 @@ export { Providers } from "@/components/layout/Providers";
 export { ScrollToHash } from "@/components/ui/ScrollToHash";
 export { ThemeToggle } from "@/components/layout/ThemeToggle";
 export { CustomMDX } from "@/components/shared/mdx";
+export { TrackedButton } from "@/components/ui/TrackedButton";
