@@ -109,7 +109,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { messages } = await req.json();
+  let body: { messages?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const { messages } = body;
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response(JSON.stringify({ error: "Invalid messages" }), {
@@ -126,6 +136,12 @@ export async function POST(req: NextRequest) {
   }
 
   const lastMsg = messages[messages.length - 1];
+  if (!lastMsg || (typeof lastMsg !== "object")) {
+    return new Response(JSON.stringify({ error: "Invalid message format" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   const text = lastMsg.parts
     ? lastMsg.parts.filter((p: any) => p.type === "text").map((p: any) => p.text).join("")
     : lastMsg.content || "";

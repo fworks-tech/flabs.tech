@@ -1,5 +1,6 @@
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rateLimiter";
+import { storeToken } from "@/lib/tokenStore";
 import * as cookie from "cookie";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -7,9 +8,8 @@ import { type NextRequest, NextResponse } from "next/server";
  * POST /api/authenticate
  *
  * Validates a password submitted via the password-protected route form.
- * On success, sets an HTTP-only `authToken` cookie with a random UUID
- * and returns 200. On failure, returns 401. Rate-limited per IP address
- * (5 attempts per 60-second window).
+ * On success, stores the token server-side and sets an HTTP-only cookie.
+ * Rate-limited per IP address (5 attempts per 60-second window).
  */
 export async function POST(request: NextRequest) {
   const ip =
@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
 
   if (password === correctPassword) {
     const authToken = crypto.randomUUID();
+    storeToken(authToken);
+
     const response = NextResponse.json({ success: true }, { status: 200 });
 
     response.headers.set(

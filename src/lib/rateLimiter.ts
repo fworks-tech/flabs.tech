@@ -2,19 +2,28 @@ const attempts = new Map<string, { count: number; resetAt: number }>();
 
 const DEFAULT_MAX_ATTEMPTS = 5;
 const DEFAULT_WINDOW_MS = 60_000;
+const CLEANUP_INTERVAL = 300_000;
 
-/**
- * Simple in-memory rate limiter.
- *
- * Tracks request attempts per identifier (e.g. IP address) within a sliding
- * time window. Returns whether the request is allowed and the number of
- * seconds the caller should wait before retrying.
- *
- * @param identifier - Unique key for the client (IP, user ID, etc.)
- * @param maxAttempts - Max allowed requests in the window (default: 5)
- * @param windowMs - Time window in milliseconds (default: 60000)
- * @returns Object with `allowed` (boolean) and `retryAfter` (seconds, 0 if allowed)
- */
+// Periodic cleanup to prevent memory leak
+let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+function ensureCleanup() {
+  if (cleanupTimer) return;
+  cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of attempts) {
+      if (now > entry.resetAt) {
+        attempts.delete(key);
+      }
+    }
+    if (attempts.size === 0 && cleanupTimer) {
+      clearInterval(cleanupTimer);
+      cleanupTimer = null;
+    }
+  }, CLEANUP_INTERVAL);
+}
+
+ensureCleanup();
+
 export function rateLimit(
   identifier: string,
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
