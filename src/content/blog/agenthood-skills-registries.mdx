@@ -1,13 +1,13 @@
 ---
 title: "Agenthood is now on SkillsMP and Skills.sh"
 publishedAt: "2026-06-17"
-summary: "The full Society of 14 members now ships as open Agent Skills — one canonical SKILL.md each, installable from Skills.sh or browsable on SkillsMP."
+summary: "The full Society now ships as open Agent Skills — one canonical SKILL.md each, installable from Skills.sh or browsable on SkillsMP."
 tag: "AI"
 ---
 
 Every member of the Society now lives where agents look for skills.
 
-Agenthood — all 16 members — is published as open `SKILL.md` files following the Anthropic/Agent Skills open standard. That means they work with Claude Code, GitHub Copilot, Gemini CLI, OpenAI Codex CLI, and any other runtime that supports the standard.
+Agenthood — every member of the Society — is published as open `SKILL.md` files following the Anthropic/Agent Skills open standard. That means they work with Claude Code, GitHub Copilot, Gemini CLI, OpenAI Codex CLI, and any other runtime that supports the standard.
 
 One file per member. No build step. No configuration. Just Markdown that an agent reads and follows.
 
@@ -35,7 +35,7 @@ The community registry, already indexing every member from the public repo:
 
 ## What you get
 
-16 specialized agents, each a single Markdown skill file:
+The whole specialized crew, each a single Markdown skill file:
 
 - **The Scribe** — commits, PRs, changelogs
 - **The Architect** — specs, ADRs, task decomposition
@@ -81,7 +81,7 @@ Each member ships as a single canonical `SKILL.md`. No parallel internal copy, n
 
 The skill is project-independent. It uses placeholders like `repository owner` and `{owner}/{repo}` where a real repo path would go. When you install it, your runtime reads it as-is. When you need it to know your specific GitHub org, your labels, or your milestones, that lives in config — not pasted into the Markdown.
 
-This is what makes the same 14 files portable across any repo, any team, any provider.
+This is what makes the same files portable across any repo, any team, any provider — no forking, no version drift.
 
 ---
 
@@ -104,7 +104,7 @@ The Envoy member exists specifically to translate between these formats — if a
 
 ## Try one member
 
-You do not have to install all 14. Grab a single skill to see how it fits:
+You do not have to install the whole roster. Grab a single skill to see how it fits:
 
 ```bash
 npx agenthood activate the-scribe
