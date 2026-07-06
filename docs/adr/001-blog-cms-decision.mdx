@@ -1,0 +1,82 @@
+# ADR-001: Blog CMS Decision
+
+**Date:** 2026-07-06
+**Status:** Accepted
+
+## Context
+
+The portfolio site at flabs.tech currently uses flat MDX files stored in `src/content/blog/` for all blog content. With 5 posts and no non-technical contributors, the current workflow (edit `.mdx` → commit → push → deploy) is functional. Issue #76 asks to formally evaluate whether to keep MDX or migrate to a dedicated CMS.
+
+The evaluation considers four criteria: writing experience, performance, cost, and maintenance overhead.
+
+## Decision
+
+**Stay with flat-file MDX.** Do not migrate to a CMS.
+
+The reasons are specific to the project's scale and contributor profile: a personal portfolio with a single developer-author who is also the full-stack engineer. No migration candidate — Sanity, Decap CMS, or any alternative — provides enough marginal benefit to justify the added cost, build complexity, or dependency surface.
+
+## Alternatives Considered
+
+### Option A: Stay with MDX (current)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Good for a developer. Any editor works, full Markdown + JSX components, diffs in PRs, no lock-in. Poor only if non-technical contributors were involved — they are not. |
+| Performance | Excellent. Files are read at build time via `fs.readFileSync`. No external API calls, no database, no network requests. Static generation means first byte comes from CDN. |
+| Cost | **$0**. GitHub hosts the files, Vercel builds and deploys. No third-party service required. |
+| Maintenance overhead | Near zero. No API keys to rotate, no content schema migrations, no CMS updates. The entire content system is two files (`mdx.ts` and `mdx.tsx`). |
+
+### Option B: Migrate to Sanity (headless CMS)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Excellent. Portable Text editor, real-time preview, image crop/replace UI, scheduling. |
+| Performance | Good. Sanity CDN is fast, but content is fetched over HTTP at build time vs. local `fs.readFileSync`. Adds latency and a network dependency to the build. |
+| Cost | Free tier covers the scale (25K documents, 3 users). Paid plans start at $15/user/month if growth required. |
+| Maintenance overhead | Moderate. GROQ queries, content schema migrations, API token rotation, SDK updates, monitoring Sanity API changes. |
+
+**Why rejected:** The performance regression (network fetch vs. local FS) and ongoing maintenance burden do not justify the benefit of a visual editor that nobody would use — the only content author is the developer who would edit markdown files either way.
+
+### Option C: Migrate to Decap CMS (git-based visual editor)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Good for non-technical editors. Web-based markdown editor with image uploads, commits changes to GitHub. |
+| Performance | Identical to current — files are committed to git and statically generated. No runtime overhead. |
+| Cost | **$0**. Open source, no hosting. Works with GitHub's existing API. |
+| Maintenance overhead | Low. One config file, one route for the admin panel. Widget system for custom fields. |
+
+**Why rejected:** Same core reason as Sanity: no non-technical contributors exist. The admin UI adds a route, a dependency, and a login flow for zero practical gain. The developer-author can edit `.mdx` files directly with better tooling (syntax highlighting, linting, PR reviews) than any web-based editor provides.
+
+### Option D: Other alternatives (Contentful, Strapi, TinaCMS, Notion)
+
+All share a similar calculus: they add a running service, a network dependency, an API integration, and ongoing maintenance in exchange for a visual editing experience that provides no value when the single content author is the developer who built the site.
+
+## Consequences
+
+### What becomes easier
+
+- No migration effort, no data export/import, no content model redesign
+- No new dependencies added to `package.json`
+- No new routes, API keys, or environment variables
+- No CMS to learn or maintain
+- PR-based content workflow continues unchanged
+
+### What becomes harder
+
+- If the site ever needs non-technical contributors, a CMS migration will be required at that point (the ADR for that future decision will reference this one)
+
+### What we gain instead of a CMS
+
+The ADR recommends using the saved effort to improve the existing MDX workflow:
+
+1. **Frontmatter validation** — a CI step or build-time check that validates `publishedAt` is a valid date, `title` and `summary` are non-empty, and no unknown fields exist
+2. **Local image support** — store blog images in `public/images/blog/` with a consistent naming convention, rather than relying entirely on remote URLs
+3. **Tag-based filtering UI** — make the existing `tags` frontmatter field clickable on the blog list page, instead of just decorative
+
+These improvements address real friction points in the current workflow (broken dates, broken images, no browse-by-category) without adding the overhead of a CMS.
+
+## References
+
+- Issue #76: Evaluate and decide blog CMS
+- Blog system architecture documented in the codebase at `src/lib/mdx.ts`, `src/features/blog/`
