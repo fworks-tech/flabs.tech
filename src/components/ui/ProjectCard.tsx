@@ -55,7 +55,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
         }
         {allTags.length > 0 && (
-          <Flex paddingX="s" gap="8" wrap>
+          <Flex paddingX="xs" gap="8" wrap>
             {allTags.map((t) => (
               <span key={t} className={styles.visualTag}>
                 {t}
