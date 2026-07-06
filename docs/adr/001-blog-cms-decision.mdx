@@ -1,82 +1,103 @@
-# ADR-001: Blog CMS Decision
+# ADR-001: Blog distribution strategy
 
 **Date:** 2026-07-06
 **Status:** Accepted
 
 ## Context
 
-The portfolio site at flabs.tech currently uses flat MDX files stored in `src/content/blog/` for all blog content. With 5 posts and no non-technical contributors, the current workflow (edit `.mdx` → commit → push → deploy) is functional. Issue #76 asks to formally evaluate whether to keep MDX or migrate to a dedicated CMS.
+The portfolio at flabs.tech currently publishes blog content as flat MDX files on a personal domain. Issue #76 asks to evaluate whether to migrate to a CMS.
 
-The evaluation considers four criteria: writing experience, performance, cost, and maintenance overhead.
+The original evaluation focused on editorial tooling (writing experience, performance, cost, maintenance). But the real constraint is **distribution** — content on a personal portfolio has no built-in discovery, no recommendation feed, no community, and no audience. The question is not "what editor do we write in" but "how do people find the content."
 
 ## Decision
 
-**Stay with flat-file MDX.** Do not migrate to a CMS.
+**Keep MDX as the primary authoring format and canonical source, but cross-post to Dev.to for distribution.**
 
-The reasons are specific to the project's scale and contributor profile: a personal portfolio with a single developer-author who is also the full-stack engineer. No migration candidate — Sanity, Decap CMS, or any alternative — provides enough marginal benefit to justify the added cost, build complexity, or dependency surface.
+This separates two concerns:
+- **Authoring** — MDX on the portfolio (own your content, no lock-in, full flexibility)
+- **Distribution** — Dev.to reaches 1M+ monthly active developers with tags, feeds, recommendations, and built-in networking
 
-## Alternatives Considered
+## Distribution options evaluated
 
-### Option A: Stay with MDX (current)
-
-| Criterion | Assessment |
-|-----------|------------|
-| Writing experience | Good for a developer. Any editor works, full Markdown + JSX components, diffs in PRs, no lock-in. Poor only if non-technical contributors were involved — they are not. |
-| Performance | Excellent. Files are read at build time via `fs.readFileSync`. No external API calls, no database, no network requests. Static generation means first byte comes from CDN. |
-| Cost | **$0**. GitHub hosts the files, Vercel builds and deploys. No third-party service required. |
-| Maintenance overhead | Near zero. No API keys to rotate, no content schema migrations, no CMS updates. The entire content system is two files (`mdx.ts` and `mdx.tsx`). |
-
-### Option B: Migrate to Sanity (headless CMS)
+### Option A: MDX only on personal domain (current)
 
 | Criterion | Assessment |
 |-----------|------------|
-| Writing experience | Excellent. Portable Text editor, real-time preview, image crop/replace UI, scheduling. |
-| Performance | Good. Sanity CDN is fast, but content is fetched over HTTP at build time vs. local `fs.readFileSync`. Adds latency and a network dependency to the build. |
-| Cost | Free tier covers the scale (25K documents, 3 users). Paid plans start at $15/user/month if growth required. |
-| Maintenance overhead | Moderate. GROQ queries, content schema migrations, API token rotation, SDK updates, monitoring Sanity API changes. |
+| Reach | **Zero built-in.** A personal portfolio has no audience, no feed, no recommendation engine. Content is found only via direct links or SEO — requires years of domain authority to rank competitively. |
+| Networking | None. No comments, no follows, no community features. |
+| Marketing | None. No tags, no categories, no cross-pollination from related content. |
 
-**Why rejected:** The performance regression (network fetch vs. local FS) and ongoing maintenance burden do not justify the benefit of a visual editor that nobody would use — the only content author is the developer who would edit markdown files either way.
+**Why rejected:** The content is functionally invisible. Engineering effort spent writing blog posts has near-zero return because nobody sees them.
 
-### Option C: Migrate to Decap CMS (git-based visual editor)
+### Option B: Dev.to (primary)
 
 | Criterion | Assessment |
 |-----------|------------|
-| Writing experience | Good for non-technical editors. Web-based markdown editor with image uploads, commits changes to GitHub. |
-| Performance | Identical to current — files are committed to git and statically generated. No runtime overhead. |
-| Cost | **$0**. Open source, no hosting. Works with GitHub's existing API. |
-| Maintenance overhead | Low. One config file, one route for the admin panel. Widget system for custom fields. |
+| Reach | **Excellent.** 1M+ MAU developer audience, tag-based feeds, trending/relevant recommendations, strong SEO on dev.to domain. |
+| Networking | Comments, follows, org pages, series — built-in community engagement. |
+| Marketing | Tags, collections, cross-pollination between posts. Posts appear in tag feeds and home feed. |
+| Markdown | Native markdown editor with frontmatter — trivial to port MDX content. |
+| Custom domain | Supports custom domains, but the canonical URL would be on dev.to. |
+| Cost | **$0** — fully free, open source platform (Forem). |
 
-**Why rejected:** Same core reason as Sanity: no non-technical contributors exist. The admin UI adds a route, a dependency, and a login flow for zero practical gain. The developer-author can edit `.mdx` files directly with better tooling (syntax highlighting, linting, PR reviews) than any web-based editor provides.
+**Why not chosen as primary:** Using Dev.to as the sole platform means leaving the portfolio's domain — the canonical URL moves away from flabs.tech, breaking the existing blog URLs and diluting the portfolio as a central hub.
 
-### Option D: Other alternatives (Contentful, Strapi, TinaCMS, Notion)
+### Option C: Hashnode (primary)
 
-All share a similar calculus: they add a running service, a network dependency, an API integration, and ongoing maintenance in exchange for a visual editing experience that provides no value when the single content author is the developer who built the site.
+| Criterion | Assessment |
+|-----------|------------|
+| Reach | Good developer audience, growing but smaller than Dev.to. Built-in newsletter feature. |
+| Networking | Comments, follows, series. |
+| Marketing | Tags, feed, recommendations. |
+| Custom domain | Excellent — native custom domain support. Content lives at blog.flabs.tech while using Hashnode's infrastructure. |
+| Cost | Free tier includes custom domain, newsletter, unlimited posts. |
+| Markdown | Native markdown, easy import from MDX. |
+
+**Why not chosen:** Similar conclusion to Dev.to — using a third-party platform as primary means accepting their content model, their SEO rules, and their API availability. The portfolio already has a working MDX pipeline. Better to leverage it and syndicate outward.
+
+### Option D: Hybrid — MDX (canonical) + Dev.to (distribution)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Reach | **Excellent.** Content appears in Dev.to's feed, tags, and recommendations while the canonical version lives on flabs.tech. |
+| Networking | Dev.to provides comments, follows, and community interaction. The portfolio links back to Dev.to for discussion. |
+| Marketing | Posts can be tagged and categorized on both platforms. Dev.to's feed algorithm provides discovery. |
+| Authoring | MDX on the portfolio remains the source of truth — no lock-in, full control. Cross-posting is a content-sync step. |
+| Cost | **$0** — Dev.to is free. No CMS hosting, no API fees. |
+| Maintenance | Low — one sync step per post. Can be automated via Dev.to API or a GitHub Action. |
+
+**Chosen** because it separates concerns cleanly: authoring stays in a format we control, distribution goes to a platform with a built-in audience.
+
+## What this means for the repo
+
+- `src/content/blog/` remains the canonical source — all posts live as MDX files
+- The Dev.to post links back to flabs.tech as the canonical URL via the `canonical_url` frontmatter field
+- flabs.tech links to the Dev.to post for comments and discussion via the blog post footer
+- Each new post gets a sync step: publish to flabs.tech → cross-post to Dev.to (manual or automated)
+
+An optional future improvement is a GitHub Action that watches for new `.mdx` files in `src/content/blog/` and publishes them to Dev.to via their API.
 
 ## Consequences
 
 ### What becomes easier
 
-- No migration effort, no data export/import, no content model redesign
-- No new dependencies added to `package.json`
-- No new routes, API keys, or environment variables
-- No CMS to learn or maintain
-- PR-based content workflow continues unchanged
+- Content is discoverable by an existing developer audience instead of waiting for SEO on a new domain
+- Readers can follow, comment, and engage on Dev.to — building a professional network around the content
+- Tags and categories on Dev.to surface posts to relevant audiences
 
 ### What becomes harder
 
-- If the site ever needs non-technical contributors, a CMS migration will be required at that point (the ADR for that future decision will reference this one)
+- Each post requires a cross-publishing step (though this is minutes per post and can be automated)
+- Comments live on Dev.to, not on the portfolio — the portfolio is the canonical read-only source
 
-### What we gain instead of a CMS
+### What we gain
 
-The ADR recommends using the saved effort to improve the existing MDX workflow:
-
-1. **Frontmatter validation** — a CI step or build-time check that validates `publishedAt` is a valid date, `title` and `summary` are non-empty, and no unknown fields exist
-2. **Local image support** — store blog images in `public/images/blog/` with a consistent naming convention, rather than relying entirely on remote URLs
-3. **Tag-based filtering UI** — make the existing `tags` frontmatter field clickable on the blog list page, instead of just decorative
-
-These improvements address real friction points in the current workflow (broken dates, broken images, no browse-by-category) without adding the overhead of a CMS.
+- The portfolio keeps its technical independence (no CMS lock-in, full MDX flexibility)
+- Content reaches developers who would never find a personal portfolio domain
+- The `flabs.tech` URL remains the canonical permalink for SEO and attribution
 
 ## References
 
 - Issue #76: Evaluate and decide blog CMS
-- Blog system architecture documented in the codebase at `src/lib/mdx.ts`, `src/features/blog/`
+- Dev.to API docs: https://developers.forem.com/api
+- Dev.to `canonical_url` field: https://dev.to/settings/publishing
