@@ -1,0 +1,59 @@
+---
+title: "ChainTelescope — Crypto Intelligence Command Center"
+publishedAt: "2026-07-01"
+summary: "A Streamlit-powered crypto dashboard that consolidates market KPIs, trend analysis, risk panels, alerts, news aggregation, and newsletter flows into a single intelligence workspace."
+images: []
+tag: "Fintech"
+team: []
+link: "https://github.com/fworks-tech/chain-telescope"
+---
+
+## Overview
+
+ChainTelescope is a modern command center for crypto intelligence — built to transform noisy market data into practical decisions. What started as the Jupyter-Crypto-Wizard notebook suite has evolved into a production Streamlit application with modular architecture, multi-provider fallback ingestion, and an in-app AI assistant grounded in live dashboard context.
+
+**Stack:** Python 3.11 · Streamlit · Plotly · pandas · feedparser · loguru · tenacity · MIT License
+
+**Links:** [chain-telescope.streamlit.app](https://chain-telescope.streamlit.app/) · [GitHub](https://github.com/fworks-tech/chain-telescope)
+
+## Features
+
+- **KPI Dashboard** — Real-time price, volume, market cap, and dominance metrics with filter-aware time windows and watchlist selection
+- **Price Trend Charts** — Interactive Plotly charts with configurable market sources (Binance, CoinGecko, Coinbase) and automatic mock fallback
+- **Risk Panels** — Bar chart visualization of volatility and risk scores, adjustable by time window
+- **Alert System** — Rule-driven alerts with drawdown and momentum threshold evaluation against live price series
+- **News Aggregation** — RSS/Atom feed ingestion with normalized feed models and safe fallback content
+- **AI Assistant** — GPT-powered chat panel grounded in the current dashboard snapshot (watchlist, KPIs, alerts, news) with safe local fallback when providers are unavailable
+- **Newsletter Flows** — Local subscription persistence with email validation and stub delivery architecture ready for scheduled generation
+
+## Architecture
+
+The application follows a clean layered design: `app.py` (22 lines) delegates to routed `pages/` directory, which call view renderers in `src/views/`, which consume a `DashboardSnapshot` from the query layer in `src/data/`. Market adapters, news ingestion, alert rules, and newsletter persistence each live in their own module under `src/data/` with provider fallback chains and structured logging.
+
+Shared sidebar filters (`time_window`, `watchlist`, `market_source`, `trend_filter`) drive the entire snapshot assembly — one filter change propagates through all panels consistently.
+
+## AI Assistant (MVP)
+
+The in-app assistant provides short, context-grounded Q&A about the current watchlist, KPIs, alerts, news, and trending highlights. It connects to any OpenAI-compatible endpoint, making provider A/B comparisons straightforward via `OPENAI_BASE_URL` and `OPENAI_MODEL` configuration. When credentials are missing or calls fail, it returns a safe fallback summary instead of crashing.
+
+## By the Numbers (v0.3.0 — HashHelm Foundation)
+
+| Metric | Value |
+|---|---|
+| Tests | 43 (unittest, mock data, assistant wiring, doc contracts, `AppTest` smoke) |
+| CI Jobs | test · build · lint · maintainability |
+| Market Providers | Binance → CoinGecko → Coinbase → mock fallback |
+| Source Files | 30+ across `src/`, `pages/`, `scripts/` |
+| Dependencies Removed | 8 unused packages trimmed |
+| Line Count (`app.py`) | 160 → 22 (modular rewrite) |
+
+## Design Philosophy
+
+- **Graceful degradation** — Every external provider has a fallback chain; the app never hard-fails on remote unavailability
+- **Observability by default** — `loguru` structured logging across all ingestion, query, and alert modules
+- **CI-enforced quality** — Ruff lint/format, `py_compile` on every source file, and unit tests run on every push and PR
+- **Agent-ready** — Repository includes AI agent automation playbooks, a PR skill script, and OpenCode planning documents for AI-assisted development workflows
+
+## Future Direction
+
+Near-term focus includes expanding market provider coverage, richer alert scoring with investor/developer signal inputs, scheduled newsletter generation and alert evaluation workers, and deeper AI assistant capabilities with tool use and retrieval over ingested datasets.
