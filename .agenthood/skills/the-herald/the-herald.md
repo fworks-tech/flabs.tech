@@ -93,7 +93,7 @@ Syndicate blog posts from `src/content/blog/*.mdx` to Dev.to for discovery, with
    | slug → `https://flabs.tech/blog/{slug}` | `article.canonical_url` |
    | — | `article.published: true` |
 
-5. **Call the API** — use `createArticle()` from `@/lib/devto` for new posts, `updateArticle()` for existing ones. The `DEVTO_API_KEY` environment variable must be set (generate at https://dev.to/settings/account).
+5. **Call the API** — use `createArticle()` from `@/lib/devto` for new posts, `updateArticle()` for existing ones. Requires either `DEVTO_API_KEY` (generate at https://dev.to/settings/account) or `OPENCODE_API_KEY` (recommended — reuse your existing key from https://opencode.ai/auth). `DEVTO_API_KEY` takes precedence if both are set.
 
 6. **Track state** — after a successful POST, write `devtoId: <returned_id>` into the MDX file's frontmatter so future updates use PUT. This field is defined in the `Metadata` type (`src/lib/mdx.ts`).
 
@@ -189,6 +189,6 @@ Before merging a branch with blog changes:
 
 - [ ] Each new blog post in `src/content/blog/*.mdx` has been cross-posted to Dev.to
 - [ ] Each cross-posted blog post has a `devtoId` in its frontmatter
-- [ ] `DEVTO_API_KEY` is set in the deployment environment (or at least in `.env` locally for manual runs)
+- [ ] `DEVTO_API_KEY` or `OPENCODE_API_KEY` is set in the deployment environment (or at least in `.env` locally for manual runs)
 - [ ] The `canonical_url` on Dev.to points to `https://flabs.tech/blog/{slug}`
 - [ ] Index or overview pages (title starts with "Index" or "Overview") are NOT cross-posted

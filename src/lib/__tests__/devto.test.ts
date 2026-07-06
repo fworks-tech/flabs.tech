@@ -101,11 +101,48 @@ describe("devto API client", () => {
       expect(callBody.article.tags).toBe("typescript,reactjs,aiml");
     });
 
-    it("throws when API key is missing", async () => {
+    it("throws when both DEVTO_API_KEY and OPENCODE_API_KEY are missing", async () => {
       process.env = { ...ORIGINAL_ENV };
       delete process.env.DEVTO_API_KEY;
+      delete process.env.OPENCODE_API_KEY;
 
       await expect(createArticle(validInput)).rejects.toThrow(DevtoError);
+    });
+
+    it("falls back to OPENCODE_API_KEY when DEVTO_API_KEY is not set", async () => {
+      process.env = { ...ORIGINAL_ENV, OPENCODE_API_KEY: "opencode-key-456" };
+      delete process.env.DEVTO_API_KEY;
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(apiResponse),
+      });
+
+      const result = await createArticle(validInput);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://dev.to/api/articles",
+        expect.objectContaining({
+          headers: expect.objectContaining({ "api-key": "opencode-key-456" }),
+        }),
+      );
+      expect(result.id).toBe(123);
+    });
+
+    it("prefers DEVTO_API_KEY over OPENCODE_API_KEY when both are set", async () => {
+      process.env = { ...ORIGINAL_ENV, DEVTO_API_KEY: "devto-key", OPENCODE_API_KEY: "opencode-key" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(apiResponse),
+      });
+
+      await createArticle(validInput);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://dev.to/api/articles",
+        expect.objectContaining({
+          headers: expect.objectContaining({ "api-key": "devto-key" }),
+        }),
+      );
     });
 
     it("throws on API error", async () => {
