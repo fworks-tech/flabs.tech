@@ -1,7 +1,7 @@
 ---
 title: "Agenthood v3.0.0 — M5 Intelligence is shipped"
 publishedAt: "2026-06-26"
-summary: "v3.0.0 introduces hierarchical RAG, agent-controlled retrieval, 14-member orchestration, OpenCode providers, governance docs, and 527 passing tests."
+summary: "v3.0.0 introduces hierarchical RAG, agent-controlled retrieval, 16-member orchestration, OpenCode providers, governance docs, and 527 passing tests."
 tag: "AI"
 shareText: |
   Agenthood v3.0.0 is out — M5 Intelligence milestone complete.
@@ -13,9 +13,12 @@ shareText: |
   - OpenCode Zen + Go providers — OpenAI-compatible, DeepSeek V4 Flash
   - Governance docs — RACI matrix, release policy
   - 527 tests, 49 files, all green
-
   
+
+---
+
 ## See [v3.0.0 available on npm.js](https://www.npmjs.com/package/agenthood/v/3.0.0).
+
 ---
 
 ## The road so far
@@ -77,7 +80,7 @@ graph hop depth, and source paths. No black-box retrieval.
 The Society now routes tasks to the right member without being told who to call.
 
 - `MemberTriggers` defines keyword patterns, file globs, and stage mappings
-for all 14 members.
+for all 16 members.
 - `detectMembers()` scores every member against the input
 with a threshold of 2 or more matches required to qualify.
 
