@@ -1,0 +1,149 @@
+---
+title: "OpenCode Zen and Go — what they are, what they cost, and how Agenthood connects to them"
+publishedAt: "2026-07-06"
+summary: "OpenCode is more than an open-source coding agent — it also runs Zen (pay-as-you-go) and Go (subscription) model APIs. Here's how they work, what they cost, and how Agenthood integrates with both."
+tag: "Engineering"
+subtitle: "A practical guide to OpenCode's model platforms and how Agenthood uses them as LLM providers"
+shareText: |
+  OpenCode Zen and Go are model APIs for coding agents. Here's a breakdown of plans, pricing, available models, and how Agenthood connects to both providers.
+  
+  Key numbers:
+  - Zen: $20 pay-as-you-go, tested models for coding
+  - Go: $5 first month, $10/month, generous usage limits
+  - 18+ models including DeepSeek V4 Flash at $0.28/1M tokens
+  - Agenthood supports `--provider opencode` and `--provider opencode-go`
+  
+  Read the full breakdown on flabs.tech
+---
+
+## OpenCode is not just a coding agent
+
+Most people know OpenCode as the open-source AI coding agent with 160K GitHub stars and 7.5M monthly developers. But the same team behind the agent also runs two model API platforms — **Zen** and **Go** — that any agent framework can use, not just OpenCode itself.
+
+Agenthood has supported both as first-class providers since v3.0.0. Here's what they are, what they cost, what models they offer, and how to use them.
+
+---
+
+## The three tiers
+
+OpenCode offers three ways to use models, from free to enterprise:
+
+| Tier | Cost | Best for |
+|---|---|---|
+| **Free** | $0 | Casual use, trying OpenCode itself |
+| **Zen** | $20 pay-as-you-go | Reliable, curated models for coding agents |
+| **Go** | $5 first month, $10/month | Budget-friendly access to open-source models |
+| **Enterprise** | Custom pricing | Organizations needing dedicated infra, SSO, compliance |
+
+### Free models
+
+OpenCode ships with built-in free models — you can install the agent and start coding immediately without any API key. These are suitable for simple tasks and evaluation, but for serious agent work you'll want Zen or Go.
+
+### Zen — pay-as-you-go
+
+Zen is a curated set of models that OpenCode has tested and benchmarked specifically for coding agents. You pay per request with transparent pricing — no markups, no hidden fees.
+
+- **Pricing:** Add $20 balance (one-time), set monthly spend limits, auto-top-up when balance hits $5
+- **Models:** Hand-picked and validated for agent coding workflows
+- **Privacy:** All models hosted in the US, zero-retention policy
+- **Use anywhere:** Works with any agent framework, not just OpenCode
+
+### Go — subscription
+
+Go is a low-cost subscription aimed at making agentic coding accessible to more developers worldwide. Instead of pay-per-token, you get generous usage limits for a flat monthly fee.
+
+- **Pricing:** $5 first month, $10/month thereafter
+- **Models:** 14 open-source models including DeepSeek V4 Flash, DeepSeek V4 Pro, GLM-5.2, Qwen3.7 Max, Kimi K2.7 Code, MiniMax M3, MiMo-V2.5-Pro, and more
+- **Limits:** Generous per-model caps (e.g., 30,100 requests per 5 hours for MiMo-V2.5, 31,650 for DeepSeek V4 Flash)
+- **Top-up:** Additional credit available if you hit limits
+
+---
+
+## Models and pricing
+
+OpenCode publishes real-time usage data at [opencode.ai/data](https://opencode.ai/data). Here are the top models as of July 2026:
+
+### Most used models on Go
+
+| Rank | Model | Tokens (30d) | Provider | Price per 1M tokens |
+|---|---|---|---|---|
+| 1 | DeepSeek V4 Flash | 9.4T | DeepSeek | $0.28 |
+| 2 | DeepSeek V4 Pro | 3.3T | DeepSeek | $0.87 |
+| 3 | MiniMax M3 | 1.4T | MiniMax | $1.20 |
+| 4 | GLM-5.2 | 1.4T | Zhipu | $4.40 |
+| 5 | MiMo-V2.5 | 887B | Xiaomi | $0.28 |
+| 6 | Kimi K2.7 Code | 434B | Moonshot | $3.50 |
+| 7 | MiMo-V2.5-Pro | 298B | Xiaomi | $0.87 |
+| 8 | Qwen3.7 Plus | 258B | Qwen | $3.00 |
+| 9 | Kimi K2.6 | 132B | Moonshot | $4.00 |
+| 10 | GLM-5.1 | 70B | Zhipu | $4.40 |
+
+DeepSeek V4 Flash dominates with **75% market share** on the platform — and for good reason. At $0.28 per million tokens with a 96% cache hit ratio, the effective cost is closer to fractions of a cent per session.
+
+### Cache makes it cheaper
+
+OpenCode reports cache ratios above 90% for most models — DeepSeek V4 Flash and V4 Pro both hit 96%. This is because coding agents send highly repetitive system prompts and file contexts. With cache, the billed tokens are a fraction of the total sent:
+
+- Average session cost on DeepSeek V4 Flash: **$0.09**
+- Average session cost on MiMo-V2.5: **$0.04**
+- Average tokens per session: **6.6M**
+
+---
+
+## How Agenthood uses OpenCode
+
+Agenthood has supported OpenCode Zen and Go as LLM providers since v3.0.0. The integration is straightforward because both providers expose an OpenAI-compatible API.
+
+### Configuration
+
+Set one environment variable:
+
+```env
+OPENCODE_API_KEY=your_key_here
+```
+
+Then pass the provider flag when running any agent:
+
+```bash
+# Use OpenCode Zen (pay-as-you-go)
+npx agenthood run the-scribe "write a commit message" --provider opencode
+
+# Use OpenCode Go (subscription)
+npx agenthood run the-reviewer "review the last commit" --provider opencode-go
+```
+
+### Provider routing under the hood
+
+The Agenthood runtime's provider abstraction maps both OpenCode providers to the same `toOpenAIMessages` converter, which handles DeepSeek's specific format requirements — `snake_case` tool calls, correct `tool_call_id` ordering, and proper message role sequencing.
+
+The actual API endpoints are:
+
+- **Zen:** `https://api.opencode.ai/zen/v1`
+- **Go:** `https://api.opencode.ai/zen/go/v1`
+
+By default, OpenCode Go routes to `deepseek-v4-flash`. You can override the model with the `OPENCODE_MODEL` environment variable or a `--model` flag.
+
+### Why Agenthood supports both
+
+Having two provider options with different pricing models is useful:
+
+- **Zen** is ideal for CI pipelines and automated workflows where you want per-run cost tracking and no monthly commitment
+- **Go** works better for local development and interactive sessions where a flat monthly fee is simpler to budget
+
+Both providers support the same model family, so switching between them doesn't change agent behavior — only the billing model.
+
+---
+
+## Practical tips
+
+**Use Go for daily development.** At $10/month with generous limits, it's cheaper than almost any pay-per-token alternative for regular use.
+
+**Use Zen for CI and scripts.** The pay-as-you-go model means you only pay for automated runs. Set a monthly spend limit to avoid surprises.
+
+**Take advantage of the cache.** Coding agent sessions are highly cacheable. The 96% cache hit rate on DeepSeek V4 Flash means you're billed for roughly 4% of the tokens you actually send.
+
+**Watch the model rankings.** OpenCode publishes live data at [opencode.ai/data](https://opencode.ai/data). Models change in quality and cost — the leaderboard is a good way to spot shifts.
+
+---
+
+*Full disclosure: This site uses OpenCode Go for the AI assistant on every page, and Agenthood uses OpenCode providers in its CI pipelines. The API key is set via `OPENCODE_API_KEY` in the deployment environment.*
