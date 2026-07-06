@@ -1,0 +1,103 @@
+---
+title: "ChainTelescope — from Jupyter notebook to production crypto command center"
+publishedAt: "2026-07-06"
+summary: "How a personal crypto analysis notebook evolved through two renames and a full modular rewrite into a production Streamlit dashboard with multi-provider fallback, AI assistant, and CI-enforced quality gates."
+tag: "Engineering"
+subtitle: "The evolution of Jupyter-Crypto-Wizard → HashHelm → ChainTelescope"
+shareText: |
+  ChainTelescope evolved from a Jupyter notebook into a production Streamlit dashboard with multi-provider fallback, AI assistant, and CI-enforced quality gates.
+  
+  Architecture highlights:
+  - Modular rewrite: app.py went from 160 to 22 lines
+  - 3 market providers with automatic fallback (Binance → CoinGecko → Coinbase → mock)
+  - In-app AI assistant grounded in live dashboard context
+  - 43 tests, 4 CI jobs, 30+ source files
+  
+  Read the full story on flabs.tech
+---
+
+## The notebook that grew up
+
+ChainTelescope started as a Jupyter notebook called **Jupyter-Crypto-Wizard** — a loose collection of cells that pulled market data, plotted price trends, and computed basic risk metrics. It was useful, but it was also static. Every analysis required running cells manually, and sharing it meant sending a `.ipynb` file.
+
+The natural next step was wrapping it in a Streamlit UI. Streamlit turns Python scripts into interactive web apps with minimal overhead — perfect for a solo project that wanted to stay simple.
+
+But simplicity has a shelf life.
+
+## The problem with a single-file app
+
+The first Streamlit version was a single `app.py` — 160 lines of inline rendering, sidebar widgets, data fetching, and chart configuration all tangled together. Adding a new feature meant scrolling past everything else. Testing was impractical because there was no module boundary to mock.
+
+After a few months of accruing features (trend charts, risk panels, alerts, news feeds, newsletter forms), the file was clearly past its breaking point. Every change risked breaking something unrelated.
+
+## The modular rewrite (v0.3.0)
+
+The v0.3.0 rewrite — shipped under the new name **ChainTelescope** — was a ground-up restructure:
+
+- `app.py` went from **160 lines to 22** — it became a thin navigation shell that delegates to routed pages
+- A `pages/` directory holds the Dashboard, Alerts, News, Risk, and Newsletter routes
+- A `src/views/` layer renders each page from shared components
+- A `src/data/` layer provides a `DashboardSnapshot` dataclass (16 fields) that all panels consume
+
+The result: adding a new page means adding a file to `pages/` and a view to `src/views/`. The navigation, filters, and data assembly are already wired.
+
+## Multi-provider fallback
+
+Crypto data sources are unreliable. APIs rate-limit, change endpoints, or go down entirely. The old app crashed on provider failure. The new one has a fallback chain:
+
+```
+Binance → CoinGecko → Coinbase → mock data
+```
+
+Each adapter in `src/data/market/` attempts the remote provider first. If it fails (timeout, HTTP error, rate limit), the next adapter tries. If all remote providers fail, the app falls back to deterministic mock data — no crashes, no blank screens.
+
+The same pattern applies to news ingestion (RSS/Atom feeds → fallback items) and the AI assistant (OpenAI-compatible provider → local fallback summary).
+
+## AI assistant grounded in dashboard context
+
+The in-app AI assistant is one of the more interesting features. It's not a generic chatbot — it receives the current `DashboardSnapshot` as context, so it knows which watchlist is selected, what the KPIs are, which alerts are firing, and what news items are showing.
+
+The assistant connects to any OpenAI-compatible endpoint, making provider swaps trivial via environment variables:
+
+```
+OPENAI_BASE_URL=https://api.opencode.ai/zen/v1
+OPENAI_MODEL=deepseek-v4-flash
+```
+
+When credentials are missing or the provider call fails, the assistant returns a safe fallback summary instead of crashing. No broken UI states.
+
+## CI-enforced quality
+
+The project runs four CI jobs on every push and PR:
+
+| Job | What it enforces |
+|---|---|
+| `test` | 43 unit tests (unittest, mock data, assistant wiring, doc contracts, Streamlit AppTest) |
+| `build` | `py_compile` on every `.py` file in the repo |
+| `lint` | Ruff lint and format checks |
+| `maintainability` | Advisory complexity rules (reports without blocking) |
+
+The test suite includes a Streamlit `AppTest` smoke run that starts the app, navigates to each page, and verifies it renders without errors. This catches import errors, missing dependencies, and broken widget wiring before they reach production.
+
+## By the numbers (v0.3.0)
+
+| Metric | Value |
+|---|---|
+| Tests | 43 |
+| Source files | 30+ |
+| Market providers | 4 (3 remote + mock) |
+| CI jobs | 4 |
+| Dependencies removed | 8 |
+| app.py lines | 22 (was 160) |
+
+## What's next
+
+The near-term roadmap focuses on three areas:
+
+1. **Richer market coverage** — more providers, broader KPI coverage, multi-asset overlays
+2. **Scheduled pipelines** — newsletter generation and alert evaluation on a timer (currently manual)
+3. **Deeper AI integration** — tool use and retrieval over ingested datasets, not just the live dashboard snapshot
+
+---
+
+*ChainTelescope is open-source under MIT at [github.com/fworks-tech/chain-telescope](https://github.com/fworks-tech/chain-telescope). Live demo at [chain-telescope.streamlit.app](https://chain-telescope.streamlit.app/).*
