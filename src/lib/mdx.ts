@@ -23,6 +23,8 @@ type Metadata = {
   team: Team[];
   link?: string;
   shareText?: string;
+  /** Dev.to article ID after cross-posting. Set automatically by The Herald. */
+  devtoId?: number;
 };
 
 import { notFound } from "next/navigation";
@@ -77,6 +79,7 @@ function readMDXFile(filePath: string) {
     team: data.team || [],
     link: data.link || "",
     shareText: data.shareText || "",
+    devtoId: data.devtoId || undefined,
   };
 
   return { metadata, content };
