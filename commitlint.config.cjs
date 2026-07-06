@@ -1,8 +1,6 @@
-import type { UserConfig } from "@commitlint/types";
-
 const VAGUE_SUBJECTS = ["wip", "fix stuff", "update", "changes", "misc", "asdf", "temp", "cleanup", "test123"];
 
-const config: UserConfig = {
+module.exports = {
   extends: ["@commitlint/config-conventional"],
   plugins: [
     {
@@ -38,5 +36,3 @@ const config: UserConfig = {
     "footer-leading-blank": [1, "always"],
   },
 };
-
-export default config;
