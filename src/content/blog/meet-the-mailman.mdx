@@ -1,0 +1,119 @@
+---
+title: "Meet The Mailman — The Society's Outgoing Communications Courier"
+publishedAt: "2026-07-06"
+summary: "The Agenthood Society welcomes its 17th member: The Mailman. Content scheduling, notification dispatch, cross-posting across 6 platforms, and delivery pipeline verification — all in one Markdown skill file."
+tag: "AI"
+draft: true
+shareText: |
+  The Agenthood Society just shipped its 17th member: The Mailman.
+
+  Every notification reaches its destination. Every scheduled post publishes on time. Every cross-post appears in every channel it belongs in.
+
+  Built into a single SKILL.md — no API keys, no infrastructure, no deployment.
+---
+
+The Agenthood Society ships its 17th member today. **The Mailman** is the Society's outgoing communications infrastructure — the courier that ensures no message goes undelivered, no deadline slips, and no channel goes silent.
+
+## What The Mailman Does
+
+The Mailman handles four distinct delivery domains:
+
+| Domain | What it manages |
+|--------|----------------|
+| **Content scheduling** | Publish-at time verification, rate limit planning, dry-run execution |
+| **Notification dispatch** | Push (Web Push API), email (SMTP/SendGrid/SES), webhooks, in-app (SSE/WebSocket) |
+| **Cross-posting** | Blog → Dev.to, LinkedIn, Twitter/X, HashNode — format transformation + rate-limited sequential submission |
+| **Delivery auditing** | Rolling 7-day log, per-channel success/failure tracking, overdue task detection |
+
+The Mailman does not create content. It *delivers* it.
+
+## Why The Society Needed a Mailman
+
+Before The Mailman, delivery was ad-hoc. The Herald announced releases but had no mechanism to push notifications to subscribers. The Scribe wrote cross-posts but had no delivery pipeline to execute them reliably. The Steward routed tasks between members but didn't manage outbound communication channels.
+
+The result: notifications that silently failed, scheduled posts that never published, and cross-posts that only made it to some platforms.
+
+The Mailman fills that gap with a single, repeatable process:
+
+1. **Verify** the delivery manifest — every channel listed, every API key valid
+2. **Dry-run** the batch — simulate without sending live
+3. **Deliver** with idempotency keys — duplicate submissions don't double-deliver
+4. **Log** every attempt — success, failure, latency, retry status
+5. **Retry** with exponential backoff — 1s → 4s → 16s → max 3 attempts, then escalate
+
+## The Delivery Pipeline
+
+```bash
+the-mailman schedule \
+  --source "./content/blog/my-post.mdx" \
+  --channels "devto,twitter,linkedin" \
+  --at "2026-07-10T14:00:00Z" \
+  --dry-run
+```
+
+Each delivery attempt produces a structured log entry:
+
+```json
+{
+  "id": "dlv_abc123",
+  "type": "cross-post",
+  "source": "blog/my-post",
+  "channels": ["devto", "twitter"],
+  "status": "partial",
+  "results": {
+    "devto": { "status": "delivered", "url": "https://dev.to/...", "latency": 1200 },
+    "twitter": { "status": "failed", "error": "rate_limit_exceeded", "retryAt": "2026-07-06T14:01:00Z" }
+  }
+}
+```
+
+The Mailman is not a daemon. It is not a microservice. It is a Markdown file with a process — the same `SKILL.md` format used by every Society member. It works with any AI runtime that can read Markdown and follow instructions.
+
+## Cross-Posting in Practice
+
+The Mailman handles platform-specific transformations automatically:
+
+| Platform | Content format | Rate limit | Key requirement |
+|----------|---------------|------------|-----------------|
+| Dev.to | Full Markdown + frontmatter | 1 post / 30s | API key |
+| LinkedIn | Text summary + link card | 100 posts / day | OAuth token |
+| Twitter/X | Threaded sections ≤ 280 chars | 300 posts / day | API key + OAuth |
+| HashNode | Markdown body + tags | 1 post / min | API key |
+
+Cross-posts are submitted sequentially (not parallel) to respect per-platform rate limits. If a platform fails, the remaining platforms still receive their content — partial delivery is better than no delivery.
+
+## The Rationalizations
+
+| What you think | What The Mailman knows |
+|---------------|----------------------|
+| "I'll just post it manually" | Manual posting forgets channels. Automation remembers all of them. |
+| "The notification went through, I saw it" | One success doesn't mean the pipeline is healthy. Check the logs. |
+| "Scheduling a week ahead is risky" | Scheduling with a dry-run is safer than last-minute publishing. |
+
+## Where The Mailman Fits
+
+The Mailman joins the **lifecycle** category alongside The Herald, The Envoy, The Steward, and The Operator. It occupies the *deliver* stage — the moment after content is created, reviewed, and approved, but before it reaches its audience.
+
+```
+  Create → Review → Approve → [Deliver] → Monitor
+                                 ↑
+                           The Mailman
+```
+
+## How to Use
+
+Like every Society member, The Mailman is a single Markdown file:
+
+```bash
+# Add The Mailman to your project
+npx skills add fworks-tech/agenthood the-mailman
+
+# Or copy it manually
+cp docs/members/the-mailman/SKILL.md .agenthood/skills/the-mailman/
+```
+
+No API keys required. No infrastructure to deploy. Just a Markdown file your AI assistant reads before handling delivery tasks.
+
+---
+
+*Neither snow nor rain nor API rate limits shall stay this courier from the swift completion of their rounds.*
