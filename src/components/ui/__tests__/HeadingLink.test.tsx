@@ -1,11 +1,16 @@
+import { MantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/navigation");
 
 import { HeadingLink } from "@/components/ui/HeadingLink";
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
 
 describe("HeadingLink", () => {
   it("renders heading with correct level", () => {
@@ -13,6 +18,7 @@ describe("HeadingLink", () => {
       <HeadingLink id="my-heading" level={2}>
         My Title
       </HeadingLink>,
+      { wrapper: Wrapper },
     );
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("My Title");
   });
@@ -22,6 +28,7 @@ describe("HeadingLink", () => {
       <HeadingLink id="h1" level={1}>
         First
       </HeadingLink>,
+      { wrapper: Wrapper },
     );
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
@@ -31,6 +38,7 @@ describe("HeadingLink", () => {
       <HeadingLink id="h3" level={3}>
         Third
       </HeadingLink>,
+      { wrapper: Wrapper },
     );
     expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument();
   });
@@ -40,6 +48,7 @@ describe("HeadingLink", () => {
       <HeadingLink id="custom-id" level={2}>
         Title
       </HeadingLink>,
+      { wrapper: Wrapper },
     );
     expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute("id", "custom-id");
   });
@@ -50,8 +59,9 @@ describe("HeadingLink", () => {
       <HeadingLink id="click-test" level={2}>
         Click Me
       </HeadingLink>,
+      { wrapper: Wrapper },
     );
-    await user.click(screen.getByTestId("Flex"));
+    await user.click(screen.getByRole("heading", { level: 2 }));
     expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
   });
 
@@ -60,7 +70,8 @@ describe("HeadingLink", () => {
       <HeadingLink id="icon-test" level={2}>
         Icon
       </HeadingLink>,
+      { wrapper: Wrapper },
     );
-    expect(screen.getByTestId("IconButton")).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeInTheDocument();
   });
 });

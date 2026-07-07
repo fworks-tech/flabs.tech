@@ -6,31 +6,23 @@ import { slugify as transliterate } from "transliteration";
 import { BlogLinks } from "@/components/shared/blog-links";
 import { logger } from "@/lib/logger";
 
-import tableStyles from "./mdx-table.module.scss";
-
 import {
   Accordion,
-  AccordionGroup,
+  Anchor,
   Button,
   Card,
-  CodeBlock,
-  Column,
-  Feedback,
+  Code,
+  Divider,
   Grid,
-  Heading,
-  HeadingLink,
-  Icon,
-  InlineCode,
-  Line,
+  Image,
   List,
-  ListItem,
-  Media,
-  type MediaProps,
-  Row,
-  SmartLink,
   Text,
-  type TextProps,
-} from "@once-ui-system/core";
+  Title,
+} from "@mantine/core";
+import Link from "next/link";
+
+import tableStyles from "./mdx-table.module.scss";
+import { HeadingLink } from "@/components/ui/HeadingLink";
 
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   href: string;
@@ -40,9 +32,9 @@ type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
 function CustomLink({ href, children, ...props }: CustomLinkProps) {
   if (href.startsWith("/")) {
     return (
-      <SmartLink href={href} {...props}>
+      <Anchor component={Link} href={href} {...props}>
         {children}
-      </SmartLink>
+      </Anchor>
     );
   }
 
@@ -61,21 +53,18 @@ function CustomLink({ href, children, ...props }: CustomLinkProps) {
   );
 }
 
-function createImage({ alt, src, ...props }: MediaProps & { src: string }) {
+function createImage({ alt, src, ...props }: { alt?: string; src: string }) {
   if (!src) {
     logger.error("Media requires a valid 'src' property.");
     return null;
   }
 
   return (
-    <Media
-      marginTop="8"
-      marginBottom="16"
-      enlarge
-      radius="m"
-      border="neutral-alpha-medium"
-      sizes="(max-width: 960px) 100vw, 960px"
-      alt={alt}
+    <Image
+      my="8"
+      mb="16"
+      radius="md"
+      alt={alt || ""}
       src={src}
       {...props}
     />
@@ -93,21 +82,27 @@ function extractText(node: ReactNode): string {
 }
 
 function slugify(str: string): string {
-  const strWithAnd = str.replace(/&/g, " and "); // Replace & with 'and'
+  const strWithAnd = str.replace(/&/g, " and ");
   return transliterate(strWithAnd, {
     lowercase: true,
-    separator: "-", // Replace spaces with -
-  }).replace(/\-\-+/g, "-"); // Replace multiple - with single -
+    separator: "-",
+  }).replace(/\-\-+/g, "-");
 }
 
 function createHeading(as: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
+  const levelMap: Record<string, 1 | 2 | 3 | 4 | 5 | 6> = {
+    h1: 1, h2: 2, h3: 3, h4: 4, h5: 5, h6: 6,
+  };
   const CustomHeading = ({
     children,
-    ...props
-  }: Omit<React.ComponentProps<typeof HeadingLink>, "as" | "id">) => {
+    style,
+  }: {
+    children: ReactNode;
+    style?: React.CSSProperties;
+  }) => {
     const slug = slugify(extractText(children));
     return (
-      <HeadingLink marginTop="24" marginBottom="12" as={as} id={slug} {...props}>
+      <HeadingLink level={levelMap[as]} id={slug} style={style}>
         {children}
       </HeadingLink>
     );
@@ -118,14 +113,14 @@ function createHeading(as: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
   return CustomHeading;
 }
 
-function createParagraph({ children }: TextProps) {
+function createParagraph({ children }: { children: ReactNode }) {
   return (
     <Text
       style={{ lineHeight: "175%" }}
-      variant="body-default-m"
-      onBackground="neutral-medium"
-      marginTop="8"
-      marginBottom="12"
+      size="md"
+      c="dimmed"
+      my="8"
+      mb="12"
     >
       {children}
     </Text>
@@ -133,57 +128,49 @@ function createParagraph({ children }: TextProps) {
 }
 
 function createInlineCode({ children }: { children: ReactNode }) {
-  return <InlineCode>{children}</InlineCode>;
+  return <Code>{children}</Code>;
 }
 
 function createCodeBlock(props: any) {
-  // For pre tags that contain code blocks
   if (props.children?.props?.className) {
     const { className, children } = props.children.props;
-
-    // Extract language from className (format: language-xxx)
     const language = className.replace("language-", "");
     const label = language.charAt(0).toUpperCase() + language.slice(1);
 
     return (
-      <CodeBlock
-        marginTop="8"
-        marginBottom="16"
-        codes={[
-          {
-            code: children,
-            language,
-            label,
-          },
-        ]}
-        copyButton={true}
-      />
+      <pre style={{ position: "relative", borderRadius: "var(--mantine-radius-md)", overflow: "hidden" }}>
+        <div style={{ padding: "var(--mantine-spacing-xs) var(--mantine-spacing-md)", background: "var(--mantine-color-dark-6)", color: "var(--mantine-color-dimmed)", fontSize: "var(--mantine-font-size-sm)" }}>
+          {label}
+        </div>
+        <Code block style={{ padding: "var(--mantine-spacing-md)", fontSize: "var(--mantine-font-size-sm)" }}>
+          {children}
+        </Code>
+      </pre>
     );
   }
 
-  // Fallback for other pre tags or empty code blocks
   return <pre {...props} />;
 }
 
 function createList(as: "ul" | "ol") {
-  const Component = ({ children }: { children: ReactNode }) => <List as={as}>{children}</List>;
+  const Component = ({ children }: { children: ReactNode }) => (
+    <List type={as === "ol" ? "ordered" : "unordered"}>{children}</List>
+  );
   Component.displayName = `List(${as})`;
   return Component;
 }
 
 function createListItem({ children }: { children: ReactNode }) {
   return (
-    <ListItem marginTop="4" marginBottom="8" style={{ lineHeight: "175%" }}>
+    <List.Item my="4" mb="8" style={{ lineHeight: "175%" }}>
       {children}
-    </ListItem>
+    </List.Item>
   );
 }
 
 function createHR() {
   return (
-    <Row fillWidth horizontal="center" padding="m">
-      <Line maxWidth="40" />
-    </Row>
+    <Divider my="lg" />
   );
 }
 
@@ -236,21 +223,12 @@ const components = {
   tr: createTableRow as any,
   th: createTableHeader as any,
   td: createTableCell as any,
-  Heading,
+  Heading: Title,
   Text,
-  CodeBlock,
-  InlineCode,
-  Accordion,
-  AccordionGroup,
-  Feedback,
   Button,
   Card,
   Grid,
-  Row,
-  Column,
-  Icon,
-  Media,
-  SmartLink,
+  Accordion,
   BlogLinks,
 };
 
