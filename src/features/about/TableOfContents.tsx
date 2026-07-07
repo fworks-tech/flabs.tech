@@ -1,6 +1,6 @@
 "use client";
 
-import { Column, Flex, Text } from "@once-ui-system/core";
+import { Group, Stack, Text } from "@mantine/core";
 import type React from "react";
 import styles from "./about.module.scss";
 
@@ -24,7 +24,6 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ structure, about }) =
     if (element) {
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.scrollY - offset;
-
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth",
@@ -35,51 +34,49 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ structure, about }) =
   if (!about.tableOfContent.display) return null;
 
   return (
-    <Column
-      left="0"
+    <Stack
       style={{
+        position: "fixed",
+        left: 0,
         top: "50%",
         transform: "translateY(-50%)",
         whiteSpace: "nowrap",
+        paddingLeft: "24px",
       }}
-      position="fixed"
-      paddingLeft="24"
       gap="32"
-      m={{ hide: true }}
     >
       {structure
         .filter((section) => section.display)
         .map((section, sectionIndex) => (
-          <Column key={sectionIndex} gap="12">
-            <Flex
-              cursor="interactive"
+          <Stack key={sectionIndex} gap="12">
+            <Group
               className={styles.hover}
               gap="8"
-              vertical="center"
+              align="center"
+              style={{ cursor: "pointer" }}
               onClick={() => scrollTo(section.title, 80)}
             >
-              <Flex height="1" minWidth="16" background="neutral-strong" />
+              <div style={{ height: "1px", minWidth: "16px", background: "var(--mantine-color-dark-2)" }} />
               <Text>{section.title}</Text>
-            </Flex>
+            </Group>
             {about.tableOfContent.subItems &&
               section.items.map((item, itemIndex) => (
-                <Flex
-                  l={{ hide: true }}
+                <Group
                   key={itemIndex}
-                  style={{ cursor: "pointer" }}
                   className={styles.hover}
                   gap="12"
-                  paddingLeft="24"
-                  vertical="center"
+                  pl="24"
+                  align="center"
+                  style={{ cursor: "pointer" }}
                   onClick={() => scrollTo(item, 80)}
                 >
-                  <Flex height="1" minWidth="8" background="neutral-strong" />
+                  <div style={{ height: "1px", minWidth: "8px", background: "var(--mantine-color-dark-2)" }} />
                   <Text>{item}</Text>
-                </Flex>
+                </Group>
               ))}
-          </Column>
+          </Stack>
         ))}
-    </Column>
+    </Stack>
   );
 };
 
