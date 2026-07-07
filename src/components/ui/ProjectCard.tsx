@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  AvatarGroup,
-  Carousel,
-  Column,
-  Flex,
-  SmartLink,
-  Text,
-} from "@once-ui-system/core";
+import { Anchor, Avatar, Group, Stack, Text } from "@mantine/core";
+import { Carousel } from "@mantine/carousel";
+import Link from "next/link";
 import styles from "./ProjectCard.module.scss";
 
 interface ProjectCardProps {
@@ -36,73 +31,66 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const allTags = tags?.length ? tags : tag ? [tag] : [];
   const tagKey = (tag || (tags?.[0] ?? "")).toLowerCase().replace(/[^a-z]/g, "-");
-  
+
   return (
-    <Column fillWidth gap="m">
+    <Stack gap="md">
       {images.length > 0 && (
-        <Carousel
-          sizes="(max-width: 960px) 100vw, 960px"
-          items={images.map((image) => ({
-            slide: image,
-            alt: `Screenshot of ${title} - project showcase image`,
-          }))}
-        />
+        <Carousel withIndicators height={300}>
+          {images.map((image, i) => (
+            <Carousel.Slide key={i}>
+              <img
+                src={image}
+                alt={`Screenshot of ${title} - project showcase image`}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </Carousel.Slide>
+          ))}
+        </Carousel>
       )}
-      <Flex fillWidth flex='1' direction='row' paddingX="s" style={{ alignItems: "center", justifyContent: "space-between" }} >
-        {
-          <div className={styles.visualHeader} data-tag={tagKey}>
-            <span className={styles.visualTitle}>{title}</span>
-          </div>
-        }
+      <Group px="sm" align="center" justify="space-between" style={{ width: "100%" }}>
+        <div className={styles.visualHeader} data-tag={tagKey}>
+          <span className={styles.visualTitle}>{title}</span>
+        </div>
         {allTags.length > 0 && (
-          <Flex paddingX="xs" gap="8" wrap>
+          <Group gap="8" wrap="wrap">
             {allTags.map((t) => (
               <span key={t} className={styles.visualTag}>
                 {t}
               </span>
             ))}
-          </Flex>
+          </Group>
         )}
-      </Flex>
-      <Flex
-        s={{ direction: "column" }}
-        fillWidth
-        paddingX="s"
-        paddingTop="12"
-        paddingBottom="24"
-        gap="l"
-      >
+      </Group>
+      <Stack px="sm" pt="12" pb="24" gap="lg">
         {(avatars?.length > 0 || description?.trim() || content?.trim()) && (
-          <Column gap="16">
-            {avatars?.length > 0 && <AvatarGroup avatars={avatars} size="m" reverse />}
+          <Stack gap="16">
+            {avatars?.length > 0 && (
+              <Avatar.Group spacing="sm">
+                {avatars.map((avatar, i) => (
+                  <Avatar key={i} src={avatar.src} size="sm" alt={avatar["aria-label"] || ""} />
+                ))}
+              </Avatar.Group>
+            )}
             {description?.trim() && (
-              <Text variant="body-default-s" onBackground="neutral-weak">
+              <Text size="sm" c="dimmed">
                 {description}
               </Text>
             )}
-            <Flex gap="24" wrap>
+            <Group gap="24" wrap="wrap">
               {content?.trim() && (
-                <SmartLink
-                  suffixIcon="arrowRight"
-                  style={{ margin: "0", width: "fit-content" }}
-                  href={href}
-                >
-                  <Text variant="body-default-s">Read case study</Text>
-                </SmartLink>
+                <Anchor component={Link} href={href} size="sm">
+                  Read case study
+                </Anchor>
               )}
               {link && (
-                <SmartLink
-                  suffixIcon="arrowUpRightFromSquare"
-                  style={{ margin: "0", width: "fit-content" }}
-                  href={link}
-                >
-                  <Text variant="body-default-s">View project</Text>
-                </SmartLink>
+                <Anchor href={link} target="_blank" rel="noopener noreferrer" size="sm">
+                  View project
+                </Anchor>
               )}
-            </Flex>
-          </Column>
+            </Group>
+          </Stack>
         )}
-      </Flex>
-    </Column>
+      </Stack>
+    </Stack>
   );
 };

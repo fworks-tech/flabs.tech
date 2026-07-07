@@ -1,38 +1,30 @@
+import { Anchor, Avatar, Badge, Button, Group, Stack, Text, Title } from "@mantine/core";
+import { IconGlobe, IconFileCv } from "@tabler/icons-react";
 import { baseURL, sameAs } from "@/config";
 import { about, person, social } from "@/content";
-import {
-  Avatar,
-  Button,
-  Column,
-  Heading,
-  Icon,
-  Meta,
-  Row,
-  Schema,
-  Tag,
-  Text,
-} from "@once-ui-system/core";
+import { generateMeta } from "@/lib/seo";
+import { Schema } from "@/lib/schema";
+import type { ReactNode } from "react";
 
 export async function generateMetadata() {
-  const meta = Meta.generate({
+  return generateMeta({
     title: about.title,
     description: about.description,
-    baseURL: baseURL,
+    baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(about.title)}`,
     path: about.path,
   });
-
-  return {
-    ...meta,
-    alternates: {
-      canonical: `${baseURL}${about.path}`,
-    },
-  };
 }
+
+const iconMap: Record<string, ReactNode> = {
+  github: <IconGlobe size={16} />,
+  linkedin: <IconGlobe size={16} />,
+  email: <IconGlobe size={16} />,
+};
 
 export default function About() {
   return (
-    <Column maxWidth="m" paddingTop="40" horizontal="center" align="center" gap="xl">
+    <Stack maw={1024} pt="40" align="center" gap="xl" mx="auto">
       <Schema
         as="webPage"
         baseURL={baseURL}
@@ -48,38 +40,33 @@ export default function About() {
         }}
       />
 
-      {/* Header: Avatar + Name + Role + Location + Social */}
-      <Column horizontal="center" align="center" gap="m" fillWidth>
-        {about.avatar.display && <Avatar src={person.avatar} size="xl" aria-label={`Photo of ${person.name}`} />}
-        <Column horizontal="center" align="center" gap="4">
-          <Heading variant="display-strong-xl" align="center">
+      <Stack align="center" gap="md">
+        {about.avatar.display && <Avatar src={person.avatar} size="xl" alt={`Photo of ${person.name}`} />}
+        <Stack align="center" gap="4">
+          <Title order={1} ta="center">
             {person.name}
-          </Heading>
-          <Text variant="display-default-xs" onBackground="neutral-weak" align="center">
+          </Title>
+          <Text size="lg" c="dimmed" ta="center">
             {person.role}
           </Text>
-          <Row gap="8" vertical="center" paddingTop="4">
-            <Icon onBackground="accent-weak" name="globe" />
-            <Text variant="body-default-s" onBackground="neutral-weak">
+          <Group gap="8" align="center" pt="4">
+            <IconGlobe size={16} />
+            <Text size="sm" c="dimmed">
               Joinville, Brazil
             </Text>
             {person.languages && person.languages.length > 0 && (
               <>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  ·
-                </Text>
+                <Text size="sm" c="dimmed">·</Text>
                 {person.languages.map((lang, i) => (
-                  <Tag key={i} size="s">
-                    {lang}
-                  </Tag>
+                  <Badge key={i} size="sm">{lang}</Badge>
                 ))}
               </>
             )}
-          </Row>
-        </Column>
+          </Group>
+        </Stack>
 
         {social.length > 0 && (
-          <Row gap="8" wrap horizontal="center" paddingTop="8">
+          <Group gap="8" wrap="wrap" justify="center" pt="8">
             {social
               .filter((item) => item.essential)
               .map(
@@ -87,59 +74,57 @@ export default function About() {
                   item.link && (
                     <Button
                       key={item.name}
+                      component="a"
                       href={item.link}
-                      prefixIcon={item.icon}
-                      label={item.name}
-                      size="s"
-                      weight="default"
-                      variant="secondary"
-                    />
+                      variant="light"
+                      size="sm"
+                    >
+                      {item.name}
+                    </Button>
                   ),
               )}
             {person.resume && (
               <Button
+                component="a"
                 href={person.resume}
-                label="Download CV"
-                size="s"
-                variant="secondary"
-              />
+                variant="light"
+                size="sm"
+              >
+                Download CV
+              </Button>
             )}
-          </Row>
+          </Group>
         )}
-      </Column>
+      </Stack>
 
-      {/* Introduction */}
       {about.intro.display && (
-        <Column textVariant="body-default-l" fillWidth gap="m" maxWidth="s" align="center">
-          {about.intro.description}
-        </Column>
+        <Stack gap="md" maw={600} align="center">
+          {about.intro.description as ReactNode}
+        </Stack>
       )}
 
-      {/* Technical skills */}
       {about.technical.display && (
-        <Column fillWidth gap="l" maxWidth="s">
-          <Heading as="h2" variant="display-strong-s">
-            {about.technical.title}
-          </Heading>
+        <Stack gap="lg" maw={600}>
+          <Title order={2}>{about.technical.title}</Title>
           {about.technical.skills.map((skill, index) => (
-            <Column key={`${skill.title}-${index}`} fillWidth gap="4">
-              <Text variant="heading-strong-l">{skill.title}</Text>
-              <Text variant="body-default-m" onBackground="neutral-weak">
+            <Stack key={`${skill.title}-${index}`} gap="4">
+              <Title order={3}>{skill.title}</Title>
+              <Text size="md" c="dimmed">
                 {skill.description}
               </Text>
               {skill.tags && skill.tags.length > 0 && (
-                <Row wrap gap="8" paddingTop="8">
-                  {skill.tags.map((tag, tagIndex) => (
-                    <Tag key={`${skill.title}-${tagIndex}`} size="l" prefixIcon={tag.icon}>
+                <Group gap="8" pt="8" wrap="wrap">
+                  {skill.tags.map((tag: { name: string; icon?: string }, tagIndex: number) => (
+                    <Badge key={`${skill.title}-${tagIndex}`} size="lg">
                       {tag.name}
-                    </Tag>
+                    </Badge>
                   ))}
-                </Row>
+                </Group>
               )}
-            </Column>
+            </Stack>
           ))}
-        </Column>
+        </Stack>
       )}
-    </Column>
+    </Stack>
   );
 }

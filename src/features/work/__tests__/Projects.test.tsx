@@ -1,8 +1,14 @@
+import { MantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@once-ui-system/core");
 vi.mock("next/navigation");
+vi.mock("next/link", () => ({
+  default: ({ children, href, ...props }: Record<string, unknown>) =>
+    <a href={href as string} {...props}>{children}</a>,
+}));
 vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
@@ -13,6 +19,10 @@ vi.mock("@/config", () => ({
 vi.mock("@/lib/mdx", () => ({
   getPosts: vi.fn(() => []),
 }));
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
 
 import { Projects } from "@/features/work/Projects";
 import { getPosts } from "@/lib/mdx";
@@ -60,9 +70,9 @@ const mockProjects = [
 ];
 
 describe("Projects", () => {
-  it("renders empty Column when no projects", () => {
-    render(<Projects />);
-    expect(screen.getByTestId("Column")).toBeInTheDocument();
+  it("renders empty state when no projects", () => {
+    render(<Projects />, { wrapper: Wrapper });
+    expect(screen.queryByText("Newest Project")).not.toBeInTheDocument();
   });
 
   describe("with projects", () => {
@@ -71,20 +81,20 @@ describe("Projects", () => {
     });
 
     it("renders projects sorted by date (newest first)", () => {
-      render(<Projects />);
+      render(<Projects />, { wrapper: Wrapper });
       const titles = screen.getAllByText("Newest Project");
       expect(titles.length).toBeGreaterThanOrEqual(1);
     });
 
     it("applies range slicing", () => {
-      render(<Projects range={[1, 2]} />);
+      render(<Projects range={[1, 2]} />, { wrapper: Wrapper });
       expect(screen.getAllByText("Newest Project").length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText("Middle Project").length).toBeGreaterThanOrEqual(1);
       expect(screen.queryByText("Oldest Project")).toBeNull();
     });
 
     it("excludes projects by slug", () => {
-      render(<Projects exclude={["newest"]} />);
+      render(<Projects exclude={["newest"]} />, { wrapper: Wrapper });
       expect(screen.queryByText("Newest Project")).toBeNull();
       expect(screen.getAllByText("Middle Project").length).toBeGreaterThanOrEqual(1);
     });

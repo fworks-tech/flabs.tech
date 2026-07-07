@@ -1,6 +1,6 @@
+import { SimpleGrid } from "@mantine/core";
 import { filterPosts } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
-import { Grid } from "@once-ui-system/core";
 import Post from "./Post";
 
 interface PostsProps {
@@ -11,6 +11,8 @@ interface PostsProps {
   exclude?: string[];
   includeDrafts?: boolean;
 }
+
+const colsMap: Record<string, number> = { "1": 1, "2": 2, "3": 3 };
 
 export function Posts({
   range,
@@ -25,7 +27,6 @@ export function Posts({
     includeDrafts,
   );
 
-  // Exclude by slug (exact match)
   if (exclude.length) {
     allBlogs = allBlogs.filter((post) => !exclude.includes(post.slug));
   }
@@ -41,11 +42,11 @@ export function Posts({
   return (
     <>
       {displayedBlogs.length > 0 && (
-        <Grid columns={columns} s={{ columns: 1 }} fillWidth marginBottom="40" gap="24">
+        <SimpleGrid cols={colsMap[columns] || 1} spacing="lg" mb="40">
           {displayedBlogs.map((post) => (
             <Post key={post.slug} post={post} thumbnail={thumbnail} direction={direction} />
           ))}
-        </Grid>
+        </SimpleGrid>
       )}
     </>
   );
