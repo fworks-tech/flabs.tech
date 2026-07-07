@@ -26,7 +26,7 @@ export const Footer = () => {
         align="center"
         style={{ width: "100%" }}
       >
-        <Text size="sm" c="dimmed">
+        <Text size="sm" style={{ color: "var(--mantine-color-gray-6)" }}>
           © {currentYear} {person.name}
         </Text>
         <Group gap="xs">
