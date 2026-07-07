@@ -26,7 +26,7 @@ export const Footer = () => {
         align="center"
         style={{ width: "100%" }}
       >
-        <Text size="sm" c="gray">
+        <Text size="sm">
           © {currentYear} {person.name}
         </Text>
         <Group gap="xs">
