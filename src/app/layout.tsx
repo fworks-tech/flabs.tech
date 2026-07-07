@@ -1,5 +1,6 @@
 import "@once-ui-system/core/css/styles.css";
 import "@once-ui-system/core/css/tokens.css";
+import "@mantine/core/styles.css";
 import "@/styles/custom.css";
 
 import classNames from "classnames";
@@ -20,6 +21,7 @@ import {
   Flex,
   Meta,
 } from "@once-ui-system/core";
+import { ColorSchemeScript } from "@mantine/core";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -97,6 +99,7 @@ export default async function RootLayout({
       )}
     >
       <head>
+        <ColorSchemeScript />
         <script
           id="theme-init"
           dangerouslySetInnerHTML={{
