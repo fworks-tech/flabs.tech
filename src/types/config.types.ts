@@ -146,6 +146,11 @@ export type SameAsConfig = {
   linkedin: string;
   discord: string;
   github: string;
+  devto: string;
+  stackoverflow: string;
+  npm: string;
+  hashnode: string;
+  youtube: string;
 };
 
 /**
@@ -163,6 +168,8 @@ export type SocialSharingConfig = {
     telegram: boolean;
     email: boolean;
     copyLink: boolean;
+    devto: boolean;
+    hackernews: boolean;
   };
 };
 

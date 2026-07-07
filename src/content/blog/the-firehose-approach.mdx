@@ -1,0 +1,226 @@
+---
+title: "The Firehose Approach: Why We Ship Features Before Refactoring"
+publishedAt: "2026-07-06"
+summary: "How a value-first migration strategy shipped analytics, WhatsApp, social feeds, SEO, sitemap fixes, and a draft system in a single sprint — without touching a single component of the existing design system."
+tag: "Architecture"
+draft: true
+shareText: |
+  Most rebuilds start with foundation work — months of invisible refactoring before anything ships. We tried the opposite: ship visible value on day one, then refactor with real data.
+
+  Here's how the firehose approach works, why it breaks conventional wisdom, and what we learned shipping PostHog, WhatsApp, social ISR feeds, JSON-LD schemas, sitemap fixes, and a draft system in a single sprint — without touching a single Once UI import.
+---
+
+## The conventional wisdom
+
+Every migration guide says the same thing:
+
+> Lay the foundation first. Install Tailwind. Set up `cn()`. Generate your shadcn components. Then — *then* — start replacing.
+
+This is the **foundation-first** approach. It's tidy. It's predictable. And it delays visible value by weeks or months.
+
+When you're refactoring a production site with 42 files importing a design system, foundation-first means:
+- Week 1–2: Tailwind init, shadcn init, `next-themes`, font migration — zero user-facing changes
+- Week 3–6: Replace 33 components, one PR at a time — still looks the same
+- Month 2+: *Finally* add features people can see
+
+The user sees nothing for weeks. Stakeholders ask "what's happening?" The dopamine never arrives.
+
+## The firehose approach
+
+**Ship features first. Refactor with confidence.**
+
+The idea is simple: instead of rebuilding the house from the foundation up, install the new plumbing, wiring, and smart home gadgets *through the existing walls*. Then — and only then — replace the walls one at a time, knowing exactly which rooms matter.
+
+Phase 1 of the firehose shipped **seven features in one sprint**, all visible to users on day one:
+
+| # | Feature | Impact | Once UI needed? |
+|---|---------|--------|-----------------|
+| 1 | **PostHog analytics** (Cloud Free, 1M events/mo) | Real-time pageviews, dashboards, session tracking | No |
+| 2 | **WhatsApp share button** | Direct messaging from every blog post | No (already in config) |
+| 3 | **Social live stats** (Dev.to, GitHub, SO, npm via ISR) | Freshness in the footer, 1h–24h revalidation | No |
+| 4 | **Expanded share buttons** (Dev.to, Hacker News) | 6 platforms + copy link — viral distribution | No |
+| 5 | **Canonical URLs + JSON-LD** (Person, WebSite, BreadcrumbList) | SEO baseline — every page canonical, Google rich results | No |
+| 6 | **Sitemap fix** (work detail pages now indexed) | 4+ work case studies visible to search engines | No |
+| 7 | **Draft + scheduling system** (`draft` flag, `scheduledAt`, auth-gated) | Write ahead, publish when ready, only author sees drafts | No |
+
+**Zero Once UI components changed. Zero Tailwind config written. Zero foundation work.**
+
+## Deep dive: each feature
+
+### 1. PostHog analytics — 52 lines, zero infrastructure
+
+[PostHog](https://posthog.com) Cloud Free gives us 1 million events per month at no cost. The integration is a single client component (`PostHogInit.tsx`) that initializes the SDK and captures `$pageview` on every route change. It's wrapped in a dynamic import to avoid blocking static generation, and the `NEXT_PUBLIC_POSTHOG_KEY` env var means it's fully configured at deploy time.
+
+**What we track:**
+- Pageviews with pathname + search params
+- Custom events via the existing `trackEvent()` utility
+- Session analytics, referrers, and user flows
+
+The dashboard went live the same day the code merged. No Docker, no PostgreSQL, no ops.
+
+### 2. WhatsApp share — one boolean flip
+
+The `ShareSection` component already had WhatsApp coded — `https://wa.me/?text=...` with proper encoding. It was just disabled in config. One line change: `whatsapp: true`.
+
+This is the purest firehose win: the feature was already built, tested, and sitting dormant. It cost zero engineering time to ship.
+
+### 3. Social live stats — ISR fetch pattern
+
+The `SocialStats.tsx` server component fetches from four APIs using Next.js ISR:
+
+| API | Endpoint | Revalidation | Data |
+|-----|----------|-------------|------|
+| Dev.to | `GET /api/articles?username=...` | 1 hour | Article count |
+| GitHub | `GET /api/users/...` | 24 hours | Public repo count |
+| Stack Overflow | `GET /2.3/users/...` | 24 hours | Reputation score |
+| npm | `GET /-/v1/search?text=maintainer:...` | 24 hours | Package count |
+
+Each API call is wrapped in a try/catch with `logger.warn` fallback. The entire component is wrapped in `<Suspense fallback={null}>` so API failures are invisible to users. No loading spinners, no broken layout — just graceful absence.
+
+The same `SameAsConfig` type was extended with 5 new fields (`devto`, `stackoverflow`, `npm`, `hashnode`, `youtube`) so adding new platforms in the future is a type-safe config change.
+
+### 4. Expanded share buttons — Dev.to + Hacker News
+
+Two new platforms added to the social sharing ecosystem:
+
+- **Dev.to**: `https://dev.to/new?prefill=...` — pre-fills the Dev.to editor with the article title and original URL, making cross-posting effortless.
+- **Hacker News**: `https://news.ycombinator.com/submitlink?u=...&t=...` — standard HN submission with URL + title.
+
+The `SocialSharingConfig` type and `once-ui.config.ts` were updated in lockstep, and `SiDevdotto` + `FaHackerNews` icons were added to the icon library.
+
+### 5. Canonical URLs + JSON-LD — SEO in 10 lines per page
+
+Every page on the site now declares its canonical URL via `alternates.canonical` in the Next.js metadata API. This prevents duplicate content issues and tells Google exactly which URL to index.
+
+Three JSON-LD schemas were added:
+
+- **Person** (root layout): name, URL, image, sameAs, jobTitle, email, address — tells Google who owns the site
+- **WebSite** (root layout): site name, URL, description — defines the site entity
+- **BreadcrumbList** (every detail page): position 1 (listing) → position 2 (detail) — enables breadcrumb rich results in SERPs
+
+Plus: `og:locale: en_US` and `twitter:site: @fritzelborges` were missing and are now set.
+
+### 6. Sitemap fix — work details now indexed
+
+The sitemap was only generating entries for blog posts and project pages — work case studies were invisible to search engines. One change added `getPosts(["src", "content", "work"])` to the sitemap generator, making 4+ work entries discoverable.
+
+### 7. Draft + scheduling system — write ahead, publish on your terms
+
+The biggest infrastructure addition: a proper draft and scheduling system for MDX content.
+
+**How it works:**
+
+```yaml
+# In any MDX frontmatter:
+draft: true                    # Hidden from all public views
+scheduledAt: "2026-08-01"      # Hidden until this date
+```
+
+- `src/lib/auth.ts` — server-side `isAuthenticated()` checks the existing auth cookie against the in-memory token store
+- `src/lib/draft.ts` — `isPostVisible()` and `filterPosts()` filter out drafts and future-scheduled content
+- Blog listing, detail pages, RSS feed, sitemap, and home page all filter through this pipeline
+- Authenticated users see drafts with a `[DRAFT]` prefix — unauthenticated users get a clean 404
+
+The article you're reading right now is the first draft post. You can only see it because you're authenticated.
+
+## Why this works
+
+### Analytics drive the refactor
+
+Without PostHog, you're guessing which components users actually touch. With PostHog on day one, you can measure:
+
+- Which pages get the most traffic
+- Which share buttons people actually click
+- Where users drop off
+
+When the foundation rebuild starts, you're not refactoring 42 components blind — you're prioritizing the ones that matter.
+
+### SEO is highest ROI per line of code
+
+Adding `alternates.canonical` and JSON-LD schemas is ~10 lines per page, costs zero runtime, and fixes Google's biggest indexing complaints. Doing it first means the SEO clock starts ticking immediately.
+
+### Social stats create a living site
+
+ISR-fetched GitHub repo counts and Dev.to article numbers in the footer make the portfolio feel alive. The data updates without redeploys. Users see "12 GitHub repos, 8 Dev.to articles" rather than static copyright text.
+
+### WhatsApp is free (literally)
+
+`https://wa.me/?text=...` costs nothing. No API key, no Twilio setup, no monthly bill. It was already coded — just needed one boolean flip.
+
+### The draft system future-proofs content
+
+Now you can write blog posts in advance, schedule them for future dates, and let the site handle visibility automatically. No more Git commit gymnastics to hide in-progress work.
+
+## The trade-off
+
+Firehose is not free. The trade-offs are real:
+
+| Foundation-first | Firehose |
+|-----------------|----------|
+| Clean code from day one | Temporary code duality (Once UI + Tailwind both loaded) |
+| No tech debt accumulation | Tech debt pays down later |
+| Predictable timeline | Parallelism adds coordination cost |
+| Boring but safe | Exciting but requires discipline |
+
+The key discipline: **never add new Once UI code**. Every new feature in the firehose phase must be either:
+- Self-contained (PostHog script, JSON-LD script tag, ISR fetch)
+- Already supported by Once UI config (WhatsApp toggle)
+- Plain HTML with CSS variables (social stats bar)
+
+## The architecture at a glance
+
+```
+                  ┌─────────────────────────┐
+                  │     PostHog Cloud        │
+                  │   (pageviews, events)     │
+                  └──────────┬──────────────┘
+                             │
+┌─────────┐    ┌─────────────▼──────────┐    ┌──────────┐
+│ GitHub  │    │   SocialStats.tsx       │    │ Dev.to   │
+│ API     │◄──►│   (ISR, Suspense)      │◄──►│ API      │
+└─────────┘    └─────────────┬──────────┘    └──────────┘
+                             │
+                ┌────────────▼───────────┐
+                │      Footer.tsx        │
+                │  (renders social data)  │
+                └────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│  JSON-LD (Person, WebSite — root layout) │
+│  JSON-LD (BreadcrumbList — detail pages) │
+│  Canonical URLs (every page)             │
+│  og:locale + twitter:site (metadata)     │
+└──────────────────────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│  Draft system:                           │
+│  auth.ts → isAuthenticated()             │
+│  draft.ts → filterPosts()                │
+│  Every public entry point filters        │
+└──────────────────────────────────────────┘
+```
+
+## When to firehose
+
+The firehose approach works when:
+
+- **You have a working production site** (not a greenfield project)
+- **The migration target is a different stack** (Once UI → Tailwind, not a bugfix)
+- **You can add features without touching the old stack**
+- **You have clear analytics goals** (LCP < 2.5s, CLS < 0.05, TBT < 200ms)
+- **Your team can hold the discipline** of "no new old-stack code"
+
+It does not work when:
+- The old stack is fundamentally broken
+- You're fixing bugs, not upgrading design systems
+- The team can't resist writing "temporary" code that becomes permanent
+
+## The bottom line
+
+Foundation-first is the right choice when you're building from scratch. Firehose is the right choice when you're evolving a production system and want to ship value *while* you refactor, not *after*.
+
+We shipped seven features — analytics, WhatsApp sharing, live social stats, expanded share buttons, full SEO structured data, sitemap fixes, and a draft scheduling system — in a single sprint. Zero Once UI components changed. Zero Tailwind written. Zero downtime.
+
+The refactor starts next week. But the analytics are already running.
+
+**Ship value on day one. Refactor with data on day thirty.**

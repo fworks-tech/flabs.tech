@@ -4,13 +4,20 @@ import { ProjectsList } from "@/features/projects/ProjectsList";
 import { Column, Heading, Meta, Schema, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
-  return Meta.generate({
+  const meta = Meta.generate({
     title: projects.title,
     description: projects.description,
     baseURL: baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(projects.title)}`,
     path: projects.path,
   });
+
+  return {
+    ...meta,
+    alternates: {
+      canonical: `${baseURL}${projects.path}`,
+    },
+  };
 }
 
 export default function ProjectsPage() {

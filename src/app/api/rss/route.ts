@@ -1,5 +1,6 @@
 import { baseURL } from "@/config";
 import { blog, person } from "@/content";
+import { filterPosts } from "@/lib/draft";
 import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import { NextResponse } from "next/server";
@@ -23,7 +24,7 @@ function escapeXml(unsafe: string): string {
 export async function GET() {
   let posts;
   try {
-    posts = getPosts(["src", "content", "blog"]);
+    posts = filterPosts(getPosts(["src", "content", "blog"]), false);
   } catch (error) {
     logger.error(error, "failed to load blog posts for RSS feed");
     return new NextResponse(

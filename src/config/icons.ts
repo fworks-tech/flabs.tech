@@ -39,6 +39,7 @@ import {
   FaDiscord,
   FaFacebook,
   FaGithub,
+  FaHackerNews,
   FaInstagram,
   FaLinkedin,
   FaPinterest,
@@ -49,6 +50,10 @@ import {
   FaX,
   FaXTwitter,
 } from "react-icons/fa6";
+
+import {
+  SiDevdotto,
+} from "react-icons/si";
 
 export const iconLibrary: Record<string, IconType> = {
   arrowUpRight: HiArrowUpRight,
@@ -89,6 +94,8 @@ export const iconLibrary: Record<string, IconType> = {
   reddit: FaReddit,
   telegram: FaTelegram,
   instagram: FaInstagram,
+  devto: SiDevdotto,
+  hackernews: FaHackerNews,
 };
 
 export type IconLibrary = typeof iconLibrary;
