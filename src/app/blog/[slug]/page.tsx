@@ -1,4 +1,5 @@
-import { Anchor, Avatar, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import { Avatar, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import { NavLink } from "@/components/ui/NavLink";
 import Link from "next/link";
 import { CustomMDX, ScrollToHash } from "@/components";
 import { JsonLd } from "@/components/layout/JsonLd";
@@ -114,9 +115,9 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           }}
         />
         <Stack maw={600} gap="16" align="center">
-          <Anchor component={Link} href="/blog" size="sm">
+          <NavLink href="/blog" size="sm">
             Blog
-          </Anchor>
+          </NavLink>
           <Text size="xs" c="dimmed" mb="12">
             {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
           </Text>

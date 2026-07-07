@@ -1,5 +1,5 @@
-import { Anchor, Avatar, Button, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
-import Link from "next/link";
+import { Avatar, AvatarGroup, Button, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import { NavLink } from "@/components/ui/NavLink";
 import { CustomMDX, ScrollToHash } from "@/components";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { baseURL, sameAs } from "@/config";
@@ -94,9 +94,9 @@ export default async function ProjectDetail({
         }}
       />
       <Stack maw={600} gap="16" align="center">
-        <Anchor component={Link} href="/projects" size="sm">
+        <NavLink href="/projects" size="sm">
           Projects
-        </Anchor>
+        </NavLink>
         <Text size="xs" c="dimmed" mb="12">
           {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
         </Text>
@@ -104,11 +104,11 @@ export default async function ProjectDetail({
       </Stack>
       {avatars.length > 0 && (
         <Group mb="32" justify="center">
-          <Avatar.Group spacing="sm">
+          <AvatarGroup spacing="sm">
             {avatars.map((avatar: { src: string }, idx: number) => (
               <Avatar key={idx} src={avatar.src} size="sm" />
             ))}
-          </Avatar.Group>
+          </AvatarGroup>
         </Group>
       )}
       {post.metadata.images.length > 0 && (

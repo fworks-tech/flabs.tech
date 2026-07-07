@@ -1,7 +1,7 @@
 import "@mantine/core/styles.css";
 import "@/styles/custom.css";
 
-import { ColorSchemeScript } from "@mantine/core";
+import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
 import { JsonLd } from "@/components/layout/JsonLd";
@@ -76,6 +76,7 @@ export default async function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       className={`${fonts.heading.variable} ${fonts.body.variable} ${fonts.label.variable} ${fonts.code.variable}`}
+      {...mantineHtmlProps}
     >
       <head>
         <ColorSchemeScript />

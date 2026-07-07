@@ -1,5 +1,5 @@
-import { Anchor, Group, Stack, Text, Title } from "@mantine/core";
-import Link from "next/link";
+import { Group, Stack, Text, Title } from "@mantine/core";
+import { NavLink } from "@/components/ui/NavLink";
 import { baseURL, routes, sameAs } from "@/config";
 import { about, home, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
@@ -62,9 +62,9 @@ export default function Home() {
       <Stack gap="md">
         <Group justify="space-between" align="center" pb="4">
           <Title order={2}>Recent Projects</Title>
-          <Anchor component={Link} href="/projects" size="sm">
+          <NavLink href="/projects" size="sm">
             View all
-          </Anchor>
+          </NavLink>
         </Group>
         <ProjectGrid range={[1, 3]} />
       </Stack>
@@ -73,9 +73,9 @@ export default function Home() {
         <Stack gap="md">
           <Group justify="space-between" align="center" pb="4">
             <Title order={2}>Recent Posts</Title>
-            <Anchor component={Link} href="/blog" size="sm">
+            <NavLink href="/blog" size="sm">
               View all
-            </Anchor>
+            </NavLink>
           </Group>
           <Posts range={[1, 2]} columns="2" thumbnail />
         </Stack>

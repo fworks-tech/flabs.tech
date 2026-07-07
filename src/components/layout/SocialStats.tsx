@@ -12,7 +12,9 @@ type SocialStat = {
 
 async function getDevToStats(): Promise<{ articles: number } | null> {
   try {
-    const username = new URL(sameAs.devto || "").pathname.split("/").filter(Boolean).pop();
+    const devtoUrl = sameAs.devto;
+    if (!devtoUrl) return null;
+    const username = new URL(devtoUrl).pathname.split("/").filter(Boolean).pop();
     if (!username) return null;
     const res = await fetch(`https://dev.to/api/articles?username=${username}&per_page=1000`, {
       next: { revalidate: 3600 },

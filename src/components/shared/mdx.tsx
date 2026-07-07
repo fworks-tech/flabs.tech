@@ -16,6 +16,7 @@ import {
   Grid,
   Image,
   List,
+  ListItem,
   Text,
   Title,
 } from "@mantine/core";
@@ -162,9 +163,9 @@ function createList(as: "ul" | "ol") {
 
 function createListItem({ children }: { children: ReactNode }) {
   return (
-    <List.Item my="4" mb="8" style={{ lineHeight: "175%" }}>
+    <ListItem my="4" mb="8" style={{ lineHeight: "175%" }}>
       {children}
-    </List.Item>
+    </ListItem>
   );
 }
 
