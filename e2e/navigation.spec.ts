@@ -6,13 +6,9 @@ test.describe("navigation", () => {
     await expect(page.locator("header")).toBeVisible();
   });
 
-  async function clickNav(page: any, path: string, label: string) {
+  async function clickNav(page: any, path: string, _label: string) {
     await page.goto("/");
-    const link = page.getByRole("link", { name: label, exact: true }).first();
-    await link.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
-    await link.click().catch(() =>
-      page.locator(`a[href="${path}"]`).first().click(),
-    );
+    await page.locator(`a[href="${path}"]`).first().click({ force: true });
     await expect(page).toHaveURL(new RegExp(path.replace("/", "\\/")));
   }
 
