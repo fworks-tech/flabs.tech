@@ -25,6 +25,7 @@ export type Metadata = {
   shareText?: string;
   draft?: boolean;
   scheduledAt?: string;
+  devtoId?: number;
 };
 
 import { notFound } from "next/navigation";
@@ -81,6 +82,7 @@ function readMDXFile(filePath: string) {
     shareText: data.shareText || "",
     draft: data.draft === true,
     scheduledAt: data.scheduledAt || "",
+    devtoId: data.devtoId || undefined,
   };
 
   return { metadata, content };
