@@ -1,8 +1,8 @@
+import { MantineProvider } from "@mantine/core";
+import { render, screen } from "@testing-library/react";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen } from "@testing-library/react";
-
-vi.mock("@once-ui-system/core");
 vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
@@ -18,6 +18,10 @@ vi.mock("@/config", () => ({
   effects: {},
   dataStyle: {},
 }));
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
 
 const mockStructure = [
   { title: "Introduction", display: true, items: ["Overview", "Background"] },
@@ -36,23 +40,24 @@ import TableOfContents from "../TableOfContents";
 
 describe("TableOfContents", () => {
   it("renders null when tableOfContent.display is false", () => {
-    const { container } = render(
+    render(
       <TableOfContents
         structure={mockStructure}
         about={{ tableOfContent: { display: false, subItems: false } }}
       />,
+      { wrapper: Wrapper },
     );
-    expect(container.innerHTML).toBe("");
+    expect(screen.queryByText("Introduction")).not.toBeInTheDocument();
   });
 
   it("renders visible sections", () => {
-    render(<TableOfContents structure={mockStructure} about={mockAbout} />);
+    render(<TableOfContents structure={mockStructure} about={mockAbout} />, { wrapper: Wrapper });
     expect(screen.getByText("Introduction")).toBeInTheDocument();
     expect(screen.getByText("Experience")).toBeInTheDocument();
   });
 
   it("does not render sections with display: false", () => {
-    render(<TableOfContents structure={mockStructure} about={mockAbout} />);
+    render(<TableOfContents structure={mockStructure} about={mockAbout} />, { wrapper: Wrapper });
     expect(screen.queryByText("Hidden Section")).not.toBeInTheDocument();
   });
 
@@ -62,6 +67,7 @@ describe("TableOfContents", () => {
         structure={mockStructure}
         about={{ tableOfContent: { display: true, subItems: true } }}
       />,
+      { wrapper: Wrapper },
     );
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Role A")).toBeInTheDocument();
@@ -73,6 +79,7 @@ describe("TableOfContents", () => {
         structure={mockStructure}
         about={{ tableOfContent: { display: true, subItems: false } }}
       />,
+      { wrapper: Wrapper },
     );
     expect(screen.queryByText("Overview")).not.toBeInTheDocument();
   });

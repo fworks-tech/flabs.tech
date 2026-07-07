@@ -1,6 +1,6 @@
+import { Stack } from "@mantine/core";
 import { ProjectCard } from "@/components";
 import { getPosts } from "@/lib/mdx";
-import { Column } from "@once-ui-system/core";
 
 interface ProjectsProps {
   range?: [number, number?];
@@ -10,7 +10,6 @@ interface ProjectsProps {
 export function Projects({ range, exclude }: ProjectsProps) {
   let allProjects = getPosts(["src", "content", "work"]);
 
-  // Exclude by slug (exact match)
   if (exclude && exclude.length > 0) {
     allProjects = allProjects.filter((post) => !exclude.includes(post.slug));
   }
@@ -24,7 +23,7 @@ export function Projects({ range, exclude }: ProjectsProps) {
     : sortedProjects;
 
   return (
-    <Column fillWidth gap="xl" marginBottom="40" paddingX="l">
+    <Stack gap="xl" mb="40" px="lg">
       {displayedProjects.map((post, index) => (
         <ProjectCard
           priority={index < 2}
@@ -40,6 +39,6 @@ export function Projects({ range, exclude }: ProjectsProps) {
           tags={post.metadata.tags}
         />
       ))}
-    </Column>
+    </Stack>
   );
 }

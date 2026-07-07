@@ -1,32 +1,21 @@
 "use client";
 
-import { Row, ToggleButton, useTheme } from "@once-ui-system/core";
+import { ActionIcon, useMantineColorScheme } from "@mantine/core";
+import { IconMoon, IconSun } from "@tabler/icons-react";
 import type React from "react";
-import { useSyncExternalStore } from "react";
-
-const emptySubscribe = () => () => {};
-
-function getSnapshot() {
-  return document.documentElement.getAttribute("data-theme") || "light";
-}
-
-function getServerSnapshot() {
-  return "light";
-}
 
 export const ThemeToggle: React.FC = () => {
-  const { setTheme } = useTheme();
-  const currentTheme = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
-
-  const icon = currentTheme === "dark" ? "light" : "dark";
-  const nextTheme = currentTheme === "light" ? "dark" : "light";
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
   return (
-    <ToggleButton
-      prefixIcon={icon}
-      onClick={() => setTheme(nextTheme)}
-      aria-label={`Switch to ${nextTheme} theme`}
-      title={`Switch to ${nextTheme} theme`}
-    />
+    <ActionIcon
+      variant="default"
+      size="lg"
+      onClick={toggleColorScheme}
+      aria-label={`Switch to ${colorScheme === "dark" ? "light" : "dark"} theme`}
+      title={`Switch to ${colorScheme === "dark" ? "light" : "dark"} theme`}
+    >
+      {colorScheme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />}
+    </ActionIcon>
   );
 };
