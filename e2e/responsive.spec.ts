@@ -32,14 +32,14 @@ test.describe("dark mode toggle", () => {
     test(`${route} switches theme on toggle click`, async ({ page }) => {
       await page.goto(route, { waitUntil: "networkidle" });
       const html = page.locator("html");
-      const initial = await html.getAttribute("data-theme");
+      const initial = await html.getAttribute("data-mantine-color-scheme");
       expect(["dark", "light"]).toContain(initial);
 
       const toggle = page.locator('[aria-label*="Switch to"]');
       await expect(toggle).toBeVisible();
       await toggle.click();
 
-      const updated = await html.getAttribute("data-theme");
+      const updated = await html.getAttribute("data-mantine-color-scheme");
       expect(updated).not.toBe(initial);
     });
   }

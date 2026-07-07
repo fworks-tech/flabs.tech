@@ -6,33 +6,35 @@ test.describe("navigation", () => {
     await expect(page.locator("header")).toBeVisible();
   });
 
-  test("navigates to About", async ({ page }) => {
+  async function clickNav(page: any, path: string, label: string) {
     await page.goto("/");
-    await page.locator('a[href="/about"], button:has-text("About")').first().click();
-    await expect(page).toHaveURL(/\/about/);
+    const link = page.getByRole("link", { name: label, exact: true }).first();
+    await link.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+    await link.click().catch(() =>
+      page.locator(`a[href="${path}"]`).first().click(),
+    );
+    await expect(page).toHaveURL(new RegExp(path.replace("/", "\\/")));
+  }
+
+  test("navigates to About", async ({ page }) => {
+    await clickNav(page, "/about", "About");
   });
 
   test("navigates to Blog", async ({ page }) => {
-    await page.goto("/");
-    await page.locator('a[href="/blog"], button:has-text("Blog")').first().click();
-    await expect(page).toHaveURL(/\/blog/);
+    await clickNav(page, "/blog", "Blog");
   });
 
   test("navigates to Work", async ({ page }) => {
-    await page.goto("/");
-    await page.locator('a[href="/work"], button:has-text("Work")').first().click();
-    await expect(page).toHaveURL(/\/work/);
+    await clickNav(page, "/work", "Work");
   });
 
   test("navigates to Projects", async ({ page }) => {
-    await page.goto("/");
-    await page.locator('a[href="/projects"], button:has-text("Projects")').first().click();
-    await expect(page).toHaveURL(/\/projects/);
+    await clickNav(page, "/projects", "Projects");
   });
 
   test("home link navigates back to homepage", async ({ page }) => {
     await page.goto("/about");
-    await page.locator('a[href="/"], button:has-text("Home")').first().click();
+    await page.getByRole("link", { name: "Home", exact: true }).first().click();
     await expect(page).toHaveURL("/");
   });
 
