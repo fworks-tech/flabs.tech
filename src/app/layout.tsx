@@ -6,12 +6,15 @@ import classNames from "classnames";
 
 import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
+import { JsonLd } from "@/components/layout/JsonLd";
+import { PostHogInit } from "@/components/layout/PostHogInit";
+import { SocialStats } from "@/components/layout/SocialStats";
 import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
 import { logger } from "@/lib/logger";
 import ClientParticles from "@/components/layout/ClientParticles";
 import { SkipLink } from "@/components/layout/SkipLink";
-import { baseURL, dataStyle, fonts, style } from "@/config";
-import { home } from "@/content";
+import { baseURL, dataStyle, fonts, sameAs, style } from "@/config";
+import { home, person } from "@/content";
 import {
   Column,
   Flex,
@@ -55,6 +58,7 @@ export async function generateMetadata() {
     openGraph: {
       ...(meta.openGraph || {}),
       siteName: "flabs.tech",
+      locale: "en_US",
       images: [
         {
           url: home.image,
@@ -68,6 +72,7 @@ export async function generateMetadata() {
       title: home.title,
       description: home.description,
       images: [home.image],
+      site: "@fritzelborges",
     },
   };
 }
@@ -182,12 +187,40 @@ export default async function RootLayout({
               {children}
             </Flex>
           </Flex>
+          <SocialStats />
           <Footer />
         </Column>
       </Providers>
       <Analytics />
       <SpeedInsights />
       <AiAssistant />
+      <PostHogInit />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: person.name,
+        url: baseURL,
+        image: `${baseURL}${person.avatar}`,
+        sameAs: Object.values(sameAs).filter(Boolean),
+        jobTitle: person.role,
+        email: person.email,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Joinville",
+          addressCountry: "BR",
+        },
+      }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "flabs.tech",
+        url: baseURL,
+        description: home.description,
+        author: {
+          "@type": "Person",
+          name: person.name,
+        },
+      }} />
     </Flex>
   );
 }

@@ -74,6 +74,20 @@ const socialPlatforms: Record<string, SocialPlatform> = {
     generateUrl: (title, url, shareText) =>
       `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText || `Check out this post: ${url}`)}`,
   },
+  devto: {
+    name: "devto",
+    icon: "devto",
+    label: "Dev.to",
+    generateUrl: (title, url) =>
+      `https://dev.to/new?prefill=${encodeURIComponent(`---\ntitle: ${title}\n---\n\nOriginally posted at: ${url}`)}`,
+  },
+  hackernews: {
+    name: "hackernews",
+    icon: "hackernews",
+    label: "Hacker News",
+    generateUrl: (title, url) =>
+      `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(url)}&t=${encodeURIComponent(title)}`,
+  },
 };
 
 export function ShareSection({ title, url, shareText }: ShareSectionProps) {

@@ -2,23 +2,34 @@ import { baseURL, sameAs } from "@/config";
 import { blog, person } from "@/content";
 import ClientMailchimp from "@/components/ui/ClientMailchimp";
 import { Posts } from "@/features/blog/Posts";
+import { isAuthenticated } from "@/lib/auth";
+import { filterPosts } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
 import { Button, Column, Heading, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
-  return Meta.generate({
+  const meta = Meta.generate({
     title: blog.title,
     description: blog.description,
     baseURL: baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(blog.title)}`,
     path: blog.path,
   });
+
+  return {
+    ...meta,
+    alternates: {
+      canonical: `${baseURL}${blog.path}`,
+    },
+  };
 }
 
-export default function Blog() {
+export default async function Blog() {
+  const auth = await isAuthenticated();
   const allPosts = getPosts(["src", "content", "blog"]);
-  const hasPosts = allPosts.length > 0;
-  const hasEarlierPosts = allPosts.length > 3;
+  const visiblePosts = filterPosts(allPosts, auth);
+  const hasPosts = visiblePosts.length > 0;
+  const hasEarlierPosts = visiblePosts.length > 3;
 
   const schema = (
     <Schema

@@ -1,8 +1,10 @@
 import { CustomMDX, ScrollToHash } from "@/components";
+import { JsonLd } from "@/components/layout/JsonLd";
 import { baseURL, sameAs } from "@/config";
 import { about, blog, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ShareSection } from "@/features/blog/ShareSection";
+import { isAuthenticated } from "@/lib/auth";
 import { formatDate } from "@/lib/formatDate";
 import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
@@ -46,13 +48,20 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  return Meta.generate({
+  const meta = Meta.generate({
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL: baseURL,
     image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
     path: `${blog.path}/${post.slug}`,
   });
+
+  return {
+    ...meta,
+    alternates: {
+      canonical: `${baseURL}${blog.path}/${post.slug}`,
+    },
+  };
 }
 
 export default async function Blog({ params }: { params: Promise<{ slug: string | string[] }> }) {
@@ -61,10 +70,19 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
     ? routeParams.slug.join("/")
     : routeParams.slug || "";
 
-  const post = getPosts(["src", "content", "blog"]).find((post) => post.slug === slugPath);
+  const [auth, allPosts] = await Promise.all([
+    isAuthenticated(),
+    Promise.resolve(getPosts(["src", "content", "blog"])),
+  ]);
+  const post = allPosts.find((post) => post.slug === slugPath);
 
   if (!post) {
     logger.warn({ slug: slugPath }, "blog post not found");
+    notFound();
+  }
+
+  if (post.metadata.draft && !auth) {
+    logger.warn({ slug: slugPath }, "attempt to view draft without auth");
     notFound();
   }
 
@@ -104,7 +122,9 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
             <Text variant="body-default-xs" onBackground="neutral-weak" marginBottom="12">
               {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
             </Text>
-            <Heading variant="display-strong-m">{post.metadata.title}</Heading>
+            <Heading variant="display-strong-m">
+              {post.metadata.draft && auth ? "[DRAFT] " : ""}{post.metadata.title}
+            </Heading>
             {post.metadata.subtitle && (
               <Text
                 variant="body-default-l"
@@ -147,12 +167,21 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
             shareText={post.metadata.shareText}
           />
 
+          <JsonLd data={{
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Blog", item: `${baseURL}/blog` },
+              { "@type": "ListItem", position: 2, name: post.metadata.title, item: `${baseURL}${blog.path}/${post.slug}` },
+            ],
+          }} />
+
           <Column fillWidth gap="40" horizontal="center" marginTop="40">
             <Line maxWidth="40" />
             <Text as="h2" id="recent-posts" variant="heading-strong-xl" marginBottom="24">
               Recent posts
             </Text>
-            <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" />
+            <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" includeDrafts={auth} />
           </Column>
           <ScrollToHash />
         </Column>

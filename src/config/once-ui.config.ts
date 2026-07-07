@@ -197,6 +197,11 @@ const sameAs: SameAsConfig = {
   linkedin: "https://www.linkedin.com/in/fabiorborges/",
   discord: "",
   github: "https://github.com/fworks-tech",
+  devto: "https://dev.to/fabiorborges",
+  stackoverflow: "https://stackoverflow.com/users/19264618/fabio-borges",
+  npm: "https://www.npmjs.com/~fworks-tech",
+  hashnode: "https://hashnode.com/@fabiorborges",
+  youtube: "",
 };
 
 // social sharing configuration for blog posts
@@ -207,11 +212,13 @@ const socialSharing: SocialSharingConfig = {
     linkedin: true,
     facebook: false,
     pinterest: false,
-    whatsapp: false,
-    reddit: false,
-    telegram: false,
+    whatsapp: true,
+    reddit: true,
+    telegram: true,
     email: true,
     copyLink: true,
+    devto: true,
+    hackernews: true,
   },
 };
 

@@ -3,17 +3,25 @@ import { about, home, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ProjectGrid } from "@/features/work/ProjectGrid";
 import { TrackedButton } from "@/components/ui/TrackedButton";
+import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
 import { Column, Heading, Meta, Row, Schema, SmartLink, Text } from "@once-ui-system/core";
 
 export async function generateMetadata() {
-  return Meta.generate({
+  const meta = Meta.generate({
     title: home.title,
     description: home.description,
     baseURL: baseURL,
     path: home.path,
     image: home.image,
   });
+
+  return {
+    ...meta,
+    alternates: {
+      canonical: `${baseURL}${home.path}`,
+    },
+  };
 }
 
 export default function Home() {

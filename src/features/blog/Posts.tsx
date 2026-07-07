@@ -1,3 +1,4 @@
+import { filterPosts } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
 import { Grid } from "@once-ui-system/core";
 import Post from "./Post";
@@ -8,6 +9,7 @@ interface PostsProps {
   thumbnail?: boolean;
   direction?: "row" | "column";
   exclude?: string[];
+  includeDrafts?: boolean;
 }
 
 export function Posts({
@@ -16,8 +18,12 @@ export function Posts({
   thumbnail = false,
   exclude = [],
   direction,
+  includeDrafts = false,
 }: PostsProps) {
-  let allBlogs = getPosts(["src", "content", "blog"]);
+  let allBlogs = filterPosts(
+    getPosts(["src", "content", "blog"]),
+    includeDrafts,
+  );
 
   // Exclude by slug (exact match)
   if (exclude.length) {

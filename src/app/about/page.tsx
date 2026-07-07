@@ -14,13 +14,20 @@ import {
 } from "@once-ui-system/core";
 
 export async function generateMetadata() {
-  return Meta.generate({
+  const meta = Meta.generate({
     title: about.title,
     description: about.description,
     baseURL: baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(about.title)}`,
     path: about.path,
   });
+
+  return {
+    ...meta,
+    alternates: {
+      canonical: `${baseURL}${about.path}`,
+    },
+  };
 }
 
 export default function About() {

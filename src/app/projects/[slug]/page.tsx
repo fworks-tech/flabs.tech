@@ -1,4 +1,5 @@
 import { CustomMDX, ScrollToHash } from "@/components";
+import { JsonLd } from "@/components/layout/JsonLd";
 import { baseURL, sameAs } from "@/config";
 import { about, person, projects } from "@/content";
 import { ProjectsList } from "@/features/projects/ProjectsList";
@@ -38,13 +39,20 @@ export async function generateMetadata({
   const posts = getPosts(["src", "content", "projects"]);
   const post = posts.find((p) => p.slug === slugPath);
   if (!post) return {};
-  return Meta.generate({
+  const meta = Meta.generate({
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL: baseURL,
     image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
     path: `${projects.path}/${post.slug}`,
   });
+
+  return {
+    ...meta,
+    alternates: {
+      canonical: `${baseURL}${projects.path}/${post.slug}`,
+    },
+  };
 }
 
 export default async function ProjectDetail({
@@ -112,6 +120,14 @@ export default async function ProjectDetail({
           </Button>
         </Row>
       )}
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Projects", item: `${baseURL}/projects` },
+          { "@type": "ListItem", position: 2, name: post.metadata.title, item: `${baseURL}${projects.path}/${post.slug}` },
+        ],
+      }} />
       <Column fillWidth gap="40" horizontal="center" marginTop="40">
         <Line maxWidth="40" />
         <Heading as="h2" variant="heading-strong-xl" marginBottom="24">

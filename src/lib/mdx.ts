@@ -11,7 +11,7 @@ type Team = {
 };
 
 /** Frontmatter metadata extracted from an MDX content file. */
-type Metadata = {
+export type Metadata = {
   title: string;
   subtitle?: string;
   publishedAt: string;
@@ -23,6 +23,8 @@ type Metadata = {
   team: Team[];
   link?: string;
   shareText?: string;
+  draft?: boolean;
+  scheduledAt?: string;
 };
 
 import { notFound } from "next/navigation";
@@ -77,6 +79,8 @@ function readMDXFile(filePath: string) {
     team: data.team || [],
     link: data.link || "",
     shareText: data.shareText || "",
+    draft: data.draft === true,
+    scheduledAt: data.scheduledAt || "",
   };
 
   return { metadata, content };
