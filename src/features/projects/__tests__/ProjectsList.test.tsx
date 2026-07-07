@@ -1,8 +1,13 @@
+import { MantineProvider } from "@mantine/core";
+import { render, screen } from "@testing-library/react";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen } from "@testing-library/react";
-
 vi.mock("@once-ui-system/core");
+vi.mock("next/link", () => ({
+  default: ({ children, href, ...props }: Record<string, unknown>) =>
+    <a href={href as string} {...props}>{children}</a>,
+}));
 vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
@@ -65,22 +70,26 @@ vi.mock("@/lib/mdx", () => ({
   getPosts: vi.fn(() => mockPosts),
 }));
 
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
+
 import { ProjectsList } from "../ProjectsList";
 
 describe("ProjectsList", () => {
   it("renders project cards", () => {
-    render(<ProjectsList />);
+    render(<ProjectsList />, { wrapper: Wrapper });
     expect(screen.getAllByText("Alpha Project").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Beta Project").length).toBeGreaterThanOrEqual(1);
   });
 
   it("excludes projects by slug", () => {
-    render(<ProjectsList exclude={["gamma"]} />);
+    render(<ProjectsList exclude={["gamma"]} />, { wrapper: Wrapper });
     expect(screen.queryByText("Gamma Project")).not.toBeInTheDocument();
   });
 
   it("applies range slicing", () => {
-    render(<ProjectsList range={[1, 2]} />);
+    render(<ProjectsList range={[1, 2]} />, { wrapper: Wrapper });
     expect(screen.getAllByText("Alpha Project").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Beta Project").length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText("Gamma Project")).not.toBeInTheDocument();

@@ -1,32 +1,27 @@
+import { Stack, Text, Title } from "@mantine/core";
 import { baseURL, sameAs } from "@/config";
 import { about, person, projects } from "@/content";
 import { ProjectsList } from "@/features/projects/ProjectsList";
-import { Column, Heading, Meta, Schema, Text } from "@once-ui-system/core";
+import { generateMeta } from "@/lib/seo";
+import { Schema } from "@/lib/schema";
 
 export async function generateMetadata() {
-  const meta = Meta.generate({
+  return generateMeta({
     title: projects.title,
     description: projects.description,
-    baseURL: baseURL,
+    baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(projects.title)}`,
     path: projects.path,
   });
-
-  return {
-    ...meta,
-    alternates: {
-      canonical: `${baseURL}${projects.path}`,
-    },
-  };
 }
 
 export default function ProjectsPage() {
   return (
-    <Column maxWidth="m" paddingTop="24">
+    <Stack maw={1024} pt="24" mx="auto">
       <Schema
         as="webPage"
         baseURL={baseURL}
-        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
+        sameAs={[sameAs.linkedin, sameAs.github].filter((v): v is string => Boolean(v))}
         path={projects.path}
         title={projects.title}
         description={projects.description}
@@ -37,15 +32,15 @@ export default function ProjectsPage() {
           image: `${baseURL}${person.avatar}`,
         }}
       />
-      <Column fillWidth horizontal="center" align="center" gap="8" marginBottom="xl">
-        <Heading variant="display-strong-l" align="center">
+      <Stack align="center" gap="8" mb="xl">
+        <Title order={1} ta="center">
           Projects
-        </Heading>
-        <Text variant="body-default-l" onBackground="neutral-weak" align="center">
+        </Title>
+        <Text size="md" c="dimmed" ta="center">
           Open-source tools, AI experiments, and personal builds.
         </Text>
-      </Column>
+      </Stack>
       <ProjectsList />
-    </Column>
+    </Stack>
   );
 }

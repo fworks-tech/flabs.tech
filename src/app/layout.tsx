@@ -1,27 +1,18 @@
-import "@once-ui-system/core/css/styles.css";
-import "@once-ui-system/core/css/tokens.css";
 import "@mantine/core/styles.css";
 import "@/styles/custom.css";
 
-import classNames from "classnames";
-
+import { ColorSchemeScript } from "@mantine/core";
 import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { PostHogInit } from "@/components/layout/PostHogInit";
 import { SocialStats } from "@/components/layout/SocialStats";
 import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
-import { logger } from "@/lib/logger";
 import ClientParticles from "@/components/layout/ClientParticles";
 import { SkipLink } from "@/components/layout/SkipLink";
-import { baseURL, dataStyle, fonts, sameAs, style } from "@/config";
+import { baseURL, fonts, sameAs } from "@/config";
 import { home, person } from "@/content";
-import {
-  Column,
-  Flex,
-  Meta,
-} from "@once-ui-system/core";
-import { ColorSchemeScript } from "@mantine/core";
+import { generateMeta } from "@/lib/seo";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -39,17 +30,14 @@ export const viewport: Viewport = {
 export const metadataBase = new URL(baseURL);
 
 export async function generateMetadata() {
-  const meta = Meta.generate({
-    title: home.title,
-    description: home.description,
-    baseURL: baseURL,
-    path: home.path,
-    image: home.image,
-    canonical: baseURL,
-  });
-
   return {
-    ...meta,
+    ...generateMeta({
+      title: home.title,
+      description: home.description,
+      baseURL,
+      path: home.path,
+      image: home.image,
+    }),
     metadataBase: new URL(baseURL),
     alternates: {
       canonical: baseURL,
@@ -58,7 +46,6 @@ export async function generateMetadata() {
       },
     },
     openGraph: {
-      ...(meta.openGraph || {}),
       siteName: "flabs.tech",
       locale: "en_US",
       images: [
@@ -85,114 +72,32 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <Flex
-      suppressHydrationWarning
-      as="html"
+    <html
       lang="en"
       data-scroll-behavior="smooth"
-      fillWidth
-      className={classNames(
-        fonts.heading.variable,
-        fonts.body.variable,
-        fonts.label.variable,
-        fonts.code.variable,
-      )}
+      className={`${fonts.heading.variable} ${fonts.body.variable} ${fonts.label.variable} ${fonts.code.variable}`}
     >
       <head>
         <ColorSchemeScript />
-        <script
-          id="theme-init"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const root = document.documentElement;
-                  const defaultTheme = 'system';
-                  
-                  // Set defaults from config
-                  const config = ${JSON.stringify({
-                    brand: style.brand,
-                    accent: style.accent,
-                    neutral: style.neutral,
-                    solid: style.solid,
-                    "solid-style": style.solidStyle,
-                    border: style.border,
-                    surface: style.surface,
-                    transition: style.transition,
-                    scaling: style.scaling,
-                    "viz-style": dataStyle.variant,
-                  })};
-                  
-                  // Apply default values
-                  Object.entries(config).forEach(([key, value]) => {
-                    root.setAttribute('data-' + key, value);
-                  });
-                  
-                  // Resolve theme
-                  const resolveTheme = (themeValue) => {
-                    if (!themeValue || themeValue === 'system') {
-                      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                    }
-                    return themeValue;
-                  };
-                  
-                  // Apply saved theme
-                  const savedTheme = localStorage.getItem('data-theme');
-                  const resolvedTheme = resolveTheme(savedTheme);
-                  root.setAttribute('data-theme', resolvedTheme);
-                  
-                  // Apply any saved style overrides
-                  const styleKeys = Object.keys(config);
-                  styleKeys.forEach(key => {
-                    const value = localStorage.getItem('data-' + key);
-                    if (value) {
-                      root.setAttribute('data-' + key, value);
-                    }
-                  });
-                } catch (e) {
-                  logger.error(e, 'Failed to initialize theme');
-                  document.documentElement.setAttribute('data-theme', 'dark');
-                }
-              })();
-            `,
-          }}
-        />
       </head>
       <UnhandledErrorLogger />
-      <Providers>
-        <Column
-          as="body"
-          background="page"
-          fillWidth
-          style={{ minHeight: "100vh" }}
-          margin="0"
-          padding="0"
-          horizontal="center"
-        >
+      <body style={{ minHeight: "100vh", margin: 0, padding: 0 }}>
+        <Providers>
           <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
             <ClientParticles quantity={60} staticity={30} ease={40} />
           </div>
 
-          <Flex fillWidth minHeight="16" s={{ hide: true }} />
+          <div style={{ height: "16px" }} />
           <SkipLink />
           <Header />
-          <Flex 
-            as="main" 
-            zIndex={0} 
-            fillWidth 
-            padding="l" 
-            horizontal="center" 
-            flex={1}
+          <main 
+            style={{ flex: 1, width: "100%", padding: "var(--mantine-spacing-lg)" }}
             id="main-content"
-            role="main"
           >
-            <Flex horizontal="center" fillWidth minHeight="0">
-              {children}
-            </Flex>
-          </Flex>
+            {children}
+          </main>
           <SocialStats />
           <Footer />
-        </Column>
       </Providers>
       <Analytics />
       <SpeedInsights />
@@ -204,7 +109,7 @@ export default async function RootLayout({
         name: person.name,
         url: baseURL,
         image: `${baseURL}${person.avatar}`,
-        sameAs: Object.values(sameAs).filter(Boolean),
+        sameAs: Object.values(sameAs).filter((v): v is string => Boolean(v)),
         jobTitle: person.role,
         email: person.email,
         address: {
@@ -224,6 +129,7 @@ export default async function RootLayout({
           name: person.name,
         },
       }} />
-    </Flex>
+    </body>
+    </html>
   );
 }

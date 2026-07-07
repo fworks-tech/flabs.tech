@@ -1,15 +1,15 @@
-import { Column, Heading, Text } from "@once-ui-system/core";
+import { Stack, Text, Title } from "@mantine/core";
 
 export default function NotFound() {
   return (
-    <Column as="section" fill center paddingBottom="160">
-      <Text marginBottom="s" variant="display-strong-xl">
+    <Stack align="center" justify="center" style={{ minHeight: "60vh" }} pb="160">
+      <Text size="48px" fw={900}>
         404
       </Text>
-      <Heading marginBottom="l" variant="display-default-xs">
+      <Title order={1} mb="lg">
         Page Not Found
-      </Heading>
-      <Text onBackground="neutral-weak">The page you are looking for does not exist.</Text>
-    </Column>
+      </Title>
+      <Text c="dimmed">The page you are looking for does not exist.</Text>
+    </Stack>
   );
 }

@@ -88,10 +88,10 @@ async function SocialStatsInner() {
 
   const items: SocialStat[] = [];
 
-  if (github) items.push({ platform: "github", label: "GitHub repos", value: github.repos, url: sameAs.github });
-  if (devto) items.push({ platform: "devto", label: "Dev.to articles", value: devto.articles, url: sameAs.devto });
-  if (stackoverflow) items.push({ platform: "stackoverflow", label: "Stack Overflow rep", value: stackoverflow.reputation.toLocaleString("en-US"), url: sameAs.stackoverflow });
-  if (npm) items.push({ platform: "npm", label: "npm packages", value: npm.packages, url: sameAs.npm });
+  if (github && sameAs.github) items.push({ platform: "github", label: "GitHub repos", value: github.repos, url: sameAs.github });
+  if (devto && sameAs.devto) items.push({ platform: "devto", label: "Dev.to articles", value: devto.articles, url: sameAs.devto });
+  if (stackoverflow && sameAs.stackoverflow) items.push({ platform: "stackoverflow", label: "Stack Overflow rep", value: stackoverflow.reputation.toLocaleString("en-US"), url: sameAs.stackoverflow });
+  if (npm && sameAs.npm) items.push({ platform: "npm", label: "npm packages", value: npm.packages, url: sameAs.npm });
 
   if (items.length === 0) return null;
 

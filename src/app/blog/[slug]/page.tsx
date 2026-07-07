@@ -1,3 +1,5 @@
+import { Anchor, Avatar, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import Link from "next/link";
 import { CustomMDX, ScrollToHash } from "@/components";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { baseURL, sameAs } from "@/config";
@@ -8,23 +10,10 @@ import { isAuthenticated } from "@/lib/auth";
 import { formatDate } from "@/lib/formatDate";
 import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
-import {
-  Avatar,
-  Column,
-  Heading,
-  HeadingNav,
-  Icon,
-  Line,
-  Media,
-  Meta,
-  Row,
-  Schema,
-  SmartLink,
-  Text,
-} from "@once-ui-system/core";
+import { generateMeta } from "@/lib/seo";
+import { Schema } from "@/lib/schema";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import React from "react";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const posts = getPosts(["src", "content", "blog"]);
@@ -48,10 +37,10 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  const meta = Meta.generate({
+  const meta = generateMeta({
     title: post.metadata.title,
     description: post.metadata.summary,
-    baseURL: baseURL,
+    baseURL,
     image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
     path: `${blog.path}/${post.slug}`,
   });
@@ -61,6 +50,17 @@ export async function generateMetadata({
     alternates: {
       canonical: `${baseURL}${blog.path}/${post.slug}`,
     },
+    openGraph: {
+      ...(meta.openGraph || {}),
+      type: "article",
+      publishedTime: post.metadata.publishedAt,
+      ...(post.metadata.image && {
+        images: [{ url: post.metadata.image, width: 1200, height: 630 }],
+      }),
+    },
+    ...(Array.isArray(post.metadata.tags)
+      ? { keywords: post.metadata.tags.join(", ") }
+      : {}),
   };
 }
 
@@ -92,111 +92,94 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
     })) || [];
 
   return (
-    <Row fillWidth>
-      <Row maxWidth={12} m={{ hide: true }} />
-      <Row fillWidth horizontal="center">
-        <Column as="section" maxWidth="m" horizontal="center" gap="l" paddingTop="24">
-          <Schema
-            as="blogPosting"
-            baseURL={baseURL}
-            sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
-            path={`${blog.path}/${post.slug}`}
-            title={post.metadata.title}
-            description={post.metadata.summary}
-            datePublished={post.metadata.publishedAt}
-            dateModified={post.metadata.publishedAt}
-            image={
-              post.metadata.image ||
-              `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
-            }
-            author={{
-              name: person.name,
-              url: `${baseURL}${about.path}`,
-              image: `${baseURL}${person.avatar}`,
-            }}
-          />
-          <Column maxWidth="s" gap="16" horizontal="center" align="center">
-            <SmartLink href="/blog">
-              <Text variant="label-strong-m">Blog</Text>
-            </SmartLink>
-            <Text variant="body-default-xs" onBackground="neutral-weak" marginBottom="12">
-              {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
+    <Group>
+      <Stack component="section" maw={1024} align="center" gap="lg" pt="24" mx="auto">
+        <Schema
+          as="blogPosting"
+          baseURL={baseURL}
+          sameAs={[sameAs.linkedin, sameAs.github].filter((v): v is string => !!v)}
+          path={`${blog.path}/${post.slug}`}
+          title={post.metadata.title}
+          description={post.metadata.summary}
+          datePublished={post.metadata.publishedAt}
+          dateModified={post.metadata.publishedAt}
+          image={
+            post.metadata.image ||
+            `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
+          }
+          author={{
+            name: person.name,
+            url: `${baseURL}${about.path}`,
+            image: `${baseURL}${person.avatar}`,
+          }}
+        />
+        <Stack maw={600} gap="16" align="center">
+          <Anchor component={Link} href="/blog" size="sm">
+            Blog
+          </Anchor>
+          <Text size="xs" c="dimmed" mb="12">
+            {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
+          </Text>
+          <Title order={1} ta="center">
+            {post.metadata.draft && auth ? "[DRAFT] " : ""}{post.metadata.title}
+          </Title>
+          {post.metadata.subtitle && (
+            <Text
+              size="md"
+              c="dimmed"
+              ta="center"
+              fs="italic"
+            >
+              {post.metadata.subtitle}
             </Text>
-            <Heading variant="display-strong-m">
-              {post.metadata.draft && auth ? "[DRAFT] " : ""}{post.metadata.title}
-            </Heading>
-            {post.metadata.subtitle && (
-              <Text
-                variant="body-default-l"
-                onBackground="neutral-weak"
-                align="center"
-                style={{ fontStyle: "italic" }}
-              >
-                {post.metadata.subtitle}
-              </Text>
-            )}
-          </Column>
-          <Row marginBottom="32" horizontal="center">
-            <Row gap="16" vertical="center">
-              <Avatar size="s" src={person.avatar} aria-label={`Photo of ${person.name}`} />
-              <Text variant="label-default-m" onBackground="brand-weak">
-                {person.name}
-              </Text>
-            </Row>
-          </Row>
-          {post.metadata.image && (
-            <Media
-              src={post.metadata.image}
-              alt={post.metadata.title}
-              aspectRatio="16/9"
-              priority
-              sizes="(min-width: 768px) 100vw, 768px"
-              border="neutral-alpha-weak"
-              radius="l"
-              marginTop="12"
-              marginBottom="8"
-            />
           )}
-          <Column as="article" maxWidth="s">
-            <CustomMDX source={post.content} />
-          </Column>
-
-          <ShareSection
-            title={post.metadata.title}
-            url={`${baseURL}${blog.path}/${post.slug}`}
-            shareText={post.metadata.shareText}
-          />
-
-          <JsonLd data={{
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Blog", item: `${baseURL}/blog` },
-              { "@type": "ListItem", position: 2, name: post.metadata.title, item: `${baseURL}${blog.path}/${post.slug}` },
-            ],
-          }} />
-
-          <Column fillWidth gap="40" horizontal="center" marginTop="40">
-            <Line maxWidth="40" />
-            <Text as="h2" id="recent-posts" variant="heading-strong-xl" marginBottom="24">
-              Recent posts
+        </Stack>
+        <Group mb="32" justify="center">
+          <Group gap="16" align="center">
+            <Avatar size="sm" src={person.avatar} alt={`Photo of ${person.name}`} />
+            <Text size="sm" c="dimmed">
+              {person.name}
             </Text>
-            <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" includeDrafts={auth} />
-          </Column>
-          <ScrollToHash />
-        </Column>
-      </Row>
-      <Column
-        maxWidth={12}
-        paddingLeft="40"
-        fitHeight
-        position="sticky"
-        top="80"
-        gap="16"
-        m={{ hide: true }}
-      >
-        <HeadingNav fitHeight />
-      </Column>
-    </Row>
+          </Group>
+        </Group>
+        {post.metadata.image && (
+          <Image
+            src={post.metadata.image}
+            alt={post.metadata.title}
+            radius="lg"
+            mt="12"
+            mb="8"
+            style={{ aspectRatio: "16 / 9", objectFit: "cover" }}
+          />
+        )}
+        <Stack component="article" maw={600}>
+          <CustomMDX source={post.content} />
+        </Stack>
+
+        <ShareSection
+          title={post.metadata.title}
+          url={`${baseURL}${blog.path}/${post.slug}`}
+          shareText={post.metadata.shareText}
+        />
+
+        <JsonLd data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Blog", item: `${baseURL}/blog` },
+            { "@type": "ListItem", position: 2, name: post.metadata.title, item: `${baseURL}${blog.path}/${post.slug}` },
+          ],
+        }} />
+
+        <Stack gap="40" align="center" mt="40">
+          <Divider visibleFrom="md" maw={640} />
+          <Title order={2} id="recent-posts" mb="24">
+            Recent posts
+          </Title>
+          <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" includeDrafts={auth} />
+        </Stack>
+        <ScrollToHash />
+      </Stack>
+    </Group>
   );
 }

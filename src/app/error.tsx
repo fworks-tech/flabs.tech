@@ -1,16 +1,9 @@
 "use client";
 
+import { Button, Stack, Text, Title } from "@mantine/core";
 import { logger } from "@/lib/logger";
-import { Button, Column, Heading, Text } from "@once-ui-system/core";
 import { useEffect } from "react";
 
-/**
- * Route-level error boundary displayed when a page segment throws
- * during rendering or data fetching.
- *
- * Logs the error via pino and presents a user-friendly message with
- * a "Try again" button that calls `reset()` to re-attempt rendering.
- */
 export default function Error({
   error,
   reset,
@@ -23,14 +16,14 @@ export default function Error({
   }, [error]);
 
   return (
-    <Column fillWidth paddingY="128" horizontal="center" gap="24">
-      <Heading variant="display-strong-xs" align="center">
+    <Stack py="128" align="center" gap="24">
+      <Title order={2} ta="center">
         Something went wrong
-      </Heading>
-      <Text variant="body-default-m" onBackground="neutral-weak" align="center">
+      </Title>
+      <Text size="md" c="dimmed" ta="center">
         {error.message || "An unexpected error occurred."}
       </Text>
       <Button onClick={reset}>Try again</Button>
-    </Column>
+    </Stack>
   );
 }
