@@ -99,7 +99,7 @@ const about: About = {
         systems using TypeScript, Storybook, Jest, and Playwright.
         <br />
         <br />I also build agentic AI systems and tooling. Agenthood is my open‑source multi‑agent
-        framework where 16 specialized agents enforce engineering standards, review code and
+        framework where a squad of specialized agents enforce engineering standards, review code and
         commits, manage multi‑tier memory, and run autonomously via a TypeScript CLI.
         The project includes a browser‑based Studio playground with SSE streaming, 6 providers,
         and server‑side rate limiting. Other projects like ApolloDroid and VeriHire explore how
