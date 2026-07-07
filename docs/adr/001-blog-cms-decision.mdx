@@ -1,0 +1,103 @@
+# ADR-001: Blog distribution strategy
+
+**Date:** 2026-07-06
+**Status:** Accepted
+
+## Context
+
+The portfolio at flabs.tech currently publishes blog content as flat MDX files on a personal domain. Issue #76 asks to evaluate whether to migrate to a CMS.
+
+The original evaluation focused on editorial tooling (writing experience, performance, cost, maintenance). But the real constraint is **distribution** — content on a personal portfolio has no built-in discovery, no recommendation feed, no community, and no audience. The question is not "what editor do we write in" but "how do people find the content."
+
+## Decision
+
+**Keep MDX as the primary authoring format and canonical source, but cross-post to Dev.to for distribution.**
+
+This separates two concerns:
+- **Authoring** — MDX on the portfolio (own your content, no lock-in, full flexibility)
+- **Distribution** — Dev.to reaches 1M+ monthly active developers with tags, feeds, recommendations, and built-in networking
+
+## Distribution options evaluated
+
+### Option A: MDX only on personal domain (current)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Reach | **Zero built-in.** A personal portfolio has no audience, no feed, no recommendation engine. Content is found only via direct links or SEO — requires years of domain authority to rank competitively. |
+| Networking | None. No comments, no follows, no community features. |
+| Marketing | None. No tags, no categories, no cross-pollination from related content. |
+
+**Why rejected:** The content is functionally invisible. Engineering effort spent writing blog posts has near-zero return because nobody sees them.
+
+### Option B: Dev.to (primary)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Reach | **Excellent.** 1M+ MAU developer audience, tag-based feeds, trending/relevant recommendations, strong SEO on dev.to domain. |
+| Networking | Comments, follows, org pages, series — built-in community engagement. |
+| Marketing | Tags, collections, cross-pollination between posts. Posts appear in tag feeds and home feed. |
+| Markdown | Native markdown editor with frontmatter — trivial to port MDX content. |
+| Custom domain | Supports custom domains, but the canonical URL would be on dev.to. |
+| Cost | **$0** — fully free, open source platform (Forem). |
+
+**Why not chosen as primary:** Using Dev.to as the sole platform means leaving the portfolio's domain — the canonical URL moves away from flabs.tech, breaking the existing blog URLs and diluting the portfolio as a central hub.
+
+### Option C: Hashnode (primary)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Reach | Good developer audience, growing but smaller than Dev.to. Built-in newsletter feature. |
+| Networking | Comments, follows, series. |
+| Marketing | Tags, feed, recommendations. |
+| Custom domain | Excellent — native custom domain support. Content lives at blog.flabs.tech while using Hashnode's infrastructure. |
+| Cost | Free tier includes custom domain, newsletter, unlimited posts. |
+| Markdown | Native markdown, easy import from MDX. |
+
+**Why not chosen:** Similar conclusion to Dev.to — using a third-party platform as primary means accepting their content model, their SEO rules, and their API availability. The portfolio already has a working MDX pipeline. Better to leverage it and syndicate outward.
+
+### Option D: Hybrid — MDX (canonical) + Dev.to (distribution)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Reach | **Excellent.** Content appears in Dev.to's feed, tags, and recommendations while the canonical version lives on flabs.tech. |
+| Networking | Dev.to provides comments, follows, and community interaction. The portfolio links back to Dev.to for discussion. |
+| Marketing | Posts can be tagged and categorized on both platforms. Dev.to's feed algorithm provides discovery. |
+| Authoring | MDX on the portfolio remains the source of truth — no lock-in, full control. Cross-posting is a content-sync step. |
+| Cost | **$0** — Dev.to is free. No CMS hosting, no API fees. |
+| Maintenance | Low — one sync step per post. Can be automated via Dev.to API or a GitHub Action. |
+
+**Chosen** because it separates concerns cleanly: authoring stays in a format we control, distribution goes to a platform with a built-in audience.
+
+## What this means for the repo
+
+- `src/content/blog/` remains the canonical source — all posts live as MDX files
+- The Dev.to post links back to flabs.tech as the canonical URL via the `canonical_url` frontmatter field
+- flabs.tech links to the Dev.to post for comments and discussion via the blog post footer
+- Each new post gets a sync step: publish to flabs.tech → cross-post to Dev.to (manual or automated)
+
+An optional future improvement is a GitHub Action that watches for new `.mdx` files in `src/content/blog/` and publishes them to Dev.to via their API.
+
+## Consequences
+
+### What becomes easier
+
+- Content is discoverable by an existing developer audience instead of waiting for SEO on a new domain
+- Readers can follow, comment, and engage on Dev.to — building a professional network around the content
+- Tags and categories on Dev.to surface posts to relevant audiences
+
+### What becomes harder
+
+- Each post requires a cross-publishing step (though this is minutes per post and can be automated)
+- Comments live on Dev.to, not on the portfolio — the portfolio is the canonical read-only source
+
+### What we gain
+
+- The portfolio keeps its technical independence (no CMS lock-in, full MDX flexibility)
+- Content reaches developers who would never find a personal portfolio domain
+- The `flabs.tech` URL remains the canonical permalink for SEO and attribution
+
+## References
+
+- Issue #76: Evaluate and decide blog CMS
+- Dev.to API docs: https://developers.forem.com/api
+- Dev.to `canonical_url` field: https://dev.to/settings/publishing
