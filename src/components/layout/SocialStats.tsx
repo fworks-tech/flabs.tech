@@ -106,7 +106,7 @@ async function SocialStatsInner() {
         padding: "8px 16px",
         flexWrap: "wrap",
         fontSize: "0.8125rem",
-        color: "var(--neutral-on-background-weak, #888)",
+        color: "var(--mantine-color-dimmed)",
       }}
     >
       {items.map((stat) => (

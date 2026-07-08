@@ -7,19 +7,19 @@
 
 .table th,
 .table td {
-  padding: var(--static-space-12) var(--static-space-16);
+  padding: 12px var(--static-space-16);
   text-align: left;
-  border-bottom: 1px solid var(--neutral-alpha-weak);
+  border-bottom: 1px solid var(--mantine-color-dark-5);
 }
 
 .table th {
   font-weight: 600;
-  color: var(--neutral-on-background-strong);
-  background: var(--neutral-alpha-weak);
+  color: var(--mantine-color-dark-0);
+  background: var(--mantine-color-dark-5);
 }
 
 .table td {
-  color: var(--neutral-on-background-medium);
+  color: var(--mantine-color-dark-3);
 }
 
 .table tr:last-child td {
