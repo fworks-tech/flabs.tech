@@ -11,7 +11,6 @@ vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
 }));
 
 function Wrapper({ children }: { children: ReactNode }) {

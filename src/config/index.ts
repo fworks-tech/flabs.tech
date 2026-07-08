@@ -5,10 +5,8 @@ export {
   protectedRoutes,
   baseURL,
   fonts,
-  style,
-  schema,
   sameAs,
   socialSharing,
-} from "./once-ui.config";
+} from "./app.config";
 
 
