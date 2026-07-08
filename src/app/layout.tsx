@@ -99,10 +99,10 @@ export default async function RootLayout({
           </main>
           <SocialStats />
           <Footer />
-      </Providers>
+          <AiAssistant />
+        </Providers>
       <Analytics />
       <SpeedInsights />
-      <AiAssistant />
       <PostHogInit />
       <JsonLd data={{
         "@context": "https://schema.org",
