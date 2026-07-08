@@ -11,16 +11,12 @@ vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
   display: {},
   mailchimp: {},
   protectedRoutes: {},
   fonts: {},
-  schema: {},
   sameAs: [],
   socialSharing: [],
-  effects: {},
-  dataStyle: {},
 }));
 
 const mockPosts = [

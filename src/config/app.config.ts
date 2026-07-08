@@ -1,5 +1,3 @@
-import { home } from "@/content";
-
 export type RoutesConfig = Record<string, boolean>;
 export type DisplayConfig = { location: boolean; time: boolean; themeSwitcher: boolean };
 export type ProtectedRoutesConfig = Record<string, boolean>;
@@ -63,38 +61,6 @@ const fonts: FontsConfig = {
   code,
 };
 
-const style = {
-  theme: "dark" as const,
-  neutral: "gray" as const,
-  brand: "indigo" as const,
-  accent: "violet" as const,
-  solid: "contrast" as const,
-  solidStyle: "flat" as const,
-  border: "rounded" as const,
-  surface: "translucent" as const,
-  transition: "all" as const,
-  scaling: "100" as const,
-};
-
-const dataStyle = {
-  variant: "default" as const,
-  mode: "light" as const,
-  height: 300,
-  axis: { stroke: "#888888" },
-  tick: {
-    fill: "#888888",
-    fontSize: 12,
-    line: { stroke: "#888888" },
-  },
-};
-
-const schema = {
-  logo: "",
-  name: "Fabio Ritzel Borges",
-  email: "fritzelborges@gmail.com",
-  description: home.description,
-};
-
 const sameAs: SameAsConfig = {
   github: "https://github.com/fworks-tech",
   linkedin: "https://www.linkedin.com/in/fabiorborges/",
@@ -138,8 +104,5 @@ export {
   protectedRoutes,
   routes,
   sameAs,
-  schema,
   socialSharing,
-  style,
-  dataStyle,
 };

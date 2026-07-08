@@ -1,3 +1,4 @@
+import { Anchor } from "@mantine/core";
 import { baseURL, sameAs } from "@/config";
 import { person } from "@/content";
 import { logger } from "@/lib/logger";
@@ -106,20 +107,21 @@ async function SocialStatsInner() {
         padding: "8px 16px",
         flexWrap: "wrap",
         fontSize: "0.8125rem",
-        color: "var(--neutral-on-background-weak, #888)",
+        color: "var(--mantine-color-dimmed)",
       }}
     >
       {items.map((stat) => (
-        <a
+        <Anchor
           key={stat.platform}
           href={stat.url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ textDecoration: "none", color: "inherit" }}
+          underline="never"
+          c="dimmed"
         >
           <span style={{ fontWeight: 600 }}>{stat.value}</span>{" "}
           <span>{stat.label}</span>
-        </a>
+        </Anchor>
       ))}
     </div>
   );

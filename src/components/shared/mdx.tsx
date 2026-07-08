@@ -41,16 +41,16 @@ function CustomLink({ href, children, ...props }: CustomLinkProps) {
 
   if (href.startsWith("#")) {
     return (
-      <a href={href} {...props}>
+      <Anchor href={href} {...props}>
         {children}
-      </a>
+      </Anchor>
     );
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+    <Anchor href={href} target="_blank" rel="noopener noreferrer" {...props}>
       {children}
-    </a>
+    </Anchor>
   );
 }
 

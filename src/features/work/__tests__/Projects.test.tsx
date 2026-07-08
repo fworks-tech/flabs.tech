@@ -12,7 +12,6 @@ vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
   socialSharing: { display: false, platforms: {} },
 }));
 vi.mock("@/lib/mdx", () => ({

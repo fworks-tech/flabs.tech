@@ -8,7 +8,6 @@ vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
   effects: {},
   mailchimp: {
     action: "#",

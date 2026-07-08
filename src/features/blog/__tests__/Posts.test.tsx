@@ -12,7 +12,6 @@ vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
 }));
 vi.mock("@/lib/mdx", () => ({
   getPosts: vi.fn(() => []),

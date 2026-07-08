@@ -7,8 +7,8 @@
   height: 48px;
   border-radius: 50%;
   border: none;
-  background: var(--brand-background-strong);
-  color: var(--brand-on-background-strong);
+  background: var(--mantine-color-indigo-7);
+  color: var(--mantine-color-white);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -45,8 +45,8 @@
   z-index: 100;
   width: 360px;
   max-height: 500px;
-  background: var(--surface-default);
-  border: 1px solid var(--neutral-alpha-medium);
+  background: var(--mantine-color-dark-7);
+  border: 1px solid var(--mantine-color-dark-4);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -78,7 +78,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 12px 12px 16px;
-  border-bottom: 1px solid var(--neutral-alpha-weak);
+  border-bottom: 1px solid var(--mantine-color-dark-5);
   gap: 8px;
 }
 
@@ -86,7 +86,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--neutral-on-background-strong);
+  color: var(--mantine-color-dark-0);
 }
 
 .headerRight {
@@ -98,13 +98,13 @@
 .headerTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--neutral-on-background-strong);
+  color: var(--mantine-color-dark-0);
 }
 
 .msgCount {
   font-size: 10px;
-  color: var(--neutral-on-background-weak);
-  background: var(--neutral-alpha-weak);
+  color: var(--mantine-color-dark-2);
+  background: var(--mantine-color-dark-5);
   padding: 1px 6px;
   border-radius: 8px;
   margin-left: 4px;
@@ -114,7 +114,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--neutral-on-background-weak);
+  color: var(--mantine-color-dark-2);
   padding: 6px;
   border-radius: 6px;
   display: flex;
@@ -122,8 +122,8 @@
   justify-content: center;
 
   &:hover {
-    color: var(--neutral-on-background-strong);
-    background: var(--neutral-alpha-weak);
+    color: var(--mantine-color-dark-0);
+    background: var(--mantine-color-dark-5);
   }
 }
 
@@ -133,14 +133,14 @@
   gap: 4px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--accent-on-background-weak, #a78bfa);
+  color: var(--mantine-color-violet-4);
 }
 
 .statusPulse {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent-on-background-weak, #a78bfa);
+  background: var(--mantine-color-violet-4);
   animation: pulse 1.2s ease-in-out infinite;
 }
 
@@ -175,21 +175,21 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--neutral-alpha-weak);
-  color: var(--neutral-on-background-weak);
+  background: var(--mantine-color-dark-5);
+  color: var(--mantine-color-dark-2);
   margin-bottom: 12px;
 }
 
 .welcomeTitle {
   font-size: 15px;
   font-weight: 600;
-  color: var(--neutral-on-background-strong);
+  color: var(--mantine-color-dark-0);
   margin: 0 0 8px;
 }
 
 .welcomeText {
   font-size: 13px;
-  color: var(--neutral-on-background-weak);
+  color: var(--mantine-color-dark-2);
   margin: 0;
   line-height: 1.5;
 }
@@ -206,15 +206,15 @@
 
 .messageUser {
   align-self: flex-end;
-  background: var(--brand-background-strong);
-  color: var(--brand-on-background-strong);
+  background: var(--mantine-color-indigo-7);
+  color: var(--mantine-color-white);
   border-bottom-right-radius: 3px;
 }
 
 .messageAssistant {
   align-self: flex-start;
-  background: var(--neutral-alpha-weak);
-  color: var(--neutral-on-background-strong);
+  background: var(--mantine-color-dark-5);
+  color: var(--mantine-color-dark-0);
   border-bottom-left-radius: 3px;
 }
 
@@ -233,7 +233,7 @@
 
 .error {
   font-size: 12px;
-  color: var(--danger-on-background-weak, #ef4444);
+  color: var(--mantine-color-red-6);
   text-align: center;
   padding: 8px;
 }
@@ -242,7 +242,7 @@
   display: flex;
   gap: 8px;
   padding: 8px 12px 12px;
-  border-top: 1px solid var(--neutral-alpha-weak);
+  border-top: 1px solid var(--mantine-color-dark-5);
   align-items: flex-end;
 }
 
@@ -255,13 +255,13 @@
 
 .input {
   width: 100%;
-  background: var(--neutral-alpha-weak);
-  border: 1px solid var(--neutral-alpha-medium);
+  background: var(--mantine-color-dark-5);
+  border: 1px solid var(--mantine-color-dark-4);
   border-radius: 8px;
   padding: 8px 12px 20px;
   font-size: 13px;
   font-family: inherit;
-  color: var(--neutral-on-background-strong);
+  color: var(--mantine-color-dark-0);
   resize: none;
   outline: none;
   max-height: 100px;
@@ -269,11 +269,11 @@
   box-sizing: border-box;
 
   &::placeholder {
-    color: var(--neutral-on-background-weak);
+    color: var(--mantine-color-dark-2);
   }
 
   &:focus {
-    border-color: var(--brand-background-strong);
+    border-color: var(--mantine-color-indigo-7);
   }
 
   &:disabled {
@@ -286,32 +286,32 @@
   bottom: 4px;
   right: 8px;
   font-size: 10px;
-  color: var(--neutral-on-background-weak);
+  color: var(--mantine-color-dark-2);
   line-height: 1;
   pointer-events: none;
 }
 
 .charCountWarn {
-  color: var(--danger-on-background-weak, #ef4444);
+  color: var(--mantine-color-red-6);
 }
 
 .limitNotice {
   padding: 12px 16px;
   text-align: center;
   font-size: 12px;
-  color: var(--neutral-on-background-weak);
-  border-top: 1px solid var(--neutral-alpha-weak);
-  background: var(--neutral-alpha-weak);
+  color: var(--mantine-color-dark-2);
+  border-top: 1px solid var(--mantine-color-dark-5);
+  background: var(--mantine-color-dark-5);
   border-radius: 0 0 12px 12px;
 }
 
 .sendButton {
-  background: var(--brand-background-strong);
+  background: var(--mantine-color-indigo-7);
   border: none;
   border-radius: 8px;
   padding: 8px;
   cursor: pointer;
-  color: var(--brand-on-background-strong);
+  color: var(--mantine-color-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -328,7 +328,7 @@
 }
 
 .stopButton {
-  background: var(--danger-background-strong, #ef4444);
+  background: var(--mantine-color-red-7);
   border: none;
   border-radius: 8px;
   padding: 8px;
