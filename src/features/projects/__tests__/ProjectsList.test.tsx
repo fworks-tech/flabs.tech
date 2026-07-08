@@ -3,7 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: Record<string, unknown>) =>
     <a href={href as string} {...props}>{children}</a>,
