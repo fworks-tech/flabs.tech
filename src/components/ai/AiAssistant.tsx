@@ -96,7 +96,7 @@ export function AiAssistant() {
         <IconMessage size={24} />
       </ActionIcon>
 
-      {isOpen && <div className={styles.overlay} onClick={() => setIsOpen(false)} />}
+      {isOpen && <div className={styles.overlay} onClick={() => setIsOpen(false)} data-testid="chat-overlay" />}
 
       <div
         className={`${styles.chat} ${isOpen ? styles.chatOpen : ""} ${
