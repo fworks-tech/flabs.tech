@@ -17,7 +17,7 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   experimental: {
-    optimizePackageImports: ["@once-ui-system/core"],
+    optimizePackageImports: ["@mantine/core", "@mantine/hooks"],
   },
   images: {
     formats: ["image/avif", "image/webp"],

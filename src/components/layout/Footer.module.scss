@@ -17,11 +17,11 @@
     border-radius: 6px;
     
     &:hover {
-        background-color: var(--color-neutral-alpha-weak);
+        background-color: var(--mantine-color-dark-5);
     }
     
     &:focus-visible {
-        outline: 2px solid var(--color-accent-strong);
+        outline: 2px solid var(--mantine-color-violet-5);
         outline-offset: 2px;
     }
 }

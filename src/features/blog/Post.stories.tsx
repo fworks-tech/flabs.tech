@@ -6,6 +6,7 @@ const mockPost = {
   slug: "test-post",
   metadata: {
     title: "Test Post Title",
+    summary: "A test post summary",
     publishedAt: "2025-06-01",
     tag: "tech",
     image: "https://picsum.photos/800/400",

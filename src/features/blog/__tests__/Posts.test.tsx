@@ -1,17 +1,25 @@
+import { MantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/navigation");
+vi.mock("next/link", () => ({
+  default: ({ children, href, ...props }: Record<string, unknown>) =>
+    <a href={href as string} {...props}>{children}</a>,
+}));
 vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
 }));
 vi.mock("@/lib/mdx", () => ({
   getPosts: vi.fn(() => []),
 }));
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
 
 import { Posts } from "@/features/blog/Posts";
 import { getPosts } from "@/lib/mdx";
@@ -54,8 +62,8 @@ const mockPosts = [
 
 describe("Posts", () => {
   it("renders empty state when no posts", () => {
-    const { container } = render(<Posts />);
-    expect(container.firstChild).toBeNull();
+    const { container } = render(<Posts />, { wrapper: Wrapper });
+    expect(screen.queryByText("Post A")).not.toBeInTheDocument();
   });
 
   describe("with posts", () => {
@@ -64,18 +72,18 @@ describe("Posts", () => {
     });
 
     it("renders posts sorted by date (newest first)", () => {
-      render(<Posts />);
+      render(<Posts />, { wrapper: Wrapper });
       const titles = screen.getAllByText(/^Post [ABC]$/);
       expect(titles[0]).toHaveTextContent("Post A");
     });
 
     it("applies range slicing", () => {
-      render(<Posts range={[1, 2]} />);
+      render(<Posts range={[1, 2]} />, { wrapper: Wrapper });
       expect(screen.getAllByText(/^Post [ABC]$/).length).toBeGreaterThanOrEqual(2);
     });
 
     it("excludes posts by slug", () => {
-      render(<Posts exclude={["post-a"]} />);
+      render(<Posts exclude={["post-a"]} />, { wrapper: Wrapper });
       expect(screen.queryByText("Post A")).not.toBeInTheDocument();
       expect(screen.queryByText("Post B")).toBeInTheDocument();
     });

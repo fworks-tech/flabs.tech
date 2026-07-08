@@ -1,4 +1,3 @@
-export { AnimatedHeadline } from "@/components/ui/AnimatedHeadline";
 export { Header } from "@/components/layout/Header";
 export { ProjectGrid } from "@/features/work/ProjectGrid";
 export { ProjectsList } from "@/features/projects/ProjectsList";
@@ -6,7 +5,6 @@ export { Footer } from "@/components/layout/Footer";
 export { Mailchimp } from "@/components/ui/Mailchimp";
 export { ProjectCard } from "@/components/ui/ProjectCard";
 export { HeadingLink } from "@/components/ui/HeadingLink";
-export { RouteGuard } from "@/components/layout/RouteGuard";
 export { Providers } from "@/components/layout/Providers";
 export { ScrollToHash } from "@/components/ui/ScrollToHash";
 export { ThemeToggle } from "@/components/layout/ThemeToggle";

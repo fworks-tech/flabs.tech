@@ -1,25 +1,19 @@
+import { MantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/navigation");
 vi.mock("@/config", () => ({
   default: {},
   baseURL: "https://flabs.tech",
   routes: {},
-  style: {},
-  effects: { mask: { x: 0, y: 0, radius: 1 }, gradient: {}, dots: {}, grid: {} },
+  effects: {},
   mailchimp: {
     action: "#",
     title: "Subscribe",
     description: "Get updates",
-    effects: {
-      mask: { x: 0, y: 0, radius: 0, cursor: true },
-      gradient: { display: false },
-      dots: { display: false },
-      grid: { display: false },
-      lines: { display: false },
-    },
+    effects: {},
   },
 }));
 vi.mock("@/content", () => ({
@@ -30,21 +24,25 @@ vi.mock("@/content", () => ({
   },
 }));
 
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
+
 import { Mailchimp } from "@/components/ui/Mailchimp";
 
 describe("Mailchimp", () => {
   it("renders the newsletter form", () => {
-    render(<Mailchimp />);
-    expect(screen.getByTestId("Input")).toBeInTheDocument();
+    render(<Mailchimp />, { wrapper: Wrapper });
+    expect(screen.getByPlaceholderText("your@email.com")).toBeInTheDocument();
   });
 
   it("renders submit button", () => {
-    render(<Mailchimp />);
+    render(<Mailchimp />, { wrapper: Wrapper });
     expect(screen.getByText("Subscribe")).toBeInTheDocument();
   });
 
   it("renders newsletter description", () => {
-    render(<Mailchimp />);
+    render(<Mailchimp />, { wrapper: Wrapper });
     expect(screen.getByText("Stay in touch")).toBeInTheDocument();
   });
 });

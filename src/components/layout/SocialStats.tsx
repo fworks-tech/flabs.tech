@@ -1,3 +1,4 @@
+import { Anchor } from "@mantine/core";
 import { baseURL, sameAs } from "@/config";
 import { person } from "@/content";
 import { logger } from "@/lib/logger";
@@ -12,7 +13,9 @@ type SocialStat = {
 
 async function getDevToStats(): Promise<{ articles: number } | null> {
   try {
-    const username = new URL(sameAs.devto || "").pathname.split("/").filter(Boolean).pop();
+    const devtoUrl = sameAs.devto;
+    if (!devtoUrl) return null;
+    const username = new URL(devtoUrl).pathname.split("/").filter(Boolean).pop();
     if (!username) return null;
     const res = await fetch(`https://dev.to/api/articles?username=${username}&per_page=1000`, {
       next: { revalidate: 3600 },
@@ -88,10 +91,10 @@ async function SocialStatsInner() {
 
   const items: SocialStat[] = [];
 
-  if (github) items.push({ platform: "github", label: "GitHub repos", value: github.repos, url: sameAs.github });
-  if (devto) items.push({ platform: "devto", label: "Dev.to articles", value: devto.articles, url: sameAs.devto });
-  if (stackoverflow) items.push({ platform: "stackoverflow", label: "Stack Overflow rep", value: stackoverflow.reputation.toLocaleString("en-US"), url: sameAs.stackoverflow });
-  if (npm) items.push({ platform: "npm", label: "npm packages", value: npm.packages, url: sameAs.npm });
+  if (github && sameAs.github) items.push({ platform: "github", label: "GitHub repos", value: github.repos, url: sameAs.github });
+  if (devto && sameAs.devto) items.push({ platform: "devto", label: "Dev.to articles", value: devto.articles, url: sameAs.devto });
+  if (stackoverflow && sameAs.stackoverflow) items.push({ platform: "stackoverflow", label: "Stack Overflow rep", value: stackoverflow.reputation.toLocaleString("en-US"), url: sameAs.stackoverflow });
+  if (npm && sameAs.npm) items.push({ platform: "npm", label: "npm packages", value: npm.packages, url: sameAs.npm });
 
   if (items.length === 0) return null;
 
@@ -104,20 +107,21 @@ async function SocialStatsInner() {
         padding: "8px 16px",
         flexWrap: "wrap",
         fontSize: "0.8125rem",
-        color: "var(--neutral-on-background-weak, #888)",
+        color: "var(--mantine-color-dimmed)",
       }}
     >
       {items.map((stat) => (
-        <a
+        <Anchor
           key={stat.platform}
           href={stat.url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ textDecoration: "none", color: "inherit" }}
+          underline="never"
+          c="dimmed"
         >
           <span style={{ fontWeight: 600 }}>{stat.value}</span>{" "}
           <span>{stat.label}</span>
-        </a>
+        </Anchor>
       ))}
     </div>
   );

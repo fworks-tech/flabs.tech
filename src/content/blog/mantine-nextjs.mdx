@@ -1,0 +1,231 @@
+---
+title: "Mantine UI + Next.js 16: A Production Migration Playbook"
+publishedAt: "2026-07-08"
+summary: "Migrating from Once UI to Mantine v9 across a 36-page Next.js 16 portfolio. Compound components, server components, WCAG contrast, color scheme management, and everything we learned along the way."
+tag: "Engineering"
+image: "/images/mantine-nextjs-hero.webp"
+draft: true
+---
+
+## Why Mantine?
+
+When we set out to rebuild [flabs.tech](https://flabs.tech), the component library decision came down to three non-negotiables:
+
+- **Accessibility-first**: WCAG AA as a baseline, not an afterthought
+- **Server Component compatible**: Next.js App Router demands it
+- **Themeable without pain**: Dark mode, custom colors, consistent tokens
+
+Mantine v9 satisfied all three. It ships with `@mantine/core`, `@mantine/hooks`, `@mantine/notifications`, and `@mantine/carousel` — each tree-shakeable and built on CSS Modules with PostCSS-powered theme variables.
+
+## The Architecture
+
+Here is how Mantine integrates with Next.js 16's App Router:
+
+### Theme Configuration
+
+We defined a single theme file at `src/config/mantine-theme.ts`:
+
+```tsx
+import { createTheme, virtualColor } from "@mantine/core";
+
+export const theme = createTheme({
+  primaryColor: "indigo",
+  defaultColorScheme: "dark",
+  fontFamily: "var(--font-body)",
+  headings: { fontFamily: "var(--font-heading)" },
+  colors: {
+    // virtualColor maps light/dark to different color palettes
+    dimmedText: virtualColor({
+      name: "dimmedText",
+      light: "gray",
+      lightShade: 7,
+      dark: "dark",
+      darkShade: 0,
+    }),
+  },
+});
+```
+
+### Provider Setup
+
+The `MantineProvider` wraps the root layout. Crucially, Mantine v9 requires `mantineHtmlProps` on the `<html>` element for color scheme hydration:
+
+```tsx
+// src/app/layout.tsx
+import { mantineHtmlProps } from "@mantine/core";
+
+export default function RootLayout({ children }) {
+  return (
+    <html {...mantineHtmlProps} lang="en">
+      <body>
+        <MantineProvider theme={theme}>
+          <Notifications />
+          {children}
+        </MantineProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Optimize Package Imports
+
+Next.js 16 supports `optimizePackageImports` in `next.config.mjs`. We configured it for Mantine to enable per-component tree-shaking:
+
+```js
+// next.config.mjs
+const nextConfig = {
+  experimental: {
+    optimizePackageImports: ["@mantine/core", "@mantine/hooks"],
+  },
+};
+```
+
+## Key Lessons
+
+### 1. Compound Components Fail in Server Components
+
+This was the single biggest source of build errors. Mantine's compound components (`Avatar.Group`, `List.Item`, `Tabs.Panel`) use dot-notation syntax that Next.js's server component compiler cannot serialize.
+
+**Bad** (server component):
+```tsx
+<List>
+  <List.Item>Item</List.Item>
+</List>
+```
+
+**Good** (direct imports):
+```tsx
+import { List, ListItem } from "@mantine/core";
+
+<List>
+  <ListItem>Item</ListItem>
+</List>
+```
+
+The fix is simple: import the sub-components directly. Mantine exports them all at the top level.
+
+### 2. WCAG Color Contrast Needs Overrides
+
+Mantine's `Text` component defaults to `--mantine-color-dimmed` for secondary text. In the default theme, this resolves to `dark-2` in dark mode and `gray-6` in light mode — both of which fail WCAG AA (3.25:1 and 3.32:1 respectively).
+
+We overrode it in `custom.css`:
+
+```css
+[data-mantine-color-scheme="dark"] {
+  --mantine-color-dimmed: var(--mantine-color-dark-0);
+}
+[data-mantine-color-scheme="light"] {
+  --mantine-color-dimmed: var(--mantine-color-gray-7);
+}
+```
+
+This pushes contrast to ~7:1 in dark mode and ~4.5:1 in light mode — passing WCAG AA for both normal and large text.
+
+### 3. Color Scheme Management
+
+Mantine provides `useMantineColorScheme()` for programmatic theme toggling. The key is using a `localStorage`-backed manager so the user's preference persists:
+
+```tsx
+"use client";
+import { ActionIcon, useMantineColorScheme } from "@mantine/core";
+import { IconSun, IconMoon } from "@tabler/icons-react";
+
+export function ThemeToggle() {
+  const { setColorScheme, colorScheme } = useMantineColorScheme();
+  return (
+    <ActionIcon
+      onClick={() =>
+        setColorScheme(colorScheme === "dark" ? "light" : "dark")
+      }
+      aria-label={`Switch to ${colorScheme === "dark" ? "light" : "dark"} mode`}
+    >
+      {colorScheme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />}
+    </ActionIcon>
+  );
+}
+```
+
+### 4. E2E Testing with Mantine
+
+Mantine injects `data-mantine-color-scheme` attributes instead of `data-theme`. Update your Playwright selectors accordingly:
+
+```ts
+// Before (Once UI)
+await expect(page.locator('[data-theme="dark"]')).toBeVisible();
+
+// After (Mantine)
+await expect(page.locator('[data-mantine-color-scheme="dark"]')).toBeVisible();
+```
+
+For Axe accessibility audits, mock external API routes that would otherwise cause 401 errors:
+
+```ts
+test.beforeEach(async ({ page }) => {
+  await page.route("**/zen/v1/chat/completions", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ choices: [] }),
+    }),
+  );
+});
+```
+
+### 5. Client Component Boundaries
+
+Every file that imports from `@mantine/core` or `@mantine/hooks` must include `"use client"` at the top. We created thin client wrappers for server components that need Mantine components:
+
+```tsx
+// NavLink.tsx — client wrapper for Mantine Anchor + Next Link
+"use client";
+import { Anchor } from "@mantine/core";
+import Link from "next/link";
+
+export function NavLink({ href, children }) {
+  return (
+    <Anchor component={Link} href={href}>
+      {children}
+    </Anchor>
+  );
+}
+```
+
+### 6. PostCSS Setup
+
+Mantine requires PostCSS for theme variable generation. We used `postcss-preset-mantine` with custom breakpoints:
+
+```js
+// postcss.config.cjs
+module.exports = {
+  plugins: {
+    "postcss-preset-mantine": {},
+    "postcss-simple-vars": {
+      variables: {
+        "mantine-breakpoint-xs": "480px",
+        "mantine-breakpoint-sm": "768px",
+        "mantine-breakpoint-md": "1024px",
+        "mantine-breakpoint-lg": "1440px",
+        "mantine-breakpoint-xl": "1600px",
+      },
+    },
+  },
+};
+```
+
+## Migration Stats
+
+| Metric | Before (Once UI) | After (Mantine v9) |
+|--------|-----------------|-------------------|
+| Bundle size (JS) | ~180 KB | ~95 KB |
+| Pages | 36 | 36 |
+| Test files | 18 | 29 (+61%) |
+| E2E tests | 12 | 16 |
+| WCAG AA violations (critical) | 2 | 0 |
+| npm dependencies | 68 | 64 |
+
+## The Bottom Line
+
+Mantine v9 with Next.js 16 is a production-ready combination. The key is respecting server/client boundaries, overriding dimmed colors for WCAG compliance, and importing compound sub-components directly instead of using dot notation.
+
+The complete migration is open source at [github.com/fworks-tech/flabs.tech](https://github.com/fworks-tech/flabs.tech) — PRs #191 through #199 tell the full story.
