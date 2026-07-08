@@ -1,8 +1,21 @@
 "use client";
 
+import { ActionIcon, Button, Group, Text, Tooltip } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import {
+  IconBrandFacebook,
+  IconBrandLinkedin,
+  IconBrandReddit,
+  IconBrandTelegram,
+  IconBrandWhatsapp,
+  IconDeviceFloppy,
+  IconLink,
+  IconMail,
+  IconShare,
+  IconSquareLetterX,
+} from "@tabler/icons-react";
 import { socialSharing } from "@/config";
 import { logger } from "@/lib/logger";
-import { Button, Row, Text, useToast } from "@once-ui-system/core";
 
 interface ShareSectionProps {
   title: string;
@@ -20,7 +33,7 @@ interface SocialPlatform {
 const socialPlatforms: Record<string, SocialPlatform> = {
   x: {
     name: "x",
-    icon: "twitter",
+    icon: "x",
     label: "X",
     generateUrl: (title, url, shareText) =>
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText || title)}&url=${encodeURIComponent(url)}`,
@@ -38,13 +51,6 @@ const socialPlatforms: Record<string, SocialPlatform> = {
     label: "Facebook",
     generateUrl: (title, url, shareText) =>
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(shareText || title)}`,
-  },
-  pinterest: {
-    name: "pinterest",
-    icon: "pinterest",
-    label: "Pinterest",
-    generateUrl: (title, url, shareText) =>
-      `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(shareText || title)}`,
   },
   whatsapp: {
     name: "whatsapp",
@@ -74,25 +80,19 @@ const socialPlatforms: Record<string, SocialPlatform> = {
     generateUrl: (title, url, shareText) =>
       `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText || `Check out this post: ${url}`)}`,
   },
-  devto: {
-    name: "devto",
-    icon: "devto",
-    label: "Dev.to",
-    generateUrl: (title, url) =>
-      `https://dev.to/new?prefill=${encodeURIComponent(`---\ntitle: ${title}\n---\n\nOriginally posted at: ${url}`)}`,
-  },
-  hackernews: {
-    name: "hackernews",
-    icon: "hackernews",
-    label: "Hacker News",
-    generateUrl: (title, url) =>
-      `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(url)}&t=${encodeURIComponent(title)}`,
-  },
+};
+
+const iconMap: Record<string, React.ReactNode> = {
+  x: <IconSquareLetterX size={16} />,
+  linkedin: <IconBrandLinkedin size={16} />,
+  facebook: <IconBrandFacebook size={16} />,
+  whatsapp: <IconBrandWhatsapp size={16} />,
+  reddit: <IconBrandReddit size={16} />,
+  telegram: <IconBrandTelegram size={16} />,
+  email: <IconMail size={16} />,
 };
 
 export function ShareSection({ title, url, shareText }: ShareSectionProps) {
-  const { addToast } = useToast();
-  // Don't render if sharing is disabled
   if (!socialSharing.display) {
     return null;
   }
@@ -100,60 +100,57 @@ export function ShareSection({ title, url, shareText }: ShareSectionProps) {
   const handleCopy = async (text: string, message: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      addToast({
-        variant: "success",
-        message,
-      });
+      notifications.show({ message, autoClose: 2000 });
     } catch (err) {
       logger.error(err, "Failed to copy");
-      addToast({
-        variant: "danger",
-        message: "Failed to copy",
-      });
+      notifications.show({ color: "red", message: "Failed to copy", autoClose: 2000 });
     }
   };
 
-  // Get enabled platforms
-  const enabledPlatforms = Object.entries(socialSharing.platforms)
+  const enabledPlatforms = Object.entries(socialSharing.platforms as Record<string, boolean>)
     .filter(([_, enabled]) => enabled && _ !== "copyLink")
     .map(([platformKey]) => ({ key: platformKey, ...socialPlatforms[platformKey] }))
-    .filter((platform) => platform.name); // Filter out platforms that don't exist in our definitions
+    .filter((platform) => platform.name);
 
   return (
-    <Row fillWidth center gap="16" marginTop="32" marginBottom="16">
-      <Text variant="label-default-m" onBackground="neutral-weak">
+    <Group mt="32" mb="16" gap="16" justify="center">
+      <Text size="sm" c="dimmed">
         Share this post:
       </Text>
-      <Row data-border="rounded" gap="16" horizontal="center" wrap>
-        {enabledPlatforms.map((platform, index) => {
-          return (
-            <Button
-              key={index}
-              variant="secondary"
-              size="s"
+      <Group gap="16" justify="center" wrap="wrap">
+        {enabledPlatforms.map((platform, index) => (
+          <Tooltip key={index} label={`Share on ${platform.label}`} withArrow>
+            <ActionIcon
+              component="a"
               href={platform.generateUrl(title, url, shareText)}
-              prefixIcon={platform.icon}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="light"
+              size="lg"
               aria-label={`Share on ${platform.label}`}
-              title={`Share on ${platform.label}`}
-            />
-          );
-        })}
+            >
+              {iconMap[platform.icon] || <IconShare size={16} />}
+            </ActionIcon>
+          </Tooltip>
+        ))}
 
-        {socialSharing.platforms.copyLink && (
-          <Button
-            variant="secondary"
-            size="s"
-            onClick={() =>
-              shareText
-                ? handleCopy(shareText, "Share text copied to clipboard")
-                : handleCopy(url, "Link copied to clipboard")
-            }
-            prefixIcon="openLink"
-            aria-label={shareText ? "Copy share text" : "Copy link"}
-            title={shareText ? "Copy share text" : "Copy link"}
-          />
+        {(socialSharing.platforms as Record<string, boolean>).copyLink && (
+          <Tooltip label={shareText ? "Copy share text" : "Copy link"} withArrow>
+            <ActionIcon
+              variant="light"
+              size="lg"
+              onClick={() =>
+                shareText
+                  ? handleCopy(shareText, "Share text copied to clipboard")
+                  : handleCopy(url, "Link copied to clipboard")
+              }
+              aria-label={shareText ? "Copy share text" : "Copy link"}
+            >
+              <IconLink size={16} />
+            </ActionIcon>
+          </Tooltip>
         )}
-      </Row>
-    </Row>
+      </Group>
+    </Group>
   );
 }

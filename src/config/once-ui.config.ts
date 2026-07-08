@@ -1,19 +1,16 @@
 import { home } from "@/content";
-import type {
-  DataStyleConfig,
-  DisplayConfig,
-  EffectsConfig,
-  FontsConfig,
-  MailchimpConfig,
-  ProtectedRoutesConfig,
-  RoutesConfig,
-  SameAsConfig,
-  SchemaConfig,
-  SocialSharingConfig,
-  StyleConfig,
-} from "@/types";
 
-// IMPORTANT: Replace with your own domain address - it's used for SEO in meta tags and schema
+export type RoutesConfig = Record<string, boolean>;
+export type DisplayConfig = { location: boolean; time: boolean; themeSwitcher: boolean };
+export type ProtectedRoutesConfig = Record<string, boolean>;
+export type SameAsConfig = Record<string, string | undefined>;
+export type FontsConfig = {
+  heading: { variable: string };
+  body: { variable: string };
+  label: { variable: string };
+  code: { variable: string };
+};
+
 const baseURL: string = "https://flabs.tech";
 
 const routes: RoutesConfig = {
@@ -30,11 +27,8 @@ const display: DisplayConfig = {
   themeSwitcher: true,
 };
 
-// Enable password protection on selected routes
-// Set password in the .env file, refer to .env.example
 const protectedRoutes: ProtectedRoutesConfig = {};
 
-// Import and set font for each variant
 import { Geist } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 
@@ -63,176 +57,89 @@ const code = Geist_Mono({
 });
 
 const fonts: FontsConfig = {
-  heading: heading,
-  body: body,
-  label: label,
-  code: code,
+  heading,
+  body,
+  label,
+  code,
 };
 
-// default customization applied to the HTML in the main layout.tsx
-const style: StyleConfig = {
-  theme: "dark", // dark | light | system
-  neutral: "gray", // sand | gray | slate | mint | rose | dusk | custom
-  brand: "indigo", // blue | indigo | violet | magenta | pink | red | orange | yellow | moss | green | emerald | aqua | cyan | custom
-  accent: "violet", // blue | indigo | violet | magenta | pink | red | orange | yellow | moss | green | emerald | aqua | cyan | custom
-  solid: "contrast", // color | contrast
-  solidStyle: "flat", // flat | plastic
-  border: "rounded", // rounded | playful | conservative | sharp
-  surface: "translucent", // filled | translucent
-  transition: "all", // all | micro | macro
-  scaling: "100", // 90 | 95 | 100 | 105 | 110
+const style = {
+  theme: "dark" as const,
+  neutral: "gray" as const,
+  brand: "indigo" as const,
+  accent: "violet" as const,
+  solid: "contrast" as const,
+  solidStyle: "flat" as const,
+  border: "rounded" as const,
+  surface: "translucent" as const,
+  transition: "all" as const,
+  scaling: "100" as const,
 };
 
-const dataStyle: DataStyleConfig = {
-  variant: "gradient", // flat | gradient | outline
-  mode: "categorical", // categorical | divergent | sequential
-  height: 24, // default chart height
-  axis: {
-    stroke: "var(--neutral-alpha-weak)",
-  },
+const dataStyle = {
+  variant: "default" as const,
+  mode: "light" as const,
+  height: 300,
+  axis: { stroke: "#888888" },
   tick: {
-    fill: "var(--neutral-on-background-weak)",
-    fontSize: 11,
-    line: false,
+    fill: "#888888",
+    fontSize: 12,
+    line: { stroke: "#888888" },
   },
 };
 
-const effects: EffectsConfig = {
-  mask: {
-    cursor: false,
-    x: 50,
-    y: 0,
-    radius: 100,
-  },
-  gradient: {
-    display: false,
-    opacity: 30,
-    x: 50,
-    y: 0,
-    width: 80,
-    height: 40,
-    tilt: 0,
-    colorStart: "brand-background-strong",
-    colorEnd: "page-background",
-  },
-  dots: {
-    display: false,
-    opacity: 24,
-    size: "2",
-    color: "brand-on-background-weak",
-  },
-  grid: {
-    display: false,
-    opacity: 100,
-    color: "neutral-alpha-medium",
-    width: "0.25rem",
-    height: "0.25rem",
-  },
-  lines: {
-    display: false,
-    opacity: 100,
-    color: "neutral-alpha-weak",
-    size: "16",
-    thickness: 1,
-    angle: 45,
-  },
-};
-
-const mailchimp: MailchimpConfig = {
-  action: "#",
-  effects: {
-    mask: {
-      cursor: true,
-      x: 50,
-      y: 0,
-      radius: 100,
-    },
-    gradient: {
-      display: true,
-      opacity: 90,
-      x: 50,
-      y: 0,
-      width: 50,
-      height: 50,
-      tilt: 0,
-      colorStart: "accent-background-strong",
-      colorEnd: "static-transparent",
-    },
-    dots: {
-      display: true,
-      opacity: 20,
-      size: "2",
-      color: "brand-on-background-weak",
-    },
-    grid: {
-      display: false,
-      opacity: 100,
-      color: "neutral-alpha-medium",
-      width: "0.25rem",
-      height: "0.25rem",
-    },
-    lines: {
-      display: false,
-      opacity: 100,
-      color: "neutral-alpha-medium",
-      size: "16",
-      thickness: 1,
-      angle: 90,
-    },
-  },
-};
-
-// default schema data
-const schema: SchemaConfig = {
-  logo: "/images/avatar.webp",
-  type: "Person",
+const schema = {
+  logo: "",
   name: "Fabio Ritzel Borges",
-  description: home.description,
   email: "fritzelborges@gmail.com",
+  description: home.description,
 };
 
-// social links
 const sameAs: SameAsConfig = {
-  threads: "",
-  linkedin: "https://www.linkedin.com/in/fabiorborges/",
-  discord: "",
   github: "https://github.com/fworks-tech",
-  devto: "https://dev.to/fabiorborges",
-  stackoverflow: "https://stackoverflow.com/users/19264618/fabio-borges",
-  npm: "https://www.npmjs.com/~fworks-tech",
-  hashnode: "https://hashnode.com/@fabiorborges",
-  youtube: "",
+  linkedin: "https://www.linkedin.com/in/fabiorborges/",
+  devto: undefined,
+  stackoverflow: undefined,
+  npm: undefined,
+  hashnode: undefined,
 };
 
-// social sharing configuration for blog posts
-const socialSharing: SocialSharingConfig = {
+const socialSharing = {
   display: true,
   platforms: {
     x: true,
     linkedin: true,
-    facebook: false,
-    pinterest: false,
+    facebook: true,
+    pinterest: true,
     whatsapp: true,
     reddit: true,
     telegram: true,
     email: true,
     copyLink: true,
-    devto: true,
-    hackernews: true,
+  },
+};
+
+const mailchimp = {
+  action: "",
+  effects: {
+    mask: { x: 0, y: 0, radius: 0, cursor: true },
+    gradient: { display: false, opacity: 100, x: 0, y: 0, width: 0, height: 0, tilt: 0, colorStart: "", colorEnd: "" },
+    dots: { display: false, opacity: 100, size: 0, color: "" },
+    grid: { display: false, opacity: 100, color: "", width: 0, height: 0 },
+    lines: { display: false, opacity: 100, size: 0, thickness: 0, angle: 0, color: "" },
   },
 };
 
 export {
-  display,
-  mailchimp,
-  routes,
-  protectedRoutes,
   baseURL,
+  display,
   fonts,
-  style,
-  schema,
+  mailchimp,
+  protectedRoutes,
+  routes,
   sameAs,
+  schema,
   socialSharing,
-  effects,
+  style,
   dataStyle,
 };

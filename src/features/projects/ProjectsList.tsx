@@ -1,6 +1,6 @@
+import { Stack } from "@mantine/core";
 import { ProjectCard } from "@/components";
 import { getPosts } from "@/lib/mdx";
-import { Column } from "@once-ui-system/core";
 
 interface ProjectsListProps {
   range?: [number, number?];
@@ -22,7 +22,7 @@ export function ProjectsList({ range, exclude }: ProjectsListProps) {
   const displayed = range ? sorted.slice(range[0] - 1, range[1] ?? sorted.length) : sorted;
 
   return (
-    <Column fillWidth gap="xl" marginBottom="40" paddingX="l">
+    <Stack gap="xl" mb="40" px="lg">
       {displayed.map((post, index) => (
         <ProjectCard
           priority={index < 2}
@@ -38,6 +38,6 @@ export function ProjectsList({ range, exclude }: ProjectsListProps) {
           tags={post.metadata.tags}
         />
       ))}
-    </Column>
+    </Stack>
   );
 }

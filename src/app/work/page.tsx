@@ -1,31 +1,26 @@
+import { Badge, Divider, Group, Stack, Text, Title } from "@mantine/core";
 import { baseURL, sameAs } from "@/config";
 import { about, person, work, workExperience } from "@/content";
-import { Column, Heading, Line, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
+import { generateMeta } from "@/lib/seo";
+import { Schema } from "@/lib/schema";
 
 export async function generateMetadata() {
-  const meta = Meta.generate({
+  return generateMeta({
     title: work.title,
     description: work.description,
-    baseURL: baseURL,
+    baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(work.title)}`,
     path: work.path,
   });
-
-  return {
-    ...meta,
-    alternates: {
-      canonical: `${baseURL}${work.path}`,
-    },
-  };
 }
 
 export default function WorkPage() {
   return (
-    <Column maxWidth="m" paddingTop="24" paddingBottom="xl">
+    <Stack maw={1024} pt="24" pb="xl" mx="auto">
       <Schema
         as="webPage"
         baseURL={baseURL}
-        sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
+        sameAs={[sameAs.linkedin, sameAs.github].filter((v): v is string => Boolean(v))}
         path={work.path}
         title={work.title}
         description={work.description}
@@ -37,77 +32,61 @@ export default function WorkPage() {
         }}
       />
 
-      <Column fillWidth horizontal="center" align="center" gap="8" marginBottom="xl">
-        <Heading variant="display-strong-l" align="center">
+      <Stack align="center" gap="8" mb="xl">
+        <Title order={1} ta="center">
           Work Experience
-        </Heading>
-        <Text variant="body-default-l" onBackground="neutral-weak" align="center">
+        </Title>
+        <Text size="md" c="dimmed" ta="center">
           {work.description}
         </Text>
-      </Column>
+      </Stack>
 
-      <Column fillWidth gap="xl" maxWidth="s" style={{ margin: "0 auto" }}>
+      <Stack gap="xl" maw={600} mx="auto">
         {workExperience.experiences.map((exp, i) => (
-          <Column key={i} fillWidth gap="m">
-            <Row fillWidth horizontal="between" vertical="start" wrap gap="8">
-              <Column gap="4">
-                <Heading as="h2" variant="heading-strong-l">
-                  {exp.company}
-                </Heading>
-                <Text variant="body-default-m" onBackground="brand-weak">
+          <Stack key={i} gap="md">
+            <Group justify="space-between" align="flex-start" wrap="wrap" gap="8">
+              <Stack gap="4">
+                <Title order={2}>{exp.company}</Title>
+                <Text size="md" c="dimmed">
                   {exp.role}
                 </Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <Text size="sm" c="dimmed">
                   {exp.location}
                 </Text>
-              </Column>
-              <Tag size="m">{exp.timeframe}</Tag>
-            </Row>
-            <Column as="ul" gap="8" paddingLeft="m">
+              </Stack>
+              <Badge size="md">{exp.timeframe}</Badge>
+            </Group>
+            <Stack component="ul" gap="8" pl="md">
               {exp.achievements.map((item, j) => (
-                <Row key={j} as="li" gap="8" vertical="start">
-                  <Text
-                    as="span"
-                    onBackground="brand-weak"
-                    style={{ flexShrink: 0, marginTop: "2px" }}
-                  >
+                <Group key={j} component="li" gap="8" align="flex-start" wrap="nowrap">
+                  <Text span c="dimmed" style={{ flexShrink: 0, marginTop: "2px" }}>
                     –
                   </Text>
-                  <Text variant="body-default-m" onBackground="neutral-weak">
+                  <Text size="md" c="dimmed">
                     {item}
                   </Text>
-                </Row>
+                </Group>
               ))}
-            </Column>
-            {i < workExperience.experiences.length - 1 && <Line />}
-          </Column>
+            </Stack>
+            {i < workExperience.experiences.length - 1 && <Divider />}
+          </Stack>
         ))}
-      </Column>
+      </Stack>
 
-      <Column fillWidth gap="l" maxWidth="s" style={{ margin: "3rem auto 0" }}>
-        <Heading as="h2" variant="display-strong-s">
-          Education
-        </Heading>
+      <Stack gap="lg" maw={600} mx="auto" mt="xl">
+        <Title order={2}>Education</Title>
         {workExperience.education.map((edu, i) => (
-          <Row
-            key={i}
-            fillWidth
-            horizontal="between"
-            vertical="start"
-            wrap
-            gap="8"
-            paddingBottom="m"
-          >
-            <Column gap="4">
-              <Text variant="heading-strong-m">{edu.institution}</Text>
-              <Text variant="body-default-m" onBackground="neutral-weak">
+          <Group key={i} justify="space-between" align="flex-start" wrap="wrap" gap="8" pb="md">
+            <Stack gap="4">
+              <Title order={3}>{edu.institution}</Title>
+              <Text size="md" c="dimmed">
                 {edu.degree}
               </Text>
-            </Column>
-            <Tag size="s">{edu.timeframe}</Tag>
-          </Row>
+            </Stack>
+            <Badge size="sm">{edu.timeframe}</Badge>
+          </Group>
         ))}
-      </Column>
-    </Column>
+      </Stack>
+    </Stack>
   );
 }

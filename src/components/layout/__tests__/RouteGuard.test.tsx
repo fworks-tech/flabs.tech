@@ -1,7 +1,8 @@
+import { MantineProvider } from "@mantine/core";
 import { render, screen, waitFor } from "@testing-library/react";
+import { type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/work"),
 }));
@@ -15,6 +16,10 @@ vi.mock("@/app/not-found", () => ({
   default: () => <div>Not Found</div>,
 }));
 
+function Wrapper({ children }: { children: ReactNode }) {
+  return <MantineProvider>{children}</MantineProvider>;
+}
+
 import { RouteGuard } from "@/components/layout/RouteGuard";
 
 describe("RouteGuard", () => {
@@ -23,6 +28,7 @@ describe("RouteGuard", () => {
       <RouteGuard>
         <div data-testid="child">Protected Content</div>
       </RouteGuard>,
+      { wrapper: Wrapper },
     );
     await waitFor(() => {
       expect(screen.getByTestId("child")).toBeInTheDocument();
@@ -37,6 +43,7 @@ describe("RouteGuard", () => {
       <RouteGuard>
         <div data-testid="child">Content</div>
       </RouteGuard>,
+      { wrapper: Wrapper },
     );
     await waitFor(() => {
       expect(screen.getByText("Not Found")).toBeInTheDocument();

@@ -1,27 +1,16 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { Button, Group, Loader, PasswordInput, Stack, Title } from "@mantine/core";
 import NotFound from "@/app/not-found";
 import { protectedRoutes, routes } from "@/config";
-import { Button, Column, Flex, Heading, PasswordInput, Spinner } from "@once-ui-system/core";
+import { logger } from "@/lib/logger";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface RouteGuardProps {
-  /** Child components rendered inside the guard */
   children: React.ReactNode;
 }
 
-/**
- * Client component that guards routes based on the site configuration.
- *
- * Checks whether the current pathname is enabled in the `routes` config,
- * and — if the route is password-protected (`protectedRoutes`) — prompts
- * the user for a password before rendering children.
- *
- * Shows a loading spinner while initial auth checks run, and renders the
- * `NotFound` component for disabled routes.
- */
 const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   const pathname = usePathname();
   const [isRouteEnabled, setIsRouteEnabled] = useState(false);
@@ -101,9 +90,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
 
   if (loading) {
     return (
-      <Flex fillWidth paddingY="128" horizontal="center">
-        <Spinner />
-      </Flex>
+      <Group py="128" justify="center">
+        <Loader />
+      </Group>
     );
   }
 
@@ -113,21 +102,21 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
 
   if (isPasswordRequired && !isAuthenticated) {
     return (
-      <Column paddingY="128" maxWidth={24} gap="24" center>
-        <Heading align="center" wrap="balance">
+      <Stack py="128" maw={400} gap="24" align="center" mx="auto">
+        <Title order={2} ta="center">
           This page is password protected
-        </Heading>
-        <Column fillWidth gap="8" horizontal="center">
+        </Title>
+        <Stack gap="8" align="center">
           <PasswordInput
             id="password"
             label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            errorMessage={error}
+            error={error}
           />
           <Button onClick={handlePasswordSubmit}>Submit</Button>
-        </Column>
-      </Column>
+        </Stack>
+      </Stack>
     );
   }
 

@@ -1,3 +1,4 @@
+import { Badge, Button, Group, Stack, Text, Title } from "@mantine/core";
 import { baseURL, sameAs } from "@/config";
 import { blog, person } from "@/content";
 import ClientMailchimp from "@/components/ui/ClientMailchimp";
@@ -5,23 +6,17 @@ import { Posts } from "@/features/blog/Posts";
 import { isAuthenticated } from "@/lib/auth";
 import { filterPosts } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
-import { Button, Column, Heading, Meta, Row, Schema, Tag, Text } from "@once-ui-system/core";
+import { generateMeta } from "@/lib/seo";
+import { Schema } from "@/lib/schema";
 
 export async function generateMetadata() {
-  const meta = Meta.generate({
+  return generateMeta({
     title: blog.title,
     description: blog.description,
-    baseURL: baseURL,
+    baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(blog.title)}`,
     path: blog.path,
   });
-
-  return {
-    ...meta,
-    alternates: {
-      canonical: `${baseURL}${blog.path}`,
-    },
-  };
 }
 
 export default async function Blog() {
@@ -35,7 +30,7 @@ export default async function Blog() {
     <Schema
       as="blogPosting"
       baseURL={baseURL}
-      sameAs={[sameAs.linkedin, sameAs.github].filter(Boolean)}
+      sameAs={[sameAs.linkedin, sameAs.github].filter((v): v is string => Boolean(v))}
       title={blog.title}
       description={blog.description}
       path={blog.path}
@@ -50,18 +45,18 @@ export default async function Blog() {
 
   if (!hasPosts) {
     return (
-      <Column maxWidth="m" paddingTop="24" horizontal="center" align="center" gap="xl">
+      <Stack maw={1024} pt="24" align="center" gap="xl" mx="auto">
         {schema}
-        <Column fillWidth horizontal="center" align="center" gap="m">
-          <Heading variant="display-strong-l" align="center">
+        <Stack align="center" gap="m">
+          <Title order={1} ta="center">
             Blog
-          </Heading>
-          <Text variant="body-default-l" onBackground="neutral-weak" align="center" wrap="balance">
+          </Title>
+          <Text size="md" c="dimmed" ta="center">
             Real-world notes on software engineering — architecture, frontend, backend, AI, DevOps,
             and everything in between.
           </Text>
-        </Column>
-        <Row gap="12" wrap horizontal="center">
+        </Stack>
+        <Group gap="12" wrap="wrap" justify="center">
           {[
             "GraphQL Federation",
             "Multi-Agent AI",
@@ -69,49 +64,42 @@ export default async function Blog() {
             "Open Source",
             "Claude SDK",
           ].map((topic) => (
-            <Tag key={topic} size="l">
+            <Badge key={topic} size="lg">
               {topic}
-            </Tag>
+            </Badge>
           ))}
-        </Row>
-        <Row gap="16" wrap horizontal="center">
-          <Button
-            href="https://github.com/fworks-tech"
-            variant="secondary"
-            size="m"
-            prefixIcon="github"
-          >
+        </Group>
+        <Group gap="16" wrap="wrap" justify="center">
+          <Button component="a" href="https://github.com/fworks-tech" variant="light" size="md">
             Follow on GitHub
           </Button>
-        </Row>
-      </Column>
+        </Group>
+      </Stack>
     );
   }
 
   return (
-    <Column maxWidth="m" paddingTop="24">
+    <Stack maw={1024} pt="24" mx="auto">
       {schema}
-      <Column fillWidth horizontal="center" align="center" gap="8" marginBottom="xl">
-        <Heading variant="display-strong-l" align="center">
+      <Stack align="center" gap="8" mb="xl">
+        <Title order={1} ta="center">
           Blog
-        </Heading>
-        <Text variant="body-default-l" onBackground="neutral-weak" align="center" wrap="balance">
+        </Title>
+        <Text size="md" c="dimmed" ta="center">
           Real-world notes on software engineering — architecture, frontend, backend, AI, DevOps,
           and everything in between.
         </Text>
-      </Column>
-      <Column fillWidth flex={1} gap="40">
+      </Stack>
+      <Stack gap="40">
         <Posts range={[1, 3]} thumbnail />
         {hasEarlierPosts && (
           <>
-            <Heading as="h2" variant="heading-strong-xl">
-              Earlier posts
-            </Heading>
+            <Title order={2}>Earlier posts</Title>
             <Posts range={[4]} />
           </>
         )}
-        <ClientMailchimp marginBottom="l" padding="m" />
-      </Column>
-    </Column>
+        <ClientMailchimp marginBottom="lg" padding="md" />
+      </Stack>
+    </Stack>
   );
 }

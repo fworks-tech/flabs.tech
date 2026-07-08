@@ -5,6 +5,14 @@
   --neutral-background-weak: #0f0f16;
 }
 
+/* Increase dimmed text contrast for WCAG AA compliance */
+[data-mantine-color-scheme="dark"] {
+  --mantine-color-dimmed: var(--mantine-color-dark-0);
+}
+[data-mantine-color-scheme="light"] {
+  --mantine-color-dimmed: var(--mantine-color-gray-7);
+}
+
 /* :root {
   /*
   /* Override default variables here */
