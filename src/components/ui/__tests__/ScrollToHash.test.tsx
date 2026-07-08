@@ -1,7 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/navigation");
 
 import { ScrollToHash } from "@/components/ui/ScrollToHash";

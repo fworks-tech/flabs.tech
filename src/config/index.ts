@@ -11,4 +11,4 @@ export {
   socialSharing,
 } from "./once-ui.config";
 
-export { iconLibrary } from "./icons";
+

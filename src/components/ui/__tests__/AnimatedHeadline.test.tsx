@@ -1,7 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@once-ui-system/core");
 vi.mock("next/navigation");
 
 import { AnimatedHeadline } from "@/components/ui/AnimatedHeadline";

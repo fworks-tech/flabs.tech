@@ -1,7 +1,5 @@
 import type { Preview } from "@storybook/react";
 
-import "@once-ui-system/core/css/styles.css";
-import "@once-ui-system/core/css/tokens.css";
 import "@/styles/custom.css";
 
 const preview: Preview = {
