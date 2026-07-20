@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { mockAiApi } from "./global-setup";
+import { type Page, expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/zen/v1/chat/completions", (route) =>
@@ -13,12 +12,12 @@ test.describe("navigation", () => {
     await expect(page.locator("header")).toBeVisible();
   });
 
-  async function clickNav(page: any, path: string, expected: RegExp) {
+  async function clickNav(page: Page, path: string, expected: RegExp) {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
     await Promise.all([
       page.waitForURL(expected, { timeout: 15000 }),
-      page.locator(`a[href="${path}"]`).first().click(),
+      page.locator(`header a[href="${path}"]:visible`).first().click(),
     ]);
     await expect(page).toHaveURL(expected);
   }
@@ -43,7 +42,7 @@ test.describe("navigation", () => {
   test("home link navigates back to homepage", async ({ page }) => {
     await page.goto("/about");
     await page.waitForLoadState("networkidle");
-    await page.getByRole("link", { name: "Home", exact: true }).first().click();
+    await page.locator('header a[href="/"]:visible').first().click();
     await expect(page).toHaveURL("/");
   });
 
