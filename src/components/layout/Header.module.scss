@@ -43,6 +43,23 @@
   .utils {
     gap: 4px !important;
   }
+
+  .desktopThemeToggle {
+    display: none;
+  }
+
+  .mobileThemeToggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 200;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobileThemeToggle {
+    display: none;
+  }
 }
 
 

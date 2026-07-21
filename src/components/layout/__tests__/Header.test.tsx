@@ -28,8 +28,9 @@ describe("Header", () => {
     expect(links.length).toBeGreaterThanOrEqual(5);
   });
 
-  it("renders theme toggle button", () => {
+  it("renders theme toggle buttons", () => {
     render(<Header />, { wrapper: Wrapper });
-    expect(screen.getByRole("button", { name: /switch to/i })).toBeInTheDocument();
+    const toggles = screen.getAllByRole("button", { name: /switch to/i });
+    expect(toggles).toHaveLength(2);
   });
 });

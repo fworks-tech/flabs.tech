@@ -6,17 +6,18 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: none;
-  background: var(--mantine-color-indigo-7);
-  color: var(--mantine-color-white);
+  border: 1px solid var(--mantine-color-dark-4);
+  background: var(--mantine-color-dark-6);
+  color: var(--mantine-color-dark-1);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   transition: opacity 0.2s, transform 0.2s;
 
   &:hover {
+    background: var(--mantine-color-dark-5);
     transform: scale(1.05);
   }
 
@@ -65,6 +66,11 @@
   pointer-events: auto;
 }
 
+.chatDragging {
+  transition: none;
+  cursor: grabbing;
+}
+
 .chatExpanded {
   width: 600px;
   max-height: 700px;
@@ -80,6 +86,12 @@
   padding: 12px 12px 12px 16px;
   border-bottom: 1px solid var(--mantine-color-dark-5);
   gap: 8px;
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 
 .headerLeft {

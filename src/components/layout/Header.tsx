@@ -78,52 +78,60 @@ export const Header = () => {
   ].filter((item) => routes[item.path as keyof typeof routes]);
 
   return (
-    <Group
-      className={styles.position}
-      component="header"
-      style={{ zIndex: 100 }}
-      px="24"
-      py="xs"
-      align="center"
-      suppressHydrationWarning
-      role="banner"
-    >
-      <nav aria-label="Main navigation" style={{ flex: 1 }}>
-        <Group justify="center" gap="4" align="center">
-          {navItems.map((item) => (
-            <div key={item.path} className={styles.navItem}>
-              <Button
-                component={Link}
-                href={item.path}
-                variant={item.selected ? "light" : "subtle"}
-                visibleFrom="sm"
-                onClick={() => trackEvent("nav_click", { page: item.path })}
-              >
-                {item.label}
-              </Button>
-              <ActionIcon
-                component={Link}
-                href={item.path}
-                variant={item.selected ? "light" : "subtle"}
-                size="md"
-                hiddenFrom="sm"
-                onClick={() => trackEvent("nav_click", { page: item.path })}
-              >
-                {iconMap[item.icon] || null}
-              </ActionIcon>
-            </div>
-          ))}
-        </Group>
-      </nav>
-
-      <Group className={styles.utils} gap="16" align="center">
-        {display.time && (
-          <Group visibleFrom="sm">
-            <TimeDisplay timeZone={person.location} />
+    <>
+      <Group
+        className={styles.position}
+        component="header"
+        style={{ zIndex: 100 }}
+        px="24"
+        py="xs"
+        align="center"
+        suppressHydrationWarning
+        role="banner"
+      >
+        <nav aria-label="Main navigation" style={{ flex: 1 }}>
+          <Group justify="center" gap="4" align="center" wrap="nowrap">
+            {navItems.map((item) => (
+              <div key={item.path} className={styles.navItem}>
+                <Button
+                  component={Link}
+                  href={item.path}
+                  variant={item.selected ? "light" : "subtle"}
+                  visibleFrom="sm"
+                  onClick={() => trackEvent("nav_click", { page: item.path })}
+                >
+                  {item.label}
+                </Button>
+                <ActionIcon
+                  component={Link}
+                  href={item.path}
+                  variant={item.selected ? "light" : "subtle"}
+                  size="md"
+                  hiddenFrom="sm"
+                  onClick={() => trackEvent("nav_click", { page: item.path })}
+                >
+                  {iconMap[item.icon] || null}
+                </ActionIcon>
+              </div>
+            ))}
           </Group>
-        )}
-        {display.themeSwitcher && <ThemeToggle />}
+        </nav>
+
+        <Group className={styles.utils} gap="16" align="center">
+          {display.time && (
+            <Group visibleFrom="sm">
+              <TimeDisplay timeZone={person.location} />
+            </Group>
+          )}
+          {display.themeSwitcher && <ThemeToggle className={styles.desktopThemeToggle} />}
+        </Group>
       </Group>
-    </Group>
+
+      {display.themeSwitcher && (
+        <div className={styles.mobileThemeToggle}>
+          <ThemeToggle />
+        </div>
+      )}
+    </>
   );
 };

@@ -5,13 +5,13 @@ import { ActionIcon } from "@mantine/core";
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
-  IconMessage,
+  IconRobot,
   IconSend,
   IconSquare,
   IconX,
 } from "@tabler/icons-react";
 import { DefaultChatTransport } from "ai";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./AiAssistant.module.scss";
 
 const MAX_SESSION_MESSAGES = 20;
@@ -45,7 +45,11 @@ export function AiAssistant() {
   const [expanded, setExpanded] = useState(false);
   const [input, setInput] = useState("");
   const chatRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
 
   const { messages, sendMessage, status, error, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -62,10 +66,57 @@ export function AiAssistant() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleDragStart = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if (expanded) return;
+      const chat = chatRef.current;
+      if (!chat) return;
+      const rect = chat.getBoundingClientRect();
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+      dragOffset.current = { x: clientX - rect.left, y: clientY - rect.top };
+      setIsDragging(true);
+    },
+    [expanded],
+  );
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    function handleDragMove(e: MouseEvent | TouchEvent) {
+      if ("touches" in e) e.preventDefault();
+      const chat = chatRef.current;
+      if (!chat) return;
+      const rect = chat.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+      const x = Math.max(0, Math.min(maxX, clientX - dragOffset.current.x));
+      const y = Math.max(0, Math.min(maxY, clientY - dragOffset.current.y));
+      setPosition({ x, y });
+    }
+
+    function handleDragEnd() {
+      setIsDragging(false);
+    }
+
+    window.addEventListener("mousemove", handleDragMove);
+    window.addEventListener("mouseup", handleDragEnd);
+    window.addEventListener("touchmove", handleDragMove, { passive: false });
+    window.addEventListener("touchend", handleDragEnd);
+    return () => {
+      window.removeEventListener("mousemove", handleDragMove);
+      window.removeEventListener("mouseup", handleDragEnd);
+      window.removeEventListener("touchmove", handleDragMove);
+      window.removeEventListener("touchend", handleDragEnd);
+    };
+  }, [isDragging]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,22 +143,31 @@ export function AiAssistant() {
         variant="filled"
         size="xl"
         radius="xl"
+        style={
+          !isOpen && (position.x !== 0 || position.y !== 0)
+            ? { right: "auto", bottom: "auto", left: position.x + 312, top: position.y + 448 }
+            : undefined
+        }
       >
-        <IconMessage size={24} />
+        <IconRobot size={24} />
       </ActionIcon>
 
       {isOpen && <div className={styles.overlay} onClick={() => setIsOpen(false)} data-testid="chat-overlay" />}
 
       <div
+        ref={chatRef}
         className={`${styles.chat} ${isOpen ? styles.chatOpen : ""} ${
           expanded ? styles.chatExpanded : ""
-        }`}
+        } ${isDragging ? styles.chatDragging : ""}`}
+        style={
+          !expanded && (position.x !== 0 || position.y !== 0)
+            ? { left: position.x, top: position.y, right: "auto", bottom: "auto" }
+            : undefined
+        }
       >
-        <div className={styles.header}>
+        <div className={styles.header} onMouseDown={handleDragStart} onTouchStart={handleDragStart}>
           <div className={styles.headerLeft}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            <IconRobot size={16} />
             <span className={styles.headerTitle}>AI Assistant</span>
             <StatusDot status={status} />
             {userMsgCount > 0 && (
@@ -141,13 +201,11 @@ export function AiAssistant() {
           </div>
         </div>
 
-        <div ref={chatRef} className={styles.messages}>
+        <div ref={messagesRef} className={styles.messages}>
           {messages.length === 0 && (
             <div className={styles.welcome}>
               <div className={styles.welcomeIcon}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
+                <IconRobot size={32} />
               </div>
               <p className={styles.welcomeTitle}>Hi, I&apos;m Fabio&apos;s AI assistant!</p>
               <p className={styles.welcomeText}>
