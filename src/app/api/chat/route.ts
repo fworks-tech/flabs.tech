@@ -7,7 +7,7 @@ import { type NextRequest } from "next/server";
 
 const zen = createOpenAICompatible({
   name: "zen",
-  baseURL: "https://opencode.ai/zen/v1",
+  baseURL: "https://opencode.ai/zen/go/v1",
   headers: {
     Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
   },
@@ -160,5 +160,5 @@ export async function POST(req: NextRequest) {
     system: buildSystemPrompt(),
   });
 
-  return result.toTextStreamResponse();
+  return result.toUIMessageStreamResponse();
 }
