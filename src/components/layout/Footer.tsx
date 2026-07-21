@@ -16,11 +16,12 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <Group component="footer" p="8" justify="center" className={styles.mobile} role="contentinfo">
+    <Group component="footer" p="8" justify="center" className={styles.mobile} role="contentinfo" >
       <Group
         maw={1024}
         py="8"
         px="16"
+        mb="96"
         gap="16"
         justify="space-between"
         align="center"
