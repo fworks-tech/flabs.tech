@@ -6,6 +6,12 @@
   --mantine-color-dimmed: var(--mantine-color-gray-7);
 }
 
+/* Account for sticky header + floating nav pill on mobile */
+html {
+  scroll-padding-top: 60px;
+  scroll-padding-bottom: 80px;
+}
+
 
 
 /* ============================================================================

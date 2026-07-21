@@ -52,11 +52,11 @@ const TimeDisplay: React.FC<TimeDisplayProps> = ({ timeZone, locale = "en-GB" })
 export default TimeDisplay;
 
 const iconMap: Record<string, React.ReactNode> = {
-  home: <IconHome size={18} />,
-  grid: <IconGridDots size={18} />,
-  code: <IconCode size={18} />,
-  book: <IconBook size={18} />,
-  person: <IconUser size={18} />,
+  home: <IconHome size={16} />,
+  grid: <IconGridDots size={16} />,
+  code: <IconCode size={16} />,
+  book: <IconBook size={16} />,
+  person: <IconUser size={16} />,
 };
 
 type NavItem = {
@@ -80,17 +80,15 @@ export const Header = () => {
   return (
     <Group
       className={styles.position}
-      pos="sticky"
       component="header"
-      top={0}
-      style={{ width: "100%", zIndex: 100 }}
+      style={{ zIndex: 100 }}
       px="24"
       py="xs"
       align="center"
       suppressHydrationWarning
       role="banner"
     >
-      <nav style={{ flex: 1 }}>
+      <nav aria-label="Main navigation" style={{ flex: 1 }}>
         <Group justify="center" gap="4" align="center">
           {navItems.map((item) => (
             <div key={item.path} className={styles.navItem}>
@@ -98,7 +96,7 @@ export const Header = () => {
                 component={Link}
                 href={item.path}
                 variant={item.selected ? "light" : "subtle"}
-                className={styles.desktopLabel}
+                visibleFrom="sm"
                 onClick={() => trackEvent("nav_click", { page: item.path })}
               >
                 {item.label}
@@ -107,8 +105,8 @@ export const Header = () => {
                 component={Link}
                 href={item.path}
                 variant={item.selected ? "light" : "subtle"}
-                size="lg"
-                className={styles.mobileIcon}
+                size="md"
+                hiddenFrom="sm"
                 onClick={() => trackEvent("nav_click", { page: item.path })}
               >
                 {iconMap[item.icon] || null}
@@ -118,7 +116,7 @@ export const Header = () => {
         </Group>
       </nav>
 
-      <Group gap="16" align="center">
+      <Group className={styles.utils} gap="16" align="center">
         {display.time && (
           <Group visibleFrom="sm">
             <TimeDisplay timeZone={person.location} />

@@ -1,30 +1,17 @@
 @use "../../styles/breakpoints" as bp;
 
 .position {
+  position: sticky;
+  top: 0;
   backdrop-filter: blur(12px);
   background: var(--mantine-color-dark-8);
   border-bottom: 1px solid var(--mantine-color-dark-5);
 }
 
-.wordmark {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--mantine-color-dark-0);
-  text-decoration: none;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: var(--mantine-color-indigo-4);
-  }
-}
-
-
 @include bp.s {
   .position {
     position: fixed;
-    bottom: var(--static-space-24);
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     top: auto;
     left: 50%;
     transform: translateX(-50%);
@@ -32,9 +19,11 @@
     max-width: calc(100vw - 32px);
     overflow-x: auto;
     white-space: nowrap;
+    flex-wrap: nowrap;
     border-radius: 9999px;
     border: 1px solid var(--mantine-color-dark-5);
-    padding: 6px 16px;
+    padding: 6px 12px;
+    gap: 4px;
     backdrop-filter: blur(12px);
     background: var(--mantine-color-dark-7);
   }
@@ -46,24 +35,14 @@
   align-items: center;
 }
 
-.desktopLabel {
-  display: block;
-  
-  @include bp.s {
-    display: none;
+@include bp.s {
+  .navItem {
+    flex-shrink: 0;
+  }
+
+  .utils {
+    gap: 4px !important;
   }
 }
 
-.mobileIcon {
-  display: none;
-  
-  @include bp.s {
-    display: flex;
-  }
-}
 
-.desktopLabel:focus-visible,
-.mobileIcon:focus-visible {
-  outline: 2px solid var(--mantine-color-violet-5);
-  outline-offset: 2px;
-}
