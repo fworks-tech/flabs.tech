@@ -1,0 +1,113 @@
+---
+title: "Your Portfolio Should Answer Questions, Not Just List Them"
+publishedAt: "2026-07-21"
+summary: "We added a floating AI assistant to flabs.tech that knows everything about Fabio's experience, skills, and projects. Here's why every portfolio should have one."
+tag: "AI"
+shareText: |
+  Most portfolios say "feel free to reach out." Ours answers your questions on the spot.
+
+  We built an AI assistant that knows Fabio's full career history, skills, and projects — and it's available on every page.
+
+  Try it at flabs.tech
+---
+
+Every developer portfolio has the same structure: a hero section, a list of skills, a few project cards, and a "Contact Me" button. Visitors read through it, maybe click a link, and leave.
+
+The problem isn't the design. It's the interaction model. The portfolio talks *at* you. It never talks *with* you.
+
+We changed that.
+
+---
+
+## The Idea
+
+What if your portfolio could answer questions like:
+
+- "What experience does Fabio have with GraphQL?"
+- "Tell me about his work at [company]"
+- "Which projects use Python?"
+- "What's his approach to AI architecture?"
+
+Instead of making visitors dig through pages of content to find specific information, the AI assistant pulls it together in seconds. It reads the same source data that powers the About, Work, and Blog pages — and synthesizes answers on demand.
+
+The result is a portfolio that doesn't just display information. It *understands* it.
+
+---
+
+## What the Assistant Knows
+
+The AI has access to Fabio's complete professional context:
+
+| Category | What it covers |
+|----------|---------------|
+| **Skills** | Technical stack, frameworks, tools — organized by category |
+| **Experience** | Every role, company, timeframe, and achievement |
+| **Projects** | Full descriptions, tech stacks, and outcomes |
+| **Blog posts** | Titles and summaries of every published article |
+| **Bio** | Role, location, contact info, and professional summary |
+
+This isn't a generic chatbot. It's a domain-specific assistant built from structured data. It doesn't browse the web or pull from training data — every answer comes from the portfolio's own content files.
+
+When Fabio adds a new project or publishes a new blog post, the assistant knows about it automatically. No manual updates. No separate knowledge base to maintain.
+
+---
+
+## The Benefits
+
+### For Visitors
+
+**Instant answers.** No more scrolling through three pages to find out if someone has experience with your tech stack. Ask the assistant, get a direct answer.
+
+**Personalized exploration.** Different visitors care about different things. A hiring manager wants to see relevant experience. A potential client wants to know about specific project types. A fellow developer wants to compare tech choices. The assistant adapts to each question.
+
+**Lower friction.** "Contact Me" forms create commitment anxiety. A chat widget feels casual and exploratory. Visitors are more likely to engage when there's no pressure.
+
+### For the Portfolio Owner
+
+**Higher engagement.** Interactive elements keep visitors on the page longer. Instead of a 30-second scan, visitors spend minutes exploring through conversation.
+
+**Measurable interest.** Every question reveals what visitors care about. "Tell me about your GraphQL experience" signals a different intent than "what frameworks do you use."
+
+**Competitive differentiation.** In a sea of identical portfolio templates, an AI assistant is memorable. It's the kind of thing people mention in interviews: "This developer built an AI that knows their whole career."
+
+### For the Ecosystem
+
+**Proof of capability.** The assistant isn't a gimmick — it demonstrates real engineering skills: streaming APIs, responsive design, rate limiting, session management, and AI integration. It *is* the portfolio.
+
+**Low cost, high signal.** Running the assistant costs fractions of a cent per session. The signal it sends about technical capability is worth far more.
+
+---
+
+## How It Feels
+
+The assistant floats in the corner of every page. Click the robot icon, type a question, get an answer.
+
+It's not a full-screen modal or a disruptive popup. It's a persistent companion that's there when you want it and invisible when you don't.
+
+On mobile, it takes the full width of the screen with a clean, native-feeling interface. On desktop, it's a compact widget you can drag anywhere on the page.
+
+The responses are fast — usually under a second. They're concise and professional. And they never make things up. If the assistant doesn't have information about something, it says so.
+
+---
+
+## What We Learned
+
+**Domain-specific beats general-purpose.** A chatbot trained on the entire internet gives vague answers. An assistant trained on one person's career gives precise ones.
+
+**Content-as-data is powerful.** The same MDX files that power the website's pages also power the AI. There's no separate database, no sync pipeline, no content management overhead.
+
+**Small models are enough.** DeepSeek V4 Flash handles portfolio Q&A effortlessly. You don't need GPT-4 to answer "what's Fabio's experience with React?" The right model for the task saves money and reduces latency.
+
+**The best demos are the ones people use.** The assistant isn't a proof-of-concept. It's a production feature that runs on every page of a live website.
+
+---
+
+## Try It
+
+The AI assistant is live at [flabs.tech](https://flabs.tech). Ask it about Fabio's experience, his approach to system architecture, or which projects he's most proud of.
+
+If you're building a portfolio and want to add something that actually stands out, consider adding an AI that knows your story.
+
+---
+
+*Built with Next.js 16, Vercel AI SDK, Mantine v9, and DeepSeek V4 Flash via OpenCode Go. Total cost per session: less than a tenth of a cent.*
