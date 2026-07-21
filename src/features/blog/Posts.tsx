@@ -42,7 +42,11 @@ export function Posts({
   return (
     <>
       {displayedBlogs.length > 0 && (
-        <SimpleGrid cols={colsMap[columns] || 1} spacing="lg" mb="40">
+        <SimpleGrid
+          cols={{ base: 1, md: colsMap[columns] || 1 }}
+          spacing="lg"
+          mb="40"
+        >
           {displayedBlogs.map((post) => (
             <Post key={post.slug} post={post} thumbnail={thumbnail} direction={direction} />
           ))}
