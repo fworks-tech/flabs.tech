@@ -9,17 +9,34 @@
 .table td {
   padding: 12px var(--static-space-16);
   text-align: left;
+}
+
+[data-mantine-color-scheme="dark"] .table th,
+[data-mantine-color-scheme="dark"] .table td {
   border-bottom: 1px solid var(--mantine-color-dark-5);
 }
 
-.table th {
-  font-weight: 600;
+[data-mantine-color-scheme="light"] .table th,
+[data-mantine-color-scheme="light"] .table td {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+}
+
+[data-mantine-color-scheme="dark"] .table th {
   color: var(--mantine-color-dark-0);
   background: var(--mantine-color-dark-5);
 }
 
-.table td {
+[data-mantine-color-scheme="light"] .table th {
+  color: var(--mantine-color-dark-8);
+  background: var(--mantine-color-gray-1);
+}
+
+[data-mantine-color-scheme="dark"] .table td {
   color: var(--mantine-color-dark-3);
+}
+
+[data-mantine-color-scheme="light"] .table td {
+  color: var(--mantine-color-dark-6);
 }
 
 .table tr:last-child td {

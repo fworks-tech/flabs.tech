@@ -4,8 +4,16 @@
   position: sticky;
   top: 0;
   backdrop-filter: blur(12px);
-  background: var(--mantine-color-dark-8);
-  border-bottom: 1px solid var(--mantine-color-dark-5);
+
+  [data-mantine-color-scheme="dark"] & {
+    background: var(--mantine-color-dark-8);
+    border-bottom: 1px solid var(--mantine-color-dark-5);
+  }
+
+  [data-mantine-color-scheme="light"] & {
+    background: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid var(--mantine-color-gray-2);
+  }
 }
 
 @include bp.s {
@@ -21,11 +29,19 @@
     white-space: nowrap;
     flex-wrap: nowrap;
     border-radius: 9999px;
-    border: 1px solid var(--mantine-color-dark-5);
     padding: 6px 12px;
     gap: 4px;
     backdrop-filter: blur(12px);
-    background: var(--mantine-color-dark-7);
+
+    [data-mantine-color-scheme="dark"] & {
+      border: 1px solid var(--mantine-color-dark-5);
+      background: var(--mantine-color-dark-7);
+    }
+
+    [data-mantine-color-scheme="light"] & {
+      border: 1px solid var(--mantine-color-gray-2);
+      background: rgba(255, 255, 255, 0.9);
+    }
   }
 }
 
