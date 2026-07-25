@@ -1,6 +1,7 @@
 /* Increase dimmed text contrast for WCAG AA compliance */
 [data-mantine-color-scheme="dark"] {
   --mantine-color-dimmed: var(--mantine-color-dark-0);
+  --mantine-color-body: #1e1f24;
 }
 [data-mantine-color-scheme="light"] {
   --mantine-color-dimmed: var(--mantine-color-gray-7);
