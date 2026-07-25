@@ -6,6 +6,11 @@
   display: flex;
 }
 
+[data-mantine-color-scheme="light"] .visualHeader {
+  background: linear-gradient(135deg, #e8e6f5 0%, #ddd9f0 55%, #d0cce8 100%);
+  padding: 1.25rem;
+}
+
 .visualTag {
   position: relative;
   z-index: 1;
@@ -17,10 +22,19 @@
   text-transform: uppercase;
   padding: 0.25rem 0.6rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(4px);
+}
+
+[data-mantine-color-scheme="dark"] .visualTag {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-mantine-color-scheme="light"] .visualTag {
+  color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .visualTitle {
@@ -28,11 +42,18 @@
   z-index: 1;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
   line-height: 1.2;
   font-family: var(--font-heading);
 
   @include bp.s {
     font-size: 1.25rem;
   }
+}
+
+[data-mantine-color-scheme="dark"] .visualTitle {
+  color: #ffffff;
+}
+
+[data-mantine-color-scheme="light"] .visualTitle {
+  color: rgba(0, 0, 0, 0.85);
 }

@@ -15,7 +15,14 @@
 .text {
     text-decoration-thickness: 1px;
     text-underline-offset: 0.25em;
+}
+
+[data-mantine-color-scheme="dark"] .text {
     text-decoration-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme="light"] .text {
+    text-decoration-color: var(--mantine-color-gray-4);
 }
 
 .visibility {
