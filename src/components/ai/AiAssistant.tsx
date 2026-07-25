@@ -5,7 +5,6 @@ import { ActionIcon } from "@mantine/core";
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
-  IconRobot,
   IconSend,
   IconSquare,
   IconX,
@@ -149,7 +148,11 @@ export function AiAssistant() {
             : undefined
         }
       >
-        <IconRobot size={24} />
+        <img
+          src="/images/ai-avatar.png"
+          alt="Fabio's AI assistant"
+          className={styles.toggleAvatar}
+        />
       </ActionIcon>
 
       {isOpen && <div className={styles.overlay} onClick={() => setIsOpen(false)} data-testid="chat-overlay" />}
@@ -167,7 +170,11 @@ export function AiAssistant() {
       >
         <div className={styles.header} onMouseDown={handleDragStart} onTouchStart={handleDragStart}>
           <div className={styles.headerLeft}>
-            <IconRobot size={16} />
+            <img
+              src="/images/ai-avatar.png"
+              alt=""
+              className={styles.headerAvatar}
+            />
             <span className={styles.headerTitle}>AI Assistant</span>
             <StatusDot status={status} />
             {userMsgCount > 0 && (
@@ -205,7 +212,11 @@ export function AiAssistant() {
           {messages.length === 0 && (
             <div className={styles.welcome}>
               <div className={styles.welcomeIcon}>
-                <IconRobot size={32} />
+                <img
+                  src="/images/ai-avatar.png"
+                  alt="Fabio's AI assistant"
+                  className={styles.welcomeAvatar}
+                />
               </div>
               <p className={styles.welcomeTitle}>Hi, I&apos;m Fabio&apos;s AI assistant!</p>
               <p className={styles.welcomeText}>
