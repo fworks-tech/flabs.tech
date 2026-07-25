@@ -3,8 +3,8 @@ import { createTheme, type MantineThemeOverride } from "@mantine/core";
 export const mantineTheme: MantineThemeOverride = createTheme({
   primaryColor: "indigo",
   defaultRadius: "md",
-  fontFamily: "var(--font-geist-sans)",
-  fontFamilyMonospace: "var(--font-geist-mono)",
+  fontFamily: "var(--font-body)",
+  fontFamilyMonospace: "var(--font-code)",
   defaultGradient: { deg: 135, from: "indigo", to: "violet" },
   colors: {
     dark: [
