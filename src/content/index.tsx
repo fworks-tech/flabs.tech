@@ -6,7 +6,7 @@ const person: Person = {
   name: "Fabio Ritzel Borges",
   role: "Senior Full-Stack Engineer · AI Engineering",
   avatar: "/images/avatar.webp",
-  email: "fritzelborges@gmail.com",
+  email: "",
   resume: "/resume.pdf",
   location: "America/Sao_Paulo",
   languages: ["English", "Portuguese"],
@@ -39,8 +39,8 @@ const social: Social = [
   {
     name: "Email",
     icon: "email",
-    link: `mailto:${person.email}`,
-    essential: true,
+    link: "https://github.com/fworks-tech",
+    essential: false,
   },
 ];
 
