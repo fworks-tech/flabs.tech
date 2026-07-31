@@ -13,7 +13,7 @@ const zen = createOpenAICompatible({
   },
 });
 
-const model = zen.chatModel("deepseek-v4-flash");
+const model = zen.chatModel("mimo-v2.5");
 
 function buildSystemPrompt(): string {
   const projects = getPosts(["src", "content", "projects"]);
