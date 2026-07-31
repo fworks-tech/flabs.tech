@@ -113,7 +113,6 @@ export default async function RootLayout({
         image: `${baseURL}${person.avatar}`,
         sameAs: Object.values(sameAs).filter((v): v is string => Boolean(v)),
         jobTitle: person.role,
-        email: person.email,
         address: {
           "@type": "PostalAddress",
           addressLocality: "Joinville",

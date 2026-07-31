@@ -44,7 +44,6 @@ function buildSystemPrompt(): string {
 - Name: ${person.name}
 - Role: ${person.role}
 - Location: ${person.location}
-- Email: ${person.email}
 - Resume: ${person.resume}
 
 ## Bio
