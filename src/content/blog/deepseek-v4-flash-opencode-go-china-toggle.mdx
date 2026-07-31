@@ -1,0 +1,121 @@
+---
+title: "DeepSeek V4 Flash on OpenCode Go now requires China hosting opt-in"
+publishedAt: "2026-07-31"
+summary: "The official V4-Flash-0731 release (July 31, 2026) is served exclusively via DeepSeek's PRC infrastructure. OpenCode Go/Zen now requires an explicit 'Enable models hosted in China' toggle. Here's what changed and your options."
+tag: "Engineering"
+subtitle: "What happened today, why it matters, and how to keep coding without China data routing"
+shareText: |
+  DeepSeek V4 Flash 0731 is live on OpenCode Go — but it now requires a China hosting opt-in toggle.
+  
+  The official release routes through DeepSeek's PRC infrastructure. Here's the context, the workaround, and your alternatives.
+  
+  Read the breakdown on flabs.tech
+---
+
+## What happened today
+
+**July 31, 2026** — DeepSeek shipped the official V4-Flash-0731 release (public beta). The model ID `deepseek-v4-flash` didn't change, but the upstream did: OpenCode Go/Zen now routes this model exclusively through **DeepSeek's first-party API at `api.deepseek.com`**, which is hosted on PRC infrastructure.
+
+If you use OpenCode Go and have **"Enable models hosted in China" disabled** (the default), requests to `deepseek-v4-flash` now fail with:
+
+> "The latest version of this model is only available hosted in China and requires explicit opt in: https://opencode.ai/workspace/.../go"
+
+This caught many developers mid-session today.
+
+---
+
+## Why the change?
+
+The **preview** version of V4 Flash (released April 24) was available via multiple third-party providers — DeepInfra, Fireworks, Novita, Morph, etc. — all offering US/EU residency with zero data retention.
+
+The **official 0731 release** is served **only from DeepSeek's own infrastructure** in China. OpenCode's gateway doesn't yet proxy the 0731 checkpoint through non-China hosts. OpenCode staff confirmed on Bilibili that the gateway now serves the official build, and Responses API support is still in compatibility testing.
+
+---
+
+## Your options right now
+
+### Option 1: Enable the China toggle (simplest)
+
+1. Go to your OpenCode workspace: `https://opencode.ai/workspace/<your-workspace-id>/go`
+2. Enable **"Enable models hosted in China"**
+3. Continue using `deepseek-v4-flash` via OpenCode Go
+
+**Trade-off:** Your requests (prompts, context, code) route through DeepSeek's PRC servers under Chinese data law. No ZDR (zero data retention) guarantee on this path.
+
+### Option 2: Use a non-China provider directly (recommended for data-sensitive work)
+
+| Provider | Region | ZDR | Input/Output per 1M | OpenAI-compatible |
+|----------|--------|-----|---------------------|-------------------|
+| **DeepInfra** | US | ✅ | $0.09 / $0.18 | Yes |
+| **Fireworks** | Multi | ✅ | $0.14 / $0.28 | Yes |
+| **Novita** | US | ✅ | $0.14 / $0.28 | Yes |
+| **Morph** | US | ✅ | $0.14 / $0.28 | Yes |
+| **Sference** | EU | ✅ | $0.14 / $0.28 | Yes |
+| **TensorX** | EU | ✅ | $0.15 / $0.30 | Yes |
+
+Set your own API key and base URL:
+
+```env
+# Example: DeepInfra
+OPENAI_BASE_URL=https://api.deepinfra.com/v1/openai
+OPENAI_API_KEY=your_deepinfra_key
+OPENAI_MODEL=deepseek-v4-flash
+```
+
+This keeps your data in US/EU jurisdictions with zero data retention guarantees.
+
+### Option 3: Switch models on OpenCode Go
+
+OpenCode Go includes 14+ models. Non-China-hosted alternatives on the platform:
+
+- **MiMo-V2.5** (Xiaomi) — $0.28/1M, 30,100 req/5hr
+- **MiMo-V2.5-Pro** — $0.87/1M
+- **Qwen3.7 Plus** — $3.00/1M
+- **GLM-5.2** (Zhipu) — $4.40/1M
+- **Kimi K2.7 Code** (Moonshot) — $3.50/1M
+- **MiniMax M3** — $1.20/1M
+
+Run with:
+
+```bash
+opencode run --model opencode-go/mimo-v2.5 "your task"
+```
+
+### Option 4: Self-host (full control)
+
+V4 Flash weights are MIT-licensed on Hugging Face (~158 GB FP4/FP8). Runs on:
+- 1× H200 (141 GB) or 2× A100 80 GB
+- 4× RTX 4090 with INT4 quantization (quality trade-off)
+
+Zero network egress. Your hardware, your rules.
+
+---
+
+## What about the preview version?
+
+The preview checkpoint is effectively deprecated. OpenCode's gateway has switched to 0731. If you were relying on the preview via third-party hosts through OpenCode, that path is gone — at least until OpenCode adds non-China upstream proxies for the official release.
+
+---
+
+## TL;DR
+
+| Approach | Data residency | Cost | Effort |
+|----------|----------------|------|--------|
+| Enable China toggle | China (PRC law) | $0.14/$0.28 | 1 click |
+| DeepInfra/Fireworks/Novita direct | US/EU, ZDR | $0.09–$0.14 / $0.18–$0.28 | New API key |
+| Switch to MiMo-V2.5 on Go | Unknown (check per model) | $0.28 | Model flag |
+| Self-host | Your infra | GPU cost | High |
+
+---
+
+## What's next?
+
+- OpenCode may add non-China upstreams for 0731 (watch [#39845](https://github.com/anomalyco/opencode/issues/39845))
+- Responses API support for `deepseek-v4-flash` on OpenCode is in testing
+- DeepSeek V4 Pro official release coming soon (separate model, separate hosting)
+
+For now: **if you need non-China data routing, use a direct provider API key instead of OpenCode Go for this model.**
+
+---
+
+*Full disclosure: This site uses OpenCode Go for the AI assistant on every page. The API key is set via `OPENCODE_API_KEY` in the deployment environment. As of today, we've switched the chat API to `mimo-v2.5` (see [commit](https://github.com/fworks-tech/flabs.tech/commit/f7e7a6d)) to avoid the China routing requirement.*
