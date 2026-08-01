@@ -28,6 +28,10 @@
   overflow: hidden;
   animation: avatarBreathe 3s ease-in-out infinite;
 
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
   &:hover {
     border-color: var(--mantine-color-violet-4);
     transform: scale(1.08);

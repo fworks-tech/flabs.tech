@@ -146,3 +146,20 @@ input[type="email"] {
   box-shadow: 0 0 10px #a5b4fc, 0 0 24px #818cf8, 0 0 40px #6366f1;
   transform: scale(1.04);
 }
+
+/* ============================================================================
+   ACCESSIBILITY: Reduced Motion (WCAG 2.3.3)
+   Disables animations/transitions for users who prefer reduced motion,
+   and keeps Playwright element-stability checks deterministic.
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

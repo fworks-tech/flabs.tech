@@ -3,6 +3,19 @@ import { streamText } from "ai";
 import { about, home, person, workExperience } from "@/content";
 import { getPosts } from "@/lib/mdx";
 import { rateLimit, type RateLimitConfig } from "@/lib/rateLimiter";
+import {
+  applyQuarantine,
+  decideResponse,
+  effectiveTier,
+  getCase,
+  maybeEscalate,
+  notify,
+  recordSignal,
+  resolveKey,
+  tierForScore,
+  type ResponseDecision,
+} from "@/lib/abuse";
+import { logger } from "@/lib/logger";
 import { type NextRequest } from "next/server";
 
 const zen = createOpenAICompatible({
@@ -185,60 +198,97 @@ function normalizeMessages(raw: any[]): Array<{ role: "user" | "assistant"; cont
 const MAX_MESSAGES_PER_REQUEST = 20;
 const MAX_INPUT_LENGTH = 500;
 
+function jsonResponse(status: number, body: Record<string, unknown>, headers?: Record<string, string>): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+}
+
+/** Record a signal, escalate + quarantine + notify when the verdict demands it. */
+async function handleAbuseSignal(
+  key: string,
+  kind: string,
+  detail: string,
+  input: Parameters<typeof recordSignal>[2],
+): Promise<void> {
+  const incident = await recordSignal(key, { kind, detail, at: Date.now() }, input);
+
+  const tier = tierForScore(incident.score, incident.severity, incident.trust);
+  if (tier !== "none") {
+    await applyQuarantine(key, tier, `${kind}: ${detail}`, incident.severity, incident.trust);
+    const fired = await maybeEscalate({ kind, key, detail, at: Date.now() });
+    if (fired) {
+      await notify(
+        {
+          name: "abuse.escalation",
+          key,
+          tier,
+          severity: incident.severity,
+          score: incident.score,
+          confidence: incident.confidence,
+          detail: `${kind}: ${detail}`,
+        },
+        incident,
+      );
+    }
+  }
+}
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
     "unknown";
+  const key = resolveKey(ip);
 
-  // Rate limiting (IP-based)
+  // 1. Pre-flight: already quarantined/blocked?
+  const tier = await effectiveTier(key);
+  const preflight = decideResponse(tier);
+  if (preflight.blocked) {
+    return jsonResponse(preflight.status, { error: preflight.reason ?? "Blocked." }, preflight.retryAfter ? { "Retry-After": String(preflight.retryAfter) } : undefined);
+  }
+
+  // 2. Rate limiting (IP-based)
   const rateLimitConfig: RateLimitConfig = {
-    maxAttempts: 30,
+    maxAttempts: tier === "throttle" ? 10 : 30,
     windowMs: 60_000,
   };
-  const { allowed: rateAllowed, retryAfter: rateRetryAfter } = rateLimit(ip, rateLimitConfig.maxAttempts, rateLimitConfig.windowMs);
+  const maxAttempts = rateLimitConfig.maxAttempts ?? 30;
+  const { allowed: rateAllowed, retryAfter: rateRetryAfter } = rateLimit(key, maxAttempts, rateLimitConfig.windowMs ?? 60_000);
   if (!rateAllowed) {
-    return new Response(
-      JSON.stringify({
-        error: `Rate limit exceeded. Try again in ${rateRetryAfter} seconds.`,
-      }),
-      { status: 429, headers: { "Content-Type": "application/json" } },
-    );
+    await handleAbuseSignal(key, "rate", `rate limit hit (${rateRetryAfter}s)`, {
+      rateViolated: true,
+      requestsPerMinute: maxAttempts + 1,
+    });
+    return jsonResponse(429, { error: `Rate limit exceeded. Try again in ${rateRetryAfter} seconds.` });
   }
 
   let body: { messages?: unknown };
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    await handleAbuseSignal(key, "malformed", "invalid JSON body", { malformed: true });
+    return jsonResponse(400, { error: "Invalid JSON body" });
   }
 
   const { messages } = body;
 
   if (!Array.isArray(messages) || messages.length === 0) {
-    return new Response(JSON.stringify({ error: "Invalid messages" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    await handleAbuseSignal(key, "malformed", "messages not an array or empty", { malformed: true });
+    return jsonResponse(400, { error: "Invalid messages" });
   }
 
   if (messages.length > MAX_MESSAGES_PER_REQUEST) {
-    return new Response(
-      JSON.stringify({ error: `Maximum ${MAX_MESSAGES_PER_REQUEST} messages per request.` }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    await handleAbuseSignal(key, "malformed", `message count ${messages.length}`, { malformed: true });
+    return jsonResponse(400, { error: `Maximum ${MAX_MESSAGES_PER_REQUEST} messages per request.` });
   }
 
   const lastMsg = messages[messages.length - 1];
   if (!lastMsg || (typeof lastMsg !== "object")) {
-    return new Response(JSON.stringify({ error: "Invalid message format" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    await handleAbuseSignal(key, "malformed", "invalid message format", { malformed: true });
+    return jsonResponse(400, { error: "Invalid message format" });
   }
   const rawText = lastMsg.parts
     ? lastMsg.parts.filter((p: any) => p.type === "text").map((p: any) => p.text).join("")
@@ -248,19 +298,20 @@ export async function POST(req: NextRequest) {
   const text = sanitizeInput(rawText);
 
   if (text.length > MAX_INPUT_LENGTH) {
-    return new Response(
-      JSON.stringify({ error: `Message too long (max ${MAX_INPUT_LENGTH} characters).` }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    await handleAbuseSignal(key, "oversize", `message length ${text.length}`, {
+      messageLength: text.length,
+    });
+    return jsonResponse(400, { error: `Message too long (max ${MAX_INPUT_LENGTH} characters).` });
   }
 
   // Detect prompt injection
   if (detectPromptInjection(text)) {
-    console.warn(`[chat] Prompt injection detected from IP: ${ip}`);
-    return new Response(
-      JSON.stringify({ error: "Invalid request. Please ask a relevant question about Fabio's portfolio." }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    logger.warn({ key, scope: "abuse" }, "prompt injection detected");
+    await handleAbuseSignal(key, "injection", "prompt injection pattern matched", {
+      injectionDetected: true,
+      messageLength: text.length,
+    });
+    return jsonResponse(400, { error: "Invalid request. Please ask a relevant question about Fabio's portfolio." });
   }
 
   // Estimate tokens for cost checking
@@ -269,21 +320,19 @@ export async function POST(req: NextRequest) {
   const estimatedTokens = estimateTokens(systemPrompt + conversationText + text);
 
   if (estimatedTokens > MAX_TOKENS_PER_REQUEST) {
-    return new Response(
-      JSON.stringify({ error: "Conversation too long. Please start a new chat." }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    await handleAbuseSignal(key, "oversize", `conversation ${estimatedTokens} tokens`, {
+      messageLength: conversationText.length,
+    });
+    return jsonResponse(400, { error: "Conversation too long. Please start a new chat." });
   }
 
   // Cost limit check
-  const { allowed: costAllowed, retryAfter: costRetryAfter } = checkCostLimit(ip, estimatedTokens);
+  const { allowed: costAllowed, retryAfter: costRetryAfter } = checkCostLimit(key, estimatedTokens);
   if (!costAllowed) {
-    return new Response(
-      JSON.stringify({
-        error: `Cost limit exceeded. Try again in ${costRetryAfter} seconds.`,
-      }),
-      { status: 429, headers: { "Content-Type": "application/json" } },
-    );
+    await handleAbuseSignal(key, "cost", `hourly cost budget exceeded`, {
+      costUsd: calculateCost(estimatedTokens),
+    });
+    return jsonResponse(429, { error: `Cost limit exceeded. Try again in ${costRetryAfter} seconds.` });
   }
 
   const normalized = normalizeMessages(messages);
@@ -293,23 +342,20 @@ export async function POST(req: NextRequest) {
       model,
       messages: normalized,
       system: systemPrompt,
-      maxTokens: 1000, // Limit response length
+      maxOutputTokens: 1000, // Limit response length
       temperature: 0.3, // More deterministic
     });
 
     // Log request for monitoring
     const duration = Date.now() - startTime;
-    console.log(`[chat] IP: ${ip}, messages: ${messages.length}, estTokens: ${estimatedTokens}, duration: ${duration}ms`);
-
-    // Note: Actual token usage would come from result.usage (if available)
-    // For now we use estimated; could be enhanced with result.usage callback
+    logger.info(
+      { key, messages: messages.length, estTokens: estimatedTokens, duration, scope: "chat" },
+      "chat request",
+    );
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error(`[chat] Error for IP ${ip}:`, error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error. Please try again later." }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    );
+    logger.error(error, "chat request failed");
+    return jsonResponse(500, { error: "Internal server error. Please try again later." });
   }
 }
