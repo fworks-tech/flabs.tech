@@ -1,4 +1,4 @@
-import { FEATURE_NAMES, type FeatureName, type FeatureVector } from "./features";
+import { FEATURE_NAMES, type FeatureName, type FeatureVector } from './features';
 
 /**
  * Logistic scoring model (ML-style MVP, fully deterministic).
@@ -11,8 +11,8 @@ import { FEATURE_NAMES, type FeatureName, type FeatureVector } from "./features"
  * types weigh more than repeated occurrences of one signal.
  */
 
-export type Severity = "low" | "medium" | "high" | "critical";
-export type TrustState = "trusted" | "neutral" | "suspicious" | "malicious";
+export type Severity = 'low' | 'medium' | 'high' | 'critical';
+export type TrustState = 'trusted' | 'neutral' | 'suspicious' | 'malicious';
 
 export interface ScoreResult {
   score: number; // 0..1
@@ -37,18 +37,18 @@ export const MODEL_BIAS = -0.6;
 
 /** Severity thresholds over the raw logistic score. */
 export const SEVERITY_THRESHOLDS: Array<{ min: number; severity: Severity }> = [
-  { min: 0.85, severity: "critical" },
-  { min: 0.65, severity: "high" },
-  { min: 0.4, severity: "medium" },
-  { min: 0, severity: "low" },
+  { min: 0.85, severity: 'critical' },
+  { min: 0.65, severity: 'high' },
+  { min: 0.4, severity: 'medium' },
+  { min: 0, severity: 'low' },
 ];
 
 /** Trust-state thresholds over the raw logistic score. */
 export const TRUST_THRESHOLDS: Array<{ min: number; trust: TrustState }> = [
-  { min: 0.85, trust: "malicious" },
-  { min: 0.65, trust: "suspicious" },
-  { min: 0.4, trust: "neutral" },
-  { min: 0, trust: "trusted" },
+  { min: 0.85, trust: 'malicious' },
+  { min: 0.65, trust: 'suspicious' },
+  { min: 0.4, trust: 'neutral' },
+  { min: 0, trust: 'trusted' },
 ];
 
 export function logistic(z: number): number {
@@ -80,10 +80,7 @@ export function scoreFeatures(features: FeatureVector): ScoreResult {
 }
 
 /** Confidence: feature diversity + saturation of the strongest signal. */
-export function computeConfidence(
-  activeCount: number,
-  features: FeatureVector,
-): number {
+export function computeConfidence(activeCount: number, features: FeatureVector): number {
   const diversity = Math.min(activeCount / 4, 1); // 4+ distinct signals → 1.0
   const strongest = Math.max(...FEATURE_NAMES.map((n) => features[n]), 0);
   return clamp01(0.5 * diversity + 0.5 * strongest);
@@ -93,14 +90,14 @@ export function classifySeverity(score: number): Severity {
   for (const { min, severity } of SEVERITY_THRESHOLDS) {
     if (score >= min) return severity;
   }
-  return "low";
+  return 'low';
 }
 
 export function classifyTrust(score: number): TrustState {
   for (const { min, trust } of TRUST_THRESHOLDS) {
     if (score >= min) return trust;
   }
-  return "trusted";
+  return 'trusted';
 }
 
 /**

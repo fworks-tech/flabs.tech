@@ -35,6 +35,12 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 60000,
+    env: {
+      ...process.env,
+      // Deterministic server-side data (projects page fetches GitHub server-side,
+      // which Playwright's page.route cannot intercept).
+      E2E_GITHUB_MOCK: "1",
+    },
   },
   snapshotPathTemplate: "{testDir}/{arg}{ext}",
 });

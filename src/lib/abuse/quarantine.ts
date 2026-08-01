@@ -1,5 +1,5 @@
-import { store } from "./store";
-import type { Severity, TrustState } from "./model";
+import { store } from './store';
+import type { Severity, TrustState } from './model';
 
 /**
  * Smart quarantine: tiered containment for detected abusers.
@@ -8,11 +8,11 @@ import type { Severity, TrustState } from "./model";
  * so legitimate users (or recovered actors) are never permanently locked out.
  */
 
-export type QuarantineTier = "none" | "throttle" | "soft-quarantine" | "hard-block";
+export type QuarantineTier = 'none' | 'throttle' | 'soft-quarantine' | 'hard-block';
 
 export interface QuarantineEntry {
   key: string;
-  tier: Exclude<QuarantineTier, "none">;
+  tier: Exclude<QuarantineTier, 'none'>;
   reason: string;
   severity: Severity;
   trust: TrustState;
@@ -22,25 +22,25 @@ export interface QuarantineEntry {
 
 export interface QuarantineConfig {
   /** TTL (ms) for each tier; undefined → never auto-release. */
-  ttlMs: Record<Exclude<QuarantineTier, "none">, number | undefined>;
+  ttlMs: Record<Exclude<QuarantineTier, 'none'>, number | undefined>;
 }
 
 const DEFAULT_CONFIG: QuarantineConfig = {
   ttlMs: {
     throttle: 5 * 60_000, // 5 min
-    "soft-quarantine": 10 * 60_000, // 10 min
-    "hard-block": 60 * 60_000, // 1h
+    'soft-quarantine': 10 * 60_000, // 10 min
+    'hard-block': 60 * 60_000, // 1h
   },
 };
 
-const TIER_ORDER: QuarantineTier[] = ["none", "throttle", "soft-quarantine", "hard-block"];
+const TIER_ORDER: QuarantineTier[] = ['none', 'throttle', 'soft-quarantine', 'hard-block'];
 
-/** The most severe tier implied by a score (for auto-escalation). */
-export function tierForScore(score: number, severity: Severity, trust: TrustState): QuarantineTier {
-  if (severity === "critical" || trust === "malicious") return "hard-block";
-  if (severity === "high" || trust === "suspicious") return "soft-quarantine";
-  if (severity === "medium" || trust === "neutral") return "throttle";
-  return "none";
+/** The most severe tier implied by an investigation verdict (for auto-escalation). */
+export function tierForScore(severity: Severity, trust: TrustState): QuarantineTier {
+  if (severity === 'critical' || trust === 'malicious') return 'hard-block';
+  if (severity === 'high' || trust === 'suspicious') return 'soft-quarantine';
+  if (severity === 'medium' || trust === 'neutral') return 'throttle';
+  return 'none';
 }
 
 function quarantineKey(actorKey: string): string {
@@ -60,7 +60,7 @@ export async function getQuarantine(actorKey: string): Promise<QuarantineEntry |
 
 export async function applyQuarantine(
   actorKey: string,
-  tier: Exclude<QuarantineTier, "none">,
+  tier: Exclude<QuarantineTier, 'none'>,
   reason: string,
   severity: Severity,
   trust: TrustState,
@@ -77,7 +77,11 @@ export async function applyQuarantine(
     startedAt: now,
     expiresAt: ttl !== undefined ? now + ttl : 0,
   };
-  await store.set(quarantineKey(actorKey), entry, ttl !== undefined ? { ex: Math.ceil(ttl / 1000) } : undefined);
+  await store.set(
+    quarantineKey(actorKey),
+    entry,
+    ttl !== undefined ? { ex: Math.ceil(ttl / 1000) } : undefined,
+  );
   return entry;
 }
 
@@ -87,7 +91,7 @@ export async function applyQuarantine(
  */
 export async function escalateQuarantine(
   actorKey: string,
-  targetTier: Exclude<QuarantineTier, "none">,
+  targetTier: Exclude<QuarantineTier, 'none'>,
   reason: string,
   severity: Severity,
   trust: TrustState,
@@ -108,5 +112,5 @@ export async function releaseQuarantine(actorKey: string): Promise<void> {
 /** Effective tier for a key, considering both quarantine and rate limiting. */
 export async function effectiveTier(actorKey: string): Promise<QuarantineTier> {
   const entry = await getQuarantine(actorKey);
-  return entry?.tier ?? "none";
+  return entry?.tier ?? 'none';
 }

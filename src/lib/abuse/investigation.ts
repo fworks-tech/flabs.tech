@@ -1,13 +1,21 @@
-import { extractFeatures, type FeatureVector, type SignalInput } from "./features";
-import { decayScore, scoreFeatures, type Severity, type TrustState } from "./model";
-import { store } from "./store";
+import { createHmac } from 'node:crypto';
+import { extractFeatures, type FeatureVector, type SignalInput } from './features';
+import {
+  classifySeverity,
+  classifyTrust,
+  decayScore,
+  scoreFeatures,
+  type Severity,
+  type TrustState,
+} from './model';
+import { store } from './store';
 
 /**
  * Investigation cases: aggregates signals per actor key (IP or fingerprint),
  * scores them with the model, and persists an evidence-backed verdict.
  *
- * Keys are derived from the actor identifier — anonymized when
- * `ABUSE_TRACK_IP=false` (see `resolveKey`).
+ * Keys are derived from the actor identifier — pseudonymized with a keyed
+ * HMAC when `ABUSE_TRACK_IP=false` (see `resolveKey`).
  */
 
 export interface Signal {
@@ -27,7 +35,7 @@ export interface InvestigationCase {
   firstSeenAt: number;
   updatedAt: number;
   decidedAt: number;
-  decision: "open" | "contained";
+  decision: 'open' | 'contained';
 }
 
 const DEFAULT_RETENTION_MS = 3600_000; // 1h
@@ -38,21 +46,21 @@ export function retentionMs(): number {
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_RETENTION_MS;
 }
 
-/** GDPR/LGPD: when IP tracking is disabled, hash the identifier. */
+/**
+ * GDPR/LGPD: when IP tracking is disabled, pseudonymize the identifier with a
+ * keyed HMAC (`ABUSE_KEY_SECRET`). Note this is keyed pseudonymization, not
+ * anonymization — set a long random secret in production.
+ */
 export function resolveKey(identifier: string): string {
-  if (process.env.ABUSE_TRACK_IP === "false") {
+  if (process.env.ABUSE_TRACK_IP === 'false') {
     return `anon:${hash(identifier)}`;
   }
   return identifier;
 }
 
 function hash(value: string): string {
-  let h = 0;
-  for (let i = 0; i < value.length; i++) {
-    h = (h << 5) - h + value.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h).toString(36);
+  const secret = process.env.ABUSE_KEY_SECRET || '';
+  return createHmac('sha256', secret).update(value).digest('hex').slice(0, 16);
 }
 
 function caseKey(actorKey: string): string {
@@ -85,17 +93,15 @@ export async function recordSignal(
 
   const signals = existing ? [...existing.signals, signal].slice(-50) : [signal];
 
-  // Decay prior score so recovery happens naturally over time.
-  const priorScore = existing ? decayScore(existing.score, now - existing.updatedAt) : 0;
-
-  const features = mergeFeatures(existing?.features ?? emptyFeatures(), freshInput);
+  // Prior features decay over time (30min half-life), so a clean actor who
+  // stops misbehaving naturally recovers to a low severity.
+  const ageMs = existing ? now - existing.updatedAt : 0;
+  const features = mergeFeatures(existing?.features ?? emptyFeatures(), freshInput, ageMs);
   const result = scoreFeatures(features);
 
-  // Keep the strongest of (decayed prior, fresh result) so evidence accumulates
-  // but never artificially inflates once signals have decayed away.
-  const score = Math.max(priorScore, result.score);
-  const severity = score >= 0.85 ? "critical" : score >= 0.65 ? "high" : score >= 0.4 ? "medium" : "low";
-  const trust = score >= 0.85 ? "malicious" : score >= 0.65 ? "suspicious" : score >= 0.4 ? "neutral" : "trusted";
+  const score = result.score;
+  const severity = classifySeverity(score);
+  const trust = classifyTrust(score);
 
   const nextCase: InvestigationCase = {
     key: actorKey,
@@ -108,7 +114,7 @@ export async function recordSignal(
     firstSeenAt: existing?.firstSeenAt ?? now,
     updatedAt: now,
     decidedAt: now,
-    decision: severity === "low" ? "open" : "contained",
+    decision: severity === 'low' ? 'open' : 'contained',
   };
 
   await store.set(caseKey(actorKey), nextCase, { ex: CASE_TTL_SECONDS });
@@ -123,11 +129,16 @@ export { caseKey };
 
 // --- internals ---
 
-function mergeFeatures(prior: FeatureVector, freshInput: SignalInput): FeatureVector {
+function mergeFeatures(
+  prior: FeatureVector,
+  freshInput: SignalInput,
+  ageMs: number,
+): FeatureVector {
   const fresh = extractFeatures(freshInput);
   const merged: FeatureVector = { ...emptyFeatures() };
   (Object.keys(merged) as (keyof FeatureVector)[]).forEach((name) => {
-    merged[name] = Math.max(prior[name], fresh[name]);
+    const decayedPrior = ageMs > 0 ? decayScore(prior[name], ageMs) : prior[name];
+    merged[name] = Math.max(decayedPrior, fresh[name]);
   });
   return merged;
 }
