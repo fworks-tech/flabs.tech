@@ -35,7 +35,7 @@ test.describe("dark mode toggle", () => {
       const initial = await html.getAttribute("data-mantine-color-scheme");
       expect(["dark", "light"]).toContain(initial);
 
-      const toggle = page.locator('[aria-label*="Switch to"]');
+      const toggle = page.locator('[aria-label*="Switch to"]').filter({ visible: true });
       await expect(toggle).toBeVisible();
       await toggle.click();
 
