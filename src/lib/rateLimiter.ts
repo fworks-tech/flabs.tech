@@ -4,6 +4,11 @@ const DEFAULT_MAX_ATTEMPTS = 5;
 const DEFAULT_WINDOW_MS = 60_000;
 const CLEANUP_INTERVAL = 300_000;
 
+export interface RateLimitConfig {
+  maxAttempts?: number;
+  windowMs?: number;
+}
+
 // Periodic cleanup to prevent memory leak
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 function ensureCleanup() {
