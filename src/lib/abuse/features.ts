@@ -7,13 +7,13 @@
  */
 
 export type FeatureName =
-  | "rateViolation"
-  | "injectionDetected"
-  | "costSpike"
-  | "oversizedMessage"
-  | "malformedPayload"
-  | "highFrequency"
-  | "piiDetected";
+  | 'rateViolation'
+  | 'injectionDetected'
+  | 'costSpike'
+  | 'oversizedMessage'
+  | 'malformedPayload'
+  | 'highFrequency'
+  | 'piiDetected';
 
 export type FeatureVector = Record<FeatureName, number>;
 
@@ -35,13 +35,13 @@ export interface SignalInput {
 }
 
 export const FEATURE_NAMES: FeatureName[] = [
-  "rateViolation",
-  "injectionDetected",
-  "costSpike",
-  "oversizedMessage",
-  "malformedPayload",
-  "highFrequency",
-  "piiDetected",
+  'rateViolation',
+  'injectionDetected',
+  'costSpike',
+  'oversizedMessage',
+  'malformedPayload',
+  'highFrequency',
+  'piiDetected',
 ];
 
 // Tuning knobs — thresholds used to saturate each feature at 1.0
@@ -63,8 +63,4 @@ export function extractFeatures(input: SignalInput): FeatureVector {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
-}
-
-export function featureNames(): FeatureName[] {
-  return FEATURE_NAMES;
 }

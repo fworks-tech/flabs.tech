@@ -1,7 +1,7 @@
-import { PostHog } from "posthog-node";
-import { logger } from "@/lib/logger";
-import type { InvestigationCase } from "./investigation";
-import type { QuarantineTier } from "./quarantine";
+import { PostHog } from 'posthog-node';
+import { logger } from '@/lib/logger';
+import type { InvestigationCase } from './investigation';
+import type { QuarantineTier } from './quarantine';
 
 /**
  * Centralized abuse observability:
@@ -11,11 +11,7 @@ import type { QuarantineTier } from "./quarantine";
  */
 
 export interface AbuseEvent {
-  name:
-    | "abuse.incident"
-    | "abuse.quarantine"
-    | "abuse.block"
-    | "abuse.escalation";
+  name: 'abuse.incident' | 'abuse.quarantine' | 'abuse.block' | 'abuse.escalation';
   key: string;
   tier?: QuarantineTier;
   severity?: string;
@@ -30,18 +26,41 @@ function getPostHog(): PostHog | null {
   if (!apiKey) return null;
   if (!posthog) {
     posthog = new PostHog(apiKey, {
-      host: process.env.POSTHOG_HOST || "https://us.i.posthog.com",
+      host: process.env.POSTHOG_HOST || 'https://us.i.posthog.com',
       flushAt: 1,
     });
   }
   return posthog;
 }
 
+/**
+ * LGPD/GDPR: mask the actor identifier before it leaves the server.
+ * Third parties (PostHog, Slack, Discord) only ever see a masked key; the
+ * raw identifier stays in server-side pino logs.
+ */
+function maskKey(value: string): string {
+  if (value.startsWith('anon:')) return value; // already pseudonymized
+  if (value.includes('.')) {
+    const parts = value.split('.');
+    if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.x`; // IPv4
+  }
+  if (value.includes(':')) {
+    const groups = value.split(':');
+    return `${groups.slice(0, 3).join(':')}:...`; // IPv6
+  }
+  return 'unknown';
+}
+
 /** Log + emit a PostHog event + fan out to configured webhooks. */
-export async function notify(event: AbuseEvent, caseData?: InvestigationCase | null): Promise<void> {
+export async function notify(
+  event: AbuseEvent,
+  caseData?: InvestigationCase | null,
+): Promise<void> {
+  const maskedKey = maskKey(event.key);
   const payload = {
-    scope: "abuse",
+    scope: 'abuse',
     ...event,
+    key: maskedKey,
     case: caseData
       ? {
           severity: caseData.severity,
@@ -59,7 +78,7 @@ export async function notify(event: AbuseEvent, caseData?: InvestigationCase | n
     const ph = getPostHog();
     if (ph) {
       ph.capture({
-        distinctId: event.key,
+        distinctId: maskedKey,
         event: event.name,
         properties: {
           tier: event.tier,
@@ -73,10 +92,10 @@ export async function notify(event: AbuseEvent, caseData?: InvestigationCase | n
       ph.flush().catch(() => undefined);
     }
   } catch (error) {
-    logger.error(error, "failed to emit PostHog abuse event");
+    logger.error(error, 'failed to emit PostHog abuse event');
   }
 
-  await dispatchWebhooks(event);
+  await dispatchWebhooks(event, maskedKey);
 }
 
 // --- webhooks (env-gated, coalesced) ---
@@ -84,14 +103,14 @@ export async function notify(event: AbuseEvent, caseData?: InvestigationCase | n
 const WEBHOOK_COOLDOWN_MS = 5 * 60_000;
 const webhookLastSent = new Map<string, number>();
 
-async function dispatchWebhooks(event: AbuseEvent): Promise<void> {
+async function dispatchWebhooks(event: AbuseEvent, maskedKey: string): Promise<void> {
   const now = Date.now();
-  const bucket = `${event.name}:${event.severity ?? "unknown"}`;
+  const bucket = `${event.name}:${event.severity ?? 'unknown'}`;
   const last = webhookLastSent.get(bucket) ?? 0;
   if (now - last < WEBHOOK_COOLDOWN_MS) return;
   webhookLastSent.set(bucket, now);
 
-  const text = `*[flabs.tech abuse]* ${event.name} — ${event.key}\n- severity: ${event.severity ?? "n/a"}\n- tier: ${event.tier ?? "n/a"}\n- score: ${event.score?.toFixed(3) ?? "n/a"}\n- detail: ${event.detail ?? "-"}`;
+  const text = `*[flabs.tech abuse]* ${event.name} — ${maskedKey}\n- severity: ${event.severity ?? 'n/a'}\n- tier: ${event.tier ?? 'n/a'}\n- score: ${event.score?.toFixed(3) ?? 'n/a'}\n- detail: ${event.detail ?? '-'}`;
 
   await Promise.allSettled([
     sendWebhook(process.env.SLACK_WEBHOOK_URL, { text }),
@@ -103,15 +122,15 @@ async function sendWebhook(url: string | undefined, body: Record<string, unknown
   if (!url) return; // env placeholder → skip send, still logged
   try {
     const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      logger.warn({ status: res.status }, "abuse webhook delivery failed");
+      logger.warn({ status: res.status }, 'abuse webhook delivery failed');
     }
   } catch (error) {
-    logger.error(error, "abuse webhook delivery error");
+    logger.error(error, 'abuse webhook delivery error');
   }
 }
 

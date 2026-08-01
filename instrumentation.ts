@@ -5,8 +5,9 @@ import { LoggerProvider, SimpleLogRecordProcessor } from "@opentelemetry/sdk-log
 /**
  * PostHog OTLP log export.
  *
- * Next.js loads this file at startup; the logger is exposed on globalThis so
- * server code can emit logs that appear in the PostHog Logs page.
+ * Next.js loads this file at startup. Server-side pino logs remain the primary
+ * log stream; this provider proves the OTLP pipeline is online by emitting a
+ * startup record that shows up in the PostHog Logs page.
  *
  * Requires `POSTHOG_API_KEY` + `POSTHOG_HOST` (falls back to `NEXT_PUBLIC_POSTHOG_KEY`).
  */
@@ -34,7 +35,8 @@ export function register(): void {
       processors: [new SimpleLogRecordProcessor({ exporter })],
     });
 
-    (globalThis as Record<string, unknown>).__posthogLogger =
-      loggerProvider.getLogger(SERVICE_NAME);
+    loggerProvider
+      .getLogger(SERVICE_NAME)
+      .emit({ severityText: "INFO", body: "flabs-tech server started (OTLP log pipeline online)" });
   }
 }

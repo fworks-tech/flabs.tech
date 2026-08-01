@@ -5,11 +5,41 @@
  *   resolveKey → recordSignal → quarantine check → decideResponse → notify
  */
 
-import { clearCase, getCase, recordSignal, resolveKey, type InvestigationCase, type Signal } from "./investigation";
-import { type SignalInput } from "./features";
-import { type QuarantineTier, applyQuarantine, effectiveTier, releaseQuarantine, tierForScore } from "./quarantine";
-import { decideResponse, maybeEscalate, type ResponseDecision } from "./respond";
-import { notify } from "./notify";
+import { recordSignal, resolveKey, type InvestigationCase, type Signal } from './investigation';
+import { detectInjection, type InjectionResult } from './injection';
+import { type SignalInput } from './features';
+import { type QuarantineTier, applyQuarantine, effectiveTier, tierForScore } from './quarantine';
+import { decideResponse, maybeEscalate, type ResponseDecision } from './respond';
+import { notify } from './notify';
+import {
+  MAX_TOKENS_PER_REQUEST,
+  calculateCost,
+  checkCostLimit,
+  estimateTokens,
+  recordActualUsage,
+} from './cost';
 
-export type { InvestigationCase, Signal, SignalInput, QuarantineTier, ResponseDecision };
-export { applyQuarantine, clearCase, decideResponse, effectiveTier, getCase, maybeEscalate, notify, recordSignal, releaseQuarantine, resolveKey, tierForScore };
+export type {
+  InvestigationCase,
+  Signal,
+  SignalInput,
+  QuarantineTier,
+  ResponseDecision,
+  InjectionResult,
+};
+export {
+  MAX_TOKENS_PER_REQUEST,
+  applyQuarantine,
+  calculateCost,
+  checkCostLimit,
+  decideResponse,
+  detectInjection,
+  effectiveTier,
+  estimateTokens,
+  maybeEscalate,
+  notify,
+  recordActualUsage,
+  recordSignal,
+  resolveKey,
+  tierForScore,
+};

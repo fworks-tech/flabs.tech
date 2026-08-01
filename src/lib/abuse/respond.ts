@@ -1,5 +1,5 @@
-import { store } from "./store";
-import type { QuarantineTier } from "./quarantine";
+import { store } from './store';
+import type { QuarantineTier } from './quarantine';
 
 /**
  * Automated incident response: turns quarantine/investigation verdicts into
@@ -9,7 +9,7 @@ import type { QuarantineTier } from "./quarantine";
  * blocking; `enforce` actually rejects requests for contained actors.
  */
 
-export type ResponseMode = "shadow" | "enforce";
+export type ResponseMode = 'shadow' | 'enforce';
 
 export interface ResponseDecision {
   mode: ResponseMode;
@@ -28,7 +28,7 @@ export interface EscalationEvent {
 }
 
 export function responseMode(): ResponseMode {
-  return process.env.ABUSE_RESPONSE_MODE === "enforce" ? "enforce" : "shadow";
+  return process.env.ABUSE_RESPONSE_MODE === 'enforce' ? 'enforce' : 'shadow';
 }
 
 /** Map a quarantine tier to the HTTP response the chat route should emit. */
@@ -37,38 +37,38 @@ export function decideResponse(
   mode: ResponseMode = responseMode(),
 ): ResponseDecision {
   switch (tier) {
-    case "hard-block":
+    case 'hard-block':
       return {
         mode,
         tier,
         status: 403,
-        blocked: mode === "enforce",
-        reason: "Access temporarily restricted.",
+        blocked: mode === 'enforce',
+        reason: 'Access temporarily restricted.',
       };
-    case "soft-quarantine":
+    case 'soft-quarantine':
       return {
         mode,
         tier,
         status: 429,
-        blocked: mode === "enforce",
+        blocked: mode === 'enforce',
         retryAfter: 600,
-        reason: "Too many requests. Try again in a few minutes.",
+        reason: 'Too many requests. Try again in a few minutes.',
       };
-    case "throttle":
+    case 'throttle':
       return {
         mode,
         tier,
         status: 429,
         blocked: false, // throttled actors are slowed, not rejected
         retryAfter: 60,
-        reason: "Slow down. Try again shortly.",
+        reason: 'Slow down. Try again shortly.',
       };
     default:
       return { mode, tier, status: 200, blocked: false };
   }
 }
 
-const ESCALATION_KEY = "abuse:escalation:cooldown";
+const ESCALATION_KEY = 'abuse:escalation:cooldown';
 const ESCALATION_COOLDOWN_MS = 5 * 60_000; // max 1 event per kind per 5 min
 
 /**

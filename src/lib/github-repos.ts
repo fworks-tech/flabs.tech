@@ -17,6 +17,19 @@ type GitHubRepo = {
 };
 
 async function fetchRepo(owner: string, name: string): Promise<GitHubRepo | null> {
+  // E2E: served by Playwright's webServer env — deterministic pages, no network.
+  if (process.env.E2E_GITHUB_MOCK === "1") {
+    return {
+      name,
+      description: "Mock repo for E2E tests",
+      html_url: `https://github.com/${owner}/${name}`,
+      homepage: "https://flabs.tech",
+      topics: ["typescript", "nextjs"],
+      language: "TypeScript",
+      pushed_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+  }
   try {
     const res = await fetch(`https://api.github.com/repos/${owner}/${name}`, {
       next: { revalidate: 3600 },

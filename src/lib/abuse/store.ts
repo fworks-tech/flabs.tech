@@ -1,4 +1,4 @@
-import { Redis } from "@upstash/redis";
+import { Redis } from '@upstash/redis';
 
 /**
  * Storage adapter for abuse-prevention state.
@@ -12,11 +12,6 @@ import { Redis } from "@upstash/redis";
  * const data = await store.get<InvestigationCase>(`abuse:case:${key}`);
  * ```
  */
-
-export interface StoreOptions {
-  url?: string;
-  token?: string;
-}
 
 export interface SetOptions {
   /** TTL in seconds */
@@ -99,10 +94,5 @@ export const store = {
       return value;
     }
     return memoryStore.incr(key, ttlSeconds);
-  },
-
-  /** Whether the adapter is backed by persistent Redis (vs in-memory). */
-  get persistent(): boolean {
-    return redis !== null;
   },
 };

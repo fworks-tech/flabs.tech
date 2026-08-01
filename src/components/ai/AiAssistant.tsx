@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useChat } from "@ai-sdk/react";
-import { ActionIcon } from "@mantine/core";
+import { useChat } from '@ai-sdk/react';
+import { ActionIcon } from '@mantine/core';
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
   IconSend,
   IconSquare,
   IconX,
-} from "@tabler/icons-react";
-import { DefaultChatTransport } from "ai";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { trackEvent } from "@/lib/analytics";
-import styles from "./AiAssistant.module.scss";
+} from '@tabler/icons-react';
+import { DefaultChatTransport } from 'ai';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { trackEvent } from '@/lib/analytics';
+import styles from './AiAssistant.module.scss';
 
 const MAX_SESSION_MESSAGES = 20;
 const MAX_INPUT_LENGTH = 500;
@@ -23,19 +23,18 @@ function getMessageText(msg: {
 }): string {
   return msg.parts
     .filter(
-      (p): p is { type: "text"; text: string } =>
-        p.type === "text" && typeof p.text === "string",
+      (p): p is { type: 'text'; text: string } => p.type === 'text' && typeof p.text === 'string',
     )
     .map((p) => p.text)
-    .join("");
+    .join('');
 }
 
 function StatusDot({ status }: { status: string }) {
-  if (status === "ready" || status === "error") return null;
+  if (status === 'ready' || status === 'error') return null;
   return (
     <span className={styles.statusDot}>
       <span className={styles.statusPulse} />
-      {status === "submitted" ? "Thinking" : "Typing"}
+      {status === 'submitted' ? 'Thinking' : 'Typing'}
     </span>
   );
 }
@@ -43,7 +42,7 @@ function StatusDot({ status }: { status: string }) {
 export function AiAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -52,11 +51,11 @@ export function AiAssistant() {
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const { messages, sendMessage, status, error, stop } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
   });
 
-  const isLoading = status === "submitted" || status === "streaming";
-  const userMsgCount = messages.filter((m) => m.role === "user").length;
+  const isLoading = status === 'submitted' || status === 'streaming';
+  const userMsgCount = messages.filter((m) => m.role === 'user').length;
   const sessionLimitReached = userMsgCount >= MAX_SESSION_MESSAGES;
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export function AiAssistant() {
 
   useEffect(() => {
     if (error) {
-      trackEvent("ai_assistant_error", { message: error.message ?? "unknown" });
+      trackEvent('ai_assistant_error', { message: error.message ?? 'unknown' });
     }
   }, [error]);
 
@@ -83,8 +82,8 @@ export function AiAssistant() {
       const chat = chatRef.current;
       if (!chat) return;
       const rect = chat.getBoundingClientRect();
-      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       dragOffset.current = { x: clientX - rect.left, y: clientY - rect.top };
       setIsDragging(true);
     },
@@ -95,14 +94,14 @@ export function AiAssistant() {
     if (!isDragging) return;
 
     function handleDragMove(e: MouseEvent | TouchEvent) {
-      if ("touches" in e) e.preventDefault();
+      if ('touches' in e) e.preventDefault();
       const chat = chatRef.current;
       if (!chat) return;
       const rect = chat.getBoundingClientRect();
       const maxX = window.innerWidth - rect.width;
       const maxY = window.innerHeight - rect.height;
-      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const x = Math.max(0, Math.min(maxX, clientX - dragOffset.current.x));
       const y = Math.max(0, Math.min(maxY, clientY - dragOffset.current.y));
       setPosition({ x, y });
@@ -112,42 +111,42 @@ export function AiAssistant() {
       setIsDragging(false);
     }
 
-    window.addEventListener("mousemove", handleDragMove);
-    window.addEventListener("mouseup", handleDragEnd);
-    window.addEventListener("touchmove", handleDragMove, { passive: false });
-    window.addEventListener("touchend", handleDragEnd);
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener('touchmove', handleDragMove, { passive: false });
+    window.addEventListener('touchend', handleDragEnd);
     return () => {
-      window.removeEventListener("mousemove", handleDragMove);
-      window.removeEventListener("mouseup", handleDragEnd);
-      window.removeEventListener("touchmove", handleDragMove);
-      window.removeEventListener("touchend", handleDragEnd);
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDragMove);
+      window.removeEventListener('touchend', handleDragEnd);
     };
   }, [isDragging]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!input.trim() || isLoading || sessionLimitReached) return;
-    trackEvent("ai_assistant_send", { length: input.length });
+    trackEvent('ai_assistant_send', { length: input.length });
     sendMessage({ text: input });
-    setInput("");
+    setInput('');
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!input.trim() || isLoading || sessionLimitReached) return;
-      trackEvent("ai_assistant_send", { length: input.length });
+      trackEvent('ai_assistant_send', { length: input.length });
       sendMessage({ text: input });
-      setInput("");
+      setInput('');
     }
   }
 
   return (
     <>
       <ActionIcon
-        className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ""}`}
+        className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ''}`}
         onClick={() => {
-          trackEvent("ai_assistant_open");
+          trackEvent('ai_assistant_open');
           setIsOpen(true);
         }}
         aria-label="Open AI assistant"
@@ -156,7 +155,7 @@ export function AiAssistant() {
         radius="xl"
         style={
           !isOpen && (position.x !== 0 || position.y !== 0)
-            ? { right: "auto", bottom: "auto", left: position.x + 312, top: position.y + 448 }
+            ? { right: 'auto', bottom: 'auto', left: position.x + 312, top: position.y + 448 }
             : undefined
         }
       >
@@ -171,7 +170,7 @@ export function AiAssistant() {
         <div
           className={styles.overlay}
           onClick={() => {
-            trackEvent("ai_assistant_close");
+            trackEvent('ai_assistant_close');
             setIsOpen(false);
           }}
           data-testid="chat-overlay"
@@ -180,49 +179,43 @@ export function AiAssistant() {
 
       <div
         ref={chatRef}
-        className={`${styles.chat} ${isOpen ? styles.chatOpen : ""} ${
-          expanded ? styles.chatExpanded : ""
-        } ${isDragging ? styles.chatDragging : ""}`}
+        className={`${styles.chat} ${isOpen ? styles.chatOpen : ''} ${
+          expanded ? styles.chatExpanded : ''
+        } ${isDragging ? styles.chatDragging : ''}`}
         style={
           !expanded && (position.x !== 0 || position.y !== 0)
-            ? { left: position.x, top: position.y, right: "auto", bottom: "auto" }
+            ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
             : undefined
         }
       >
         <div className={styles.header} onMouseDown={handleDragStart} onTouchStart={handleDragStart}>
           <div className={styles.headerLeft}>
-            <img
-              src="/images/ai-avatar.png"
-              alt=""
-              className={styles.headerAvatar}
-            />
+            <img src="/images/ai-avatar.png" alt="" className={styles.headerAvatar} />
             <span className={styles.headerTitle}>AI Assistant</span>
             <StatusDot status={status} />
             {userMsgCount > 0 && (
-              <span className={styles.msgCount}>{userMsgCount}/{MAX_SESSION_MESSAGES}</span>
+              <span className={styles.msgCount}>
+                {userMsgCount}/{MAX_SESSION_MESSAGES}
+              </span>
             )}
           </div>
           <div className={styles.headerRight}>
             <ActionIcon
               variant="subtle"
               onClick={() => setExpanded(!expanded)}
-              aria-label={expanded ? "Minimize chat" : "Expand chat"}
+              aria-label={expanded ? 'Minimize chat' : 'Expand chat'}
             >
               {expanded ? <IconArrowsMinimize size={16} /> : <IconArrowsMaximize size={16} />}
             </ActionIcon>
             {isLoading && (
-              <ActionIcon
-                variant="subtle"
-                onClick={() => stop()}
-                aria-label="Stop generating"
-              >
+              <ActionIcon variant="subtle" onClick={() => stop()} aria-label="Stop generating">
                 <IconSquare size={16} />
               </ActionIcon>
             )}
             <ActionIcon
               variant="subtle"
               onClick={() => {
-                trackEvent("ai_assistant_close");
+                trackEvent('ai_assistant_close');
                 setIsOpen(false);
               }}
               aria-label="Close AI assistant"
@@ -252,22 +245,21 @@ export function AiAssistant() {
             <div
               key={msg.id}
               className={`${styles.message} ${
-                msg.role === "user" ? styles.messageUser : styles.messageAssistant
+                msg.role === 'user' ? styles.messageUser : styles.messageAssistant
               }`}
             >
-              <div className={styles.messageLabel}>
-                {msg.role === "user" ? "You" : "Assistant"}
-              </div>
+              <div className={styles.messageLabel}>{msg.role === 'user' ? 'You' : 'Assistant'}</div>
               <div className={styles.messageContent}>{getMessageText(msg)}</div>
             </div>
           ))}
           {error && (
             <div className={styles.error}>
-              {error.message?.includes("429") || error.message?.includes("rate limit")
-                ? "Too many requests. Please wait a moment."
-                : "Something went wrong. Please try again."}
+              {error.message?.includes('429') || error.message?.includes('rate limit')
+                ? 'Too many requests. Please wait a moment.'
+                : 'Something went wrong. Please try again.'}
             </div>
-          )}        </div>
+          )}{' '}
+        </div>
 
         {sessionLimitReached ? (
           <div className={styles.limitNotice}>
@@ -290,17 +282,14 @@ export function AiAssistant() {
                 rows={1}
                 disabled={isLoading}
               />
-              <span className={`${styles.charCount} ${input.length >= MAX_INPUT_LENGTH ? styles.charCountWarn : ""}`}>
+              <span
+                className={`${styles.charCount} ${input.length >= MAX_INPUT_LENGTH ? styles.charCountWarn : ''}`}
+              >
                 {input.length}/{MAX_INPUT_LENGTH}
               </span>
             </div>
             {isLoading ? (
-              <ActionIcon
-                variant="filled"
-                color="red"
-                onClick={() => stop()}
-                aria-label="Stop"
-              >
+              <ActionIcon variant="filled" color="red" onClick={() => stop()} aria-label="Stop">
                 <IconSquare size={16} />
               </ActionIcon>
             ) : (
