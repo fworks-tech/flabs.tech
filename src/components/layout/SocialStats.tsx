@@ -2,16 +2,8 @@ import { Anchor } from "@mantine/core";
 import { baseURL, sameAs } from "@/config";
 import { person } from "@/content";
 import { logger } from "@/lib/logger";
-import { Suspense } from "react";
 
-type SocialStat = {
-  platform: string;
-  label: string;
-  value: string | number;
-  url: string;
-};
-
-async function getDevToStats(): Promise<{ articles: number } | null> {
+const getDevToStats = async (): Promise<{ articles: number } | null> => {
   try {
     const devtoUrl = sameAs.devto;
     if (!devtoUrl) return null;
@@ -27,9 +19,9 @@ async function getDevToStats(): Promise<{ articles: number } | null> {
     logger.warn(err, "failed to fetch Dev.to stats");
     return null;
   }
-}
+};
 
-async function getGitHubStats(): Promise<{ repos: number } | null> {
+const getGitHubStats = async (): Promise<{ repos: number } | null> => {
   try {
     const username = new URL(sameAs.github || "").pathname.split("/").filter(Boolean).pop();
     if (!username) return null;
@@ -43,9 +35,9 @@ async function getGitHubStats(): Promise<{ repos: number } | null> {
     logger.warn(err, "failed to fetch GitHub stats");
     return null;
   }
-}
+};
 
-async function getStackOverflowStats(): Promise<{ reputation: number } | null> {
+const getStackOverflowStats = async (): Promise<{ reputation: number } | null> => {
   try {
     if (!sameAs.stackoverflow) return null;
     const id = sameAs.stackoverflow.split("/").filter(Boolean).pop();
@@ -61,9 +53,9 @@ async function getStackOverflowStats(): Promise<{ reputation: number } | null> {
     logger.warn(err, "failed to fetch Stack Overflow stats");
     return null;
   }
-}
+};
 
-async function getNpmStats(): Promise<{ packages: number } | null> {
+const getNpmStats = async (): Promise<{ packages: number } | null> => {
   try {
     if (!sameAs.npm) return null;
     const username = sameAs.npm.split("/").filter(Boolean).pop();
@@ -79,9 +71,9 @@ async function getNpmStats(): Promise<{ packages: number } | null> {
     logger.warn(err, "failed to fetch npm stats");
     return null;
   }
-}
+};
 
-async function SocialStatsInner() {
+export async function SocialStats() {
   const [devto, github, stackoverflow, npm] = await Promise.all([
     getDevToStats(),
     getGitHubStats(),
@@ -89,7 +81,7 @@ async function SocialStatsInner() {
     getNpmStats(),
   ]);
 
-  const items: SocialStat[] = [];
+  const items = [];
 
   if (github && sameAs.github) items.push({ platform: "github", label: "GitHub repos", value: github.repos, url: sameAs.github });
   if (devto && sameAs.devto) items.push({ platform: "devto", label: "Dev.to articles", value: devto.articles, url: sameAs.devto });
@@ -124,13 +116,5 @@ async function SocialStatsInner() {
         </Anchor>
       ))}
     </div>
-  );
-}
-
-export function SocialStats() {
-  return (
-    <Suspense fallback={null}>
-      <SocialStatsInner />
-    </Suspense>
   );
 }
