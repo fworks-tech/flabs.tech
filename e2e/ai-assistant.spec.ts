@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test.describe("AI assistant", () => {
   test("chat toggle button is visible on homepage", async ({ page }) => {

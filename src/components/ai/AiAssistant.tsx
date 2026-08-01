@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { DefaultChatTransport } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import styles from "./AiAssistant.module.scss";
 
 const MAX_SESSION_MESSAGES = 20;
@@ -70,6 +71,12 @@ export function AiAssistant() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (error) {
+      trackEvent("ai_assistant_error", { message: error.message ?? "unknown" });
+    }
+  }, [error]);
+
   const handleDragStart = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       if (expanded) return;
@@ -120,6 +127,7 @@ export function AiAssistant() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!input.trim() || isLoading || sessionLimitReached) return;
+    trackEvent("ai_assistant_send", { length: input.length });
     sendMessage({ text: input });
     setInput("");
   }
@@ -128,6 +136,7 @@ export function AiAssistant() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!input.trim() || isLoading || sessionLimitReached) return;
+      trackEvent("ai_assistant_send", { length: input.length });
       sendMessage({ text: input });
       setInput("");
     }
@@ -137,7 +146,10 @@ export function AiAssistant() {
     <>
       <ActionIcon
         className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ""}`}
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          trackEvent("ai_assistant_open");
+          setIsOpen(true);
+        }}
         aria-label="Open AI assistant"
         variant="filled"
         size="xl"
@@ -155,7 +167,16 @@ export function AiAssistant() {
         />
       </ActionIcon>
 
-      {isOpen && <div className={styles.overlay} onClick={() => setIsOpen(false)} data-testid="chat-overlay" />}
+      {isOpen && (
+        <div
+          className={styles.overlay}
+          onClick={() => {
+            trackEvent("ai_assistant_close");
+            setIsOpen(false);
+          }}
+          data-testid="chat-overlay"
+        />
+      )}
 
       <div
         ref={chatRef}
@@ -200,7 +221,10 @@ export function AiAssistant() {
             )}
             <ActionIcon
               variant="subtle"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                trackEvent("ai_assistant_close");
+                setIsOpen(false);
+              }}
               aria-label="Close AI assistant"
             >
               <IconX size={16} />
@@ -243,8 +267,7 @@ export function AiAssistant() {
                 ? "Too many requests. Please wait a moment."
                 : "Something went wrong. Please try again."}
             </div>
-          )}
-        </div>
+          )}        </div>
 
         {sessionLimitReached ? (
           <div className={styles.limitNotice}>

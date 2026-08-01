@@ -1,9 +1,4 @@
-import { render, screen, act } from "@testing-library/react";
-import { describe, expect, vi } from "vitest";
-
-vi.mock("@/content", () => ({
-  person: { name: "Fabio" },
-}));
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@/config", () => ({
   baseURL: "https://flabs.tech",
@@ -19,36 +14,70 @@ vi.mock("@/lib/logger", () => ({
   logger: { warn: vi.fn() },
 }));
 
-// SocialStatsInner is async (server component) — not renderable in jsdom.
-// Test the outer SocialStats Suspense boundary renders fallback.
+// SocialStats is an async Server Component — not renderable in jsdom.
+// The data-fetching helpers are exported and tested here directly;
+// rendering is covered by the Playwright e2e suite.
 
 beforeEach(() => {
   vi.resetModules();
-  vi.doMock("@/config", () => ({
-    baseURL: "https://flabs.tech",
-    sameAs: {
-      github: "https://github.com/fabio",
-      devto: "https://dev.to/fabio",
-      stackoverflow: "https://stackoverflow.com/users/12345/fabio",
-      npm: "https://www.npmjs.com/~fabio",
-    },
-  }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => Promise.reject(new Error("network unavailable in tests"))),
+  );
 });
 
-describe("SocialStats", () => {
-  it("renders Suspense fallback initially", async () => {
-    const { SocialStats } = await import("@/components/layout/SocialStats");
-    await act(async () => {
-      const { container } = render(<SocialStats />);
-      expect(container.firstChild).toBeDefined();
-    });
-  });
+describe("SocialStats data helpers", () => {
+  it(
+    "getDevToStats returns null when the API call fails",
+    { timeout: 15000 },
+    async () => {
+      const { getDevToStats } = await import("@/components/layout/SocialStats");
+      await expect(getDevToStats()).resolves.toBeNull();
+    },
+  );
 
-  it("renders without crashing when config URLs are empty", async () => {
-    const { SocialStats } = await import("@/components/layout/SocialStats");
-    await act(async () => {
-      const { container } = render(<SocialStats />);
-      expect(container.firstChild).toBeDefined();
-    });
-  });
+  it(
+    "getGitHubStats returns null when the API call fails",
+    { timeout: 15000 },
+    async () => {
+      const { getGitHubStats } = await import("@/components/layout/SocialStats");
+      await expect(getGitHubStats()).resolves.toBeNull();
+    },
+  );
+
+  it(
+    "getStackOverflowStats returns null when the API call fails",
+    { timeout: 15000 },
+    async () => {
+      const { getStackOverflowStats } = await import("@/components/layout/SocialStats");
+      await expect(getStackOverflowStats()).resolves.toBeNull();
+    },
+  );
+
+  it(
+    "getNpmStats returns null when the API call fails",
+    { timeout: 15000 },
+    async () => {
+      const { getNpmStats } = await import("@/components/layout/SocialStats");
+      await expect(getNpmStats()).resolves.toBeNull();
+    },
+  );
+
+  it(
+    "parses data when the API responds",
+    { timeout: 15000 },
+    async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([{ id: 1 }, { id: 2 }, { id: 3 }]),
+          } as Response),
+        ),
+      );
+      const { getDevToStats } = await import("@/components/layout/SocialStats");
+      await expect(getDevToStats()).resolves.toEqual({ articles: 3 });
+    },
+  );
 });

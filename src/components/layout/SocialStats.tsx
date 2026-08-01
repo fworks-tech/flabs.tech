@@ -3,7 +3,7 @@ import { baseURL, sameAs } from "@/config";
 import { person } from "@/content";
 import { logger } from "@/lib/logger";
 
-const getDevToStats = async (): Promise<{ articles: number } | null> => {
+export const getDevToStats = async (): Promise<{ articles: number } | null> => {
   try {
     const devtoUrl = sameAs.devto;
     if (!devtoUrl) return null;
@@ -21,7 +21,7 @@ const getDevToStats = async (): Promise<{ articles: number } | null> => {
   }
 };
 
-const getGitHubStats = async (): Promise<{ repos: number } | null> => {
+export const getGitHubStats = async (): Promise<{ repos: number } | null> => {
   try {
     const username = new URL(sameAs.github || "").pathname.split("/").filter(Boolean).pop();
     if (!username) return null;
@@ -37,7 +37,7 @@ const getGitHubStats = async (): Promise<{ repos: number } | null> => {
   }
 };
 
-const getStackOverflowStats = async (): Promise<{ reputation: number } | null> => {
+export const getStackOverflowStats = async (): Promise<{ reputation: number } | null> => {
   try {
     if (!sameAs.stackoverflow) return null;
     const id = sameAs.stackoverflow.split("/").filter(Boolean).pop();
@@ -55,7 +55,7 @@ const getStackOverflowStats = async (): Promise<{ reputation: number } | null> =
   }
 };
 
-const getNpmStats = async (): Promise<{ packages: number } | null> => {
+export const getNpmStats = async (): Promise<{ packages: number } | null> => {
   try {
     if (!sameAs.npm) return null;
     const username = sameAs.npm.split("/").filter(Boolean).pop();

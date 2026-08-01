@@ -1,5 +1,5 @@
 /**
- * Custom event tracking utility wrapping Vercel Analytics.
+ * Custom event tracking utility — dual-emits to Vercel Analytics and PostHog.
  *
  * Use this in client components to track user interactions:
  *
@@ -13,12 +13,12 @@
  * </button>
  * ```
  *
- * Events are automatically collected in the Vercel Analytics dashboard.
- * No additional setup required — `@vercel/analytics` is already mounted
- * in the root layout.
+ * Events are collected in the Vercel Analytics dashboard and in PostHog
+ * (initialized by `PostHogTracker`). No additional setup required.
  */
 
 import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 
 export type EventName =
   | "cta_click"
@@ -26,11 +26,20 @@ export type EventName =
   | "project_view"
   | "post_click"
   | "social_link"
-  | "scroll_depth";
+  | "scroll_depth"
+  | "ai_assistant_open"
+  | "ai_assistant_close"
+  | "ai_assistant_send"
+  | "ai_assistant_error";
 
 type EventProperties = Record<string, string | number | boolean>;
 
 export function trackEvent(name: EventName, properties?: EventProperties) {
   if (typeof window === "undefined") return;
   track(name, properties);
+  try {
+    posthog.capture(name, properties ?? {});
+  } catch {
+    // PostHog not initialized or blocked — Vercel track already succeeded.
+  }
 }
