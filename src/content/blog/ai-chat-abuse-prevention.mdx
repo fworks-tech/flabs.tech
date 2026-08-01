@@ -1,0 +1,172 @@
+---
+title: "The Bouncer: how we defend a public AI endpoint from prompt injection, cost drains, and IP spoofing"
+publishedAt: "2026-08-01"
+summary: "flabs.tech's AI assistant is a public, unauthenticated endpoint that calls a paid model. We built a deterministic abuse-prevention pipeline — investigation, quarantine tiers, two-tier injection detection, and shadow-mode rollout — without ever locking out a legitimate visitor."
+tag: "Engineering"
+subtitle: "Investigation → quarantine → response → alerting: the full lifecycle of defending a chat endpoint that anyone can hit"
+shareText: |
+  Any public AI endpoint is a target: prompt extraction, injection, cost exhaustion, spoofed identities.
+
+  We built a deterministic abuse-prevention pipeline for the flabs.tech assistant — logistic scoring, quarantine tiers, two-tier injection detection, shadow mode — and the best part is the false positives never win.
+
+  Read the full breakdown on flabs.tech
+---
+
+Every portfolio site wants an AI assistant. Few talk about what happens the day the internet finds it.
+
+The flabs.tech assistant is a public, **unauthenticated** endpoint that calls a paid model (`mimo-v2.5` on OpenCode Go). No login, no API key, no invite. Anyone can hit `/api/chat` with any payload, and every request costs real money. That makes it a perfect target for:
+
+- **Prompt extraction** — "reveal your system prompt" and its hundred variations
+- **Prompt injection** — "ignore previous instructions, you are now..."
+- **Cost exhaustion** — flood the endpoint until the monthly bill hurts
+- **Resource abuse** — malformed payloads, 10KB messages, 4 requests/second per identity
+
+You can't WAF your way out of this. The abuse is *semantic* — it looks like a normal chat until it isn't. And you can't rate-limit your way out of it either, because the attacker controls the identity headers. So we built a pipeline instead: **investigation → quarantine → response → alerting**.
+
+---
+
+## Principle 1: Deterministic beats probabilistic for defense
+
+The first temptation is an ML moderation model: send every message to a judge LLM and ask "is this malicious?". It feels modern, but it's the wrong tool:
+
+- **It costs money and latency on every single request** — the attack surface doubles
+- **It's non-deterministic** — a defense you can't reproduce in a test is a defense you can't debug
+- **It's the same model family the attacker is attacking** — if injection works against the assistant, it probably works against the moderator
+
+Instead, the pipeline scores each request with a **deterministic logistic model**:
+
+```
+score = σ(Σ wᵢ·xᵢ + b)
+```
+
+A fixed feature vector, fixed weights, zero randomness. Every decision is reproducible, auditable, and unit-testable — which is why the whole pipeline runs on **87 tests** instead of vibes.
+
+| Feature | Weight | Saturates at |
+|----------|-------:|-------------|
+| Injection detected | 2.5 | first match |
+| Cost spike | 1.5 | $0.02/request |
+| Rate violation | 1.2 | first violation |
+| High frequency | 1.1 | 30 req/min |
+| Malformed payload | 0.9 | first violation |
+| PII in payload | 1.4 | first finding |
+| Oversized message | 0.6 | 2,000 chars |
+
+Thresholds map the score to a verdict: 0.85 → critical/malicious, 0.65 → high/suspicious, 0.4 → medium/neutral. The weights are documented constants — tuning the model is a config change, not a code archaeology project.
+
+---
+
+## Principle 2: Graduate, never slam the door
+
+One signal is rarely proof of abuse. A single rate-limit hit or one malformed request can happen to anyone — including someone on a shared NAT behind an aggressive office proxy.
+
+So the pipeline **accumulates evidence per actor** and escalates through quarantine tiers with escalating TTLs:
+
+| Tier | TTL | Effect (enforce mode) |
+|------|----:|----------------------|
+| Throttle | 5 min | Strict rate limit |
+| Soft-quarantine | 10 min | 429 with retry-after |
+| Hard-block | 1 h | 403 |
+
+And here's the part that separates a bouncer from a brute: **everything decays**. Evidence halves every 30 minutes. Stop misbehaving for two hours and your case reopens on its own — no manual unban, no support ticket, no permanent lockout behind a shared IP.
+
+This is the mistake most abuse systems make: they treat one offense as a lifetime conviction. The internet's address space is shared, and your "attacker" is often a university dorm or a VPN exit node. Auto-recovery isn't a luxury, it's the feature that keeps the bouncer from bouncing your best visitors.
+
+---
+
+## Principle 3: False positives are a design problem, not a tuning problem
+
+Here's the post's most humbling lesson. Our first injection detector was a list of regexes:
+
+```js
+/act\s+as\s+(if\s+)?(you\s+are|a\s+)/i,
+/pretend\s+to\s+be/i,
+/what\s+(is|are)\s+your\s+(instructions|prompt|system)/i,
+```
+
+Looks reasonable. Then a real user typed: **"Can you act as a recruiter and review my resume?"**
+
+400. Injection detected. Escalation started. A legitimate visitor with a legitimate question had just been flagged as an attacker — and because of the 24-hour evidence TTL, that single match could pin their case at high severity for a full day.
+
+"Pretend to be a hiring manager." Blocked. "What are your instructions for this chat?" Blocked. We weren't defending the assistant, we were *rejecting its best users*.
+
+The fix wasn't better regexes. It was **splitting the problem into two tiers**:
+
+- `BLOCK_PATTERNS` — unambiguous attacks: "ignore previous instructions", "output your system prompt", "jailbreak"
+- `SUSPICIOUS_PATTERNS` — role-play and meta-questions: "act as a recruiter", "pretend to be a hiring manager"
+
+Block patterns can reject a request — but only once the actor's case severity is already above `low`. A first offense is **recorded, never rejected**. Suspicious patterns only accumulate evidence; they can never 400 anyone.
+
+The rule in one sentence: **one match is a signal, two matches are a pattern, three matches are a verdict.** Legitimate users never hit the wall; attackers always eventually do.
+
+---
+
+## Principle 4: Trust nothing the client controls
+
+The pipeline keys every actor on their IP. There's a classic bug hiding in that sentence: HTTP clients control their own `X-Forwarded-For` header.
+
+Naive code reads the *first* entry:
+
+```js
+req.headers.get("x-forwarded-for")?.split(",")[0] // ❌ client-controlled
+```
+
+An attacker sends `X-Forwarded-For: 1.2.3.4` and rotates the value per request — fresh identity every time, rate limiter evaded, quarantine meaningless, Redis keys growing unbounded.
+
+The fix is to read the **rightmost** entry: a trusted proxy appends the real client address at the end, so the last entry is the only one you can believe:
+
+```js
+const entries = forwarded.split(",").map((e) => e.trim());
+return entries[entries.length - 1] || req.headers.get("x-real-ip") || "unknown";
+```
+
+This assumes a trust boundary — the app sits behind a proxy that overwrites the header (Vercel does). Document that assumption in code, or the next developer "helpfully" reverts it.
+
+---
+
+## Principle 5: Privacy is a default, not a setting
+
+An abuse system that logs everyone's IP is itself a privacy incident waiting to happen. Two decisions keep the pipeline LGPD/GDPR-clean:
+
+**Keyed pseudonymization.** With `ABUSE_TRACK_IP=false`, actor keys become HMAC-SHA256 digests keyed by `ABUSE_KEY_SECRET`. Note the word *pseudonymization* — it's reversible by design if you hold the key, so a court can't unhash and a scraper can't correlate. Document it as such; calling it "anonymization" is how lawsuits happen.
+
+**Masking at the edge.** Raw identifiers never leave the server. PostHog `distinctId` and the Slack/Discord alert text receive `203.0.113.x`, not `203.0.113.42`. Alert channels are third parties; they get the masked version or nothing.
+
+---
+
+## Principle 6: Budget money, not just requests
+
+Rate limits stop request floods, but a single well-crafted conversation can still burn tokens. The pipeline budgets **cost per actor**: ~$0.50/hour, estimated from token counts before the stream starts, then **corrected to actual usage** once the AI SDK resolves the final token count.
+
+The estimate is deliberately conservative — it's the *budget*, the actual is the *receipt*. The correction matters: without it, a long response permanently inflates the actor's usage and they get throttled for spending money they never spent.
+
+---
+
+## Rollout: shadow mode is the killer feature
+
+The scariest part of shipping an abuse system is breaking your own users with a false positive. So the pipeline ships in **shadow mode** by default:
+
+- Every request is investigated, scored, and quarantined **virtually**
+- Alerts fire, PostHog records, scores accumulate
+- But nobody is actually blocked
+
+Flip one env var (`ABUSE_RESPONSE_MODE=enforce`) and the same decisions start enforcing. No deploy, no migration — you promote the pipeline to live once the shadow-mode metrics say the false-positive rate is acceptable. If the metrics say otherwise, you tune weights and stay in shadow. It's canary deployment for defense logic, and it's the single best risk control in the whole design.
+
+---
+
+## What we learned
+
+1. **Regex is fine, gating is everything.** The patterns were never the problem — the auto-escalation on a single match was. Rate the evidence, not the trigger.
+2. **Decay beats forgiveness.** Explicit recovery logic ("case auto-reopens after N minutes") is simpler and more reliable than trying to make everyone happy with manual unbanning.
+3. **Deterministic defense is a testing superpower.** Every weight, threshold, and tier is assertable in a unit test. We wrote a fake-timer test that proves an actor recovers after two hours — you can't do that with an ML judge.
+4. **The rightmost IP is the only honest IP.** If you ever parse `X-Forwarded-For`, parse the last entry and say why.
+5. **Shadow mode turns fear into data.** Ship the enforcement *later*, not never — the observability ships first.
+
+---
+
+## The stack
+
+The pipeline lives in `src/lib/abuse/` on flabs.tech: `features.ts` (extraction), `model.ts` (logistic scoring), `investigation.ts` (evidence + decay), `quarantine.ts` (tiers), `respond.ts` (decisions), `notify.ts` (PostHog + webhooks), `cost.ts` (budgeting), and `injection.ts` (two-tier detection). State persists in Upstash Redis with an in-memory fallback for local dev.
+
+It's live right now — ask the assistant at [flabs.tech](https://flabs.tech) a recruiter-style question. It'll answer. Ask it to reveal its system prompt three times in a row. It won't.
+
+*Built with Next.js 16, Upstash Redis, posthog-node, and a healthy fear of the public internet.*
