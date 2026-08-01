@@ -43,13 +43,27 @@ src/
   content/       MDX source for blog, projects, work entries
   features/      Feature modules (about, blog, projects, work)
   hooks/         Custom React hooks
-  lib/           Utilities (mdx, formatDate, rateLimiter)
+  lib/           Utilities (mdx, formatDate, rateLimiter, abuse/)
   styles/        Global SCSS variables and breakpoints
   test/          Vitest setup (jsdom, RTL)
   types/         TypeScript type definitions
 e2e/             Playwright E2E tests
 __mocks__/       Vitest manual mocks
 ```
+
+## Abuse prevention (`src/lib/abuse/`)
+
+The AI chat endpoint is protected by a deterministic abuse pipeline (see `docs/adr/002-abuse-prevention.mdx`):
+
+- **Pipeline:** resolveKey → recordSignal (investigation) → quarantine tiers (throttle → soft-quarantine → hard-block) → decideResponse → notify
+- **Scoring:** logistic model over a fixed feature vector; features decay with a 30-min half-life so actors auto-recover
+- **Injection detection:** two-tier — `BLOCK_PATTERNS` (unambiguous) vs `SUSPICIOUS_PATTERNS` (role-play, signal-only); a first offense is recorded but never rejected
+- **Modes:** `ABUSE_RESPONSE_MODE=shadow` (default, observes + alerts) or `enforce` (blocks)
+- **Persistence:** Upstash Redis (`UPSTASH_REDIS_REST_URL/TOKEN`) with in-memory fallback
+- **Privacy:** `ABUSE_TRACK_IP=false` → HMAC keyed with `ABUSE_KEY_SECRET` (pseudonymization); alert recipients (PostHog/webhooks) only see masked keys
+- **Identity:** client IP comes from the *rightmost* `X-Forwarded-For` entry (trusted proxy appends it; leftmost is spoofable)
+
+Required env vars: `OPENCODE_API_KEY`, `UPSTASH_REDIS_REST_URL/TOKEN`, `POSTHOG_API_KEY`; optional: `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL`, `ABUSE_KEY_SECRET`, `ABUSE_RESPONSE_MODE`, `ABUSE_TRACK_IP`, `ABUSE_RETENTION_MS` (see `.env.example`).
 
 ## Code style
 
