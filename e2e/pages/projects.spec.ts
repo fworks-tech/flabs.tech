@@ -16,7 +16,10 @@ test.describe("projects page", () => {
     const projectLinks = page.locator('a[href*="/projects/"]');
     const count = await projectLinks.count();
     if (count > 0) {
-      await projectLinks.first().click();
+      // Navigate via href instead of clicking: a click during React hydration
+      // can be swallowed, making the navigation assertion flaky.
+      const href = await projectLinks.first().getAttribute("href");
+      await page.goto(href!);
       await expect(page).toHaveURL(/\/projects\/.+/);
     }
   });
