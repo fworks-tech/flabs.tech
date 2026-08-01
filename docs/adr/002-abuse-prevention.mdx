@@ -1,0 +1,66 @@
+# ADR-002: Abuse prevention for the AI chat assistant
+
+**Date:** 2026-08-01
+**Status:** Accepted
+
+## Context
+
+The AI chat endpoint (`/api/chat`) is a public, unauthenticated surface on flabs.tech: it calls the paid OpenCode Zen model (`mimo-v2.5`), which makes it a target for prompt injection, scraping of the system prompt, cost exhaustion, and resource abuse. Without protection, an attacker can drain the hourly cost budget, harvest the embedded prompt, or hammer the endpoint behind spoofed identities.
+
+Issue #167 requested a Phase 2 abuse-prevention pipeline: investigation → quarantine → response → alerting, on top of the existing rate limiter.
+
+## Decision
+
+**Build a deterministic abuse-prevention pipeline in `src/lib/abuse/` with a logistic scoring model, Redis-backed state, shadow-first enforcement, and webhook alerting.**
+
+Key decisions:
+
+1. **Deterministic "ML-style" scoring** — a logistic model `score = σ(Σ wᵢ·xᵢ + b)` over a fixed feature vector (rate violation, injection, cost spike, oversized message, malformed payload, high frequency, PII). Deterministic by construction — no external model calls — so behavior is auditable, testable, and tunable via the documented weight constants.
+
+2. **Evidence decay** — features decay with a 30-minute half-life per signal, so legitimate users who triggered a false positive (or stopped misbehaving) naturally auto-recover to low severity. One signal never locks a user out; the chat route only rejects injection matches once the case severity is above `low` (repeated offenses).
+
+3. **Two-tier injection detection** — `BLOCK_PATTERNS` (unambiguous extraction/jailbreak) vs `SUSPICIOUS_PATTERNS` (role-play like "act as a recruiter"), which only accumulate evidence. A single false positive can never block a legitimate visitor.
+
+4. **Upstash Redis persistence** (`UPSTASH_REDIS_REST_URL`/`TOKEN`) with an in-memory fallback — abuse state (cases, quarantines, escalation cooldowns) survives cold starts and is shared across serverless instances.
+
+5. **Shadow mode by default** (`ABUSE_RESPONSE_MODE=shadow`) — the pipeline observes, scores, and alerts without blocking; `enforce` actually rejects quarantined actors. Safe rollout.
+
+6. **Keyed pseudonymization** — when `ABUSE_TRACK_IP=false`, actor keys are HMAC-SHA256 hashed with `ABUSE_KEY_SECRET` (keyed pseudonymization, not anonymization — explicitly documented as such, LGPD/GDPR note).
+
+7. **Privacy-preserving alerting** — raw IPs never leave the server: PostHog `distinctId` and Slack/Discord webhook text use a masked key (last octet).
+
+8. **Client identity from the trusted proxy** — the *rightmost* `X-Forwarded-For` entry is used (the proxy-appended one). Leftmost entries are client-controllable and would allow rotating identities to bypass rate limits and quarantine. Trust boundary: Vercel overwrites `X-Forwarded-For`.
+
+## Alternatives considered
+
+- **Off-the-shelf WAF / rate-limit service (e.g., Upstash Ratelimit)** — adds a dependency and cost without investigation, quarantine tiers, or alerting; the in-house pipeline covers the full incident lifecycle in one module.
+- **LLM-based moderation (call a model to judge each message)** — cost and latency per request, non-deterministic, and doubles the attack surface; rejected in favor of deterministic patterns.
+- **IP-only blocking with long TTLs** — false positives would permanently lock out users behind NAT/shared IPs; rejected in favor of tiered quarantine with auto-release.
+
+## Consequences
+
+### What becomes easier
+
+- Abuse events are observable end-to-end: structured pino logs, PostHog server events, OTLP log export, and coalesced Slack/Discord alerts.
+- Enforcement can be enabled (`enforce`) without code changes, after the shadow-mode metrics justify it.
+- Each feature's weight and saturation threshold is a documented constant, so model tuning is a config change.
+
+### What becomes harder
+
+- Every chat request pays for Redis round trips (`effectiveTier` GET on the happy path; up to five on failure paths).
+- Requires `ABUSE_KEY_SECRET` (for pseudonymized keys) and webhook URLs to be provisioned per environment.
+- In-memory fallback state resets on cold start — acceptable for dev, not for production (production sets Upstash).
+
+### What we gain
+
+- A graduated response ladder (throttle → soft-quarantine → hard-block) that never permanently locks out legitimate users.
+- Cost budgeting per actor with a $0.50/hour cap, corrected to actual usage after each stream completes.
+- Deterministic, fully unit-tested behavior (87 tests across the abuse modules and route).
+
+## References
+
+- Issue #167: Phase 2 abuse prevention
+- PR #205: feat/abuse-prevention-measures
+- `src/lib/abuse/` — pipeline modules (features, model, investigation, quarantine, respond, notify, store, cost, injection)
+- Upstash Redis: https://upstash.com/docs/redis
+- PostHog OTLP log export: https://posthog.com/docs/logs
