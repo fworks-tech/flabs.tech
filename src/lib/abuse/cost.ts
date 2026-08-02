@@ -80,7 +80,14 @@ export function checkCostLimit(
   return { allowed: true, retryAfter: 0 };
 }
 
-/** Replace the latest estimated entry with the provider's actual usage. */
+/**
+ * Replace the latest estimated entry with the provider's actual usage.
+ *
+ * Known limitation: under concurrent requests from the same actor, this may
+ * overwrite the estimate of a different request. In practice this is benign
+ * because the 30 req/min rate limit makes true concurrency rare, and the
+ * worst case is slightly inaccurate cost accounting (not a security bypass).
+ */
 export function recordActualUsage(identifier: string, actualTokens: number): void {
   const now = Date.now();
   const entries = usageMap.get(identifier) || [];

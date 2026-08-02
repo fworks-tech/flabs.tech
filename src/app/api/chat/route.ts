@@ -142,6 +142,10 @@ function jsonResponse(
  * overwrites `X-Forwarded-For`; the *rightmost* entry is the proxy-appended
  * client address. Leftmost entries are client-controllable and must never be
  * trusted for rate limiting or quarantine keys.
+ *
+ * When neither header is present (e.g. non-Vercel deployments without a
+ * trusted proxy), all requests share the key `'unknown'`. Deployments behind
+ * non-standard proxies should provide a custom key-resolution function.
  */
 function resolveClientIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
