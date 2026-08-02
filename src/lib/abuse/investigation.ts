@@ -10,6 +10,13 @@ import {
 } from './model';
 import { store } from './store';
 
+// Warn once at startup when pseudonymization is enabled but the secret is empty.
+if (process.env.ABUSE_TRACK_IP === 'false' && !process.env.ABUSE_KEY_SECRET) {
+  console.warn(
+    '[abuse] ABUSE_TRACK_IP=false but ABUSE_KEY_SECRET is not set — pseudonymization is trivially reversible. Set a long random secret in production.',
+  );
+}
+
 /**
  * Investigation cases: aggregates signals per actor key (IP or fingerprint),
  * scores them with the model, and persists an evidence-backed verdict.

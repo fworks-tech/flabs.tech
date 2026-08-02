@@ -31,14 +31,22 @@ ensureCleanup();
 
 export function rateLimit(
   identifier: string,
-  maxAttempts = DEFAULT_MAX_ATTEMPTS,
-  windowMs = DEFAULT_WINDOW_MS,
+  configOrMaxAttempts: RateLimitConfig | number = DEFAULT_MAX_ATTEMPTS,
+  windowMs: number = DEFAULT_WINDOW_MS,
 ): { allowed: boolean; retryAfter: number } {
+  const maxAttempts =
+    typeof configOrMaxAttempts === 'number'
+      ? configOrMaxAttempts
+      : configOrMaxAttempts.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
+  const effectiveWindowMs =
+    typeof configOrMaxAttempts === 'number'
+      ? windowMs
+      : configOrMaxAttempts.windowMs ?? DEFAULT_WINDOW_MS;
   const now = Date.now();
   const entry = attempts.get(identifier);
 
   if (!entry || now > entry.resetAt) {
-    attempts.set(identifier, { count: 1, resetAt: now + windowMs });
+    attempts.set(identifier, { count: 1, resetAt: now + effectiveWindowMs });
     return { allowed: true, retryAfter: 0 };
   }
 
