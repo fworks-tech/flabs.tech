@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import { track } from "@vercel/analytics";
+import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -41,7 +41,7 @@ export function TrackedButton({
       href={href}
       variant={variantMap[variant] || (variant as "filled" | "light" | "subtle" | "outline")}
       size={sizeMap[size] || (size as "sm" | "md" | "lg")}
-      onClick={() => track(eventName, { label: eventLabel || href })}
+      onClick={() => trackEvent(eventName as "cta_click", { label: eventLabel || href })}
     >
       {children}
     </Button>
