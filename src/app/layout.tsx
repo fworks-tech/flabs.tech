@@ -4,9 +4,11 @@ import "@/styles/custom.css";
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
+import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { PostHogInit } from "@/components/layout/PostHogInit";
 import { SocialStats } from "@/components/layout/SocialStats";
+import { TrackingProvider } from "@/components/layout/TrackingProvider";
 import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
 import ClientParticles from "@/components/layout/ClientParticles";
 import { SkipLink } from "@/components/layout/SkipLink";
@@ -17,6 +19,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import type { Viewport } from "next";
+import { cookies } from "next/headers";
+import { CONSENT_COOKIE } from "@/lib/tracking";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -72,6 +76,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialConsent = cookieStore.get(CONSENT_COOKIE)?.value ?? null;
+
   return (
     <html
       lang="en"
@@ -101,7 +108,9 @@ export default async function RootLayout({
           <SocialStats />
           <Footer />
           <AiAssistant />
+          <ConsentBanner initialConsent={initialConsent} />
         </Providers>
+        <TrackingProvider />
       <Analytics />
       <SpeedInsights />
       <PostHogInit />

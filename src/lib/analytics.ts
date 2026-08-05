@@ -19,6 +19,7 @@
 
 import { track } from "@vercel/analytics";
 import posthog from "posthog-js";
+import { track as trackSelfHosted } from "@/lib/tracking";
 
 export type EventName =
   | "cta_click"
@@ -42,4 +43,5 @@ export function trackEvent(name: EventName, properties?: EventProperties) {
   } catch {
     // PostHog not initialized or blocked — Vercel track already succeeded.
   }
+  trackSelfHosted(name);
 }
