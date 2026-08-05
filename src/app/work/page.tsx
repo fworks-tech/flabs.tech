@@ -54,12 +54,14 @@ export default function WorkPage() {
                   {exp.location}
                 </Text>
               </Stack>
-              <Badge size="md">{exp.timeframe}</Badge>
-              {exp.type && (
-                <Badge size="md" variant="light">
-                  {exp.type}
-                </Badge>
-              )}
+              <Group gap="2">
+                {exp.type && (
+                  <Badge size="md" variant="light">
+                    {exp.type}
+                  </Badge>
+                )}
+                <Badge size="md">{exp.timeframe}</Badge>
+              </Group>
             </Group>
             <Stack component="ul" gap="8" pl="md">
               {exp.achievements.map((item, j) => (
