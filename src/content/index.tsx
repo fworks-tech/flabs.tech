@@ -102,8 +102,7 @@ const about: About = {
         framework where a squad of specialized agents enforce engineering standards, review code and
         commits, manage multi‑tier memory, and run autonomously via a TypeScript CLI.
         The project includes a browser‑based Studio playground with SSE streaming, 6 providers,
-        and server‑side rate limiting. Other projects like ApolloDroid and VeriHire explore how
-        to bring LLMs into real products with the same discipline I apply to production web systems.
+        and server‑side rate limiting.
         <br />
         <br />
         My best work happens where scalable GraphQL backends, high‑quality React frontends, and AI
