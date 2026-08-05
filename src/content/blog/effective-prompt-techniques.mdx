@@ -1,0 +1,178 @@
+---
+title: "Effective Prompt Techniques: 6 Foundational Prompting Techniques"
+publishedAt: "2026-08-04"
+summary: "We explain that prompt engineering is simply the practice of designing effective instructions for AI systems, combining familiar human communication principles with AI-specific considerations. We introduce six foundational techniques: giving context, showing examples of desired outputs, specifying constraints, breaking complex tasks into steps, asking the AI to think first, and defining the AI's role or tone. We also share troubleshooting strategies for when responses aren't quite right and highlight common patterns that lead to successful interactions."
+tag: "AI"
+subtitle: "Prompting isn't magic — it's clear communication plus a few AI-specific techniques. Here are the six foundational moves that make the difference."
+shareText: |
+  Prompt engineering isn't mysterious. It's designing effective instructions for AI — clear communication plus AI-specific technique.
+
+  Six foundational moves: give context, show examples, specify constraints, break tasks into steps, ask the AI to think first, and define its role or tone.
+
+  Plus troubleshooting strategies and the secret weapon: ask the AI to improve your prompt.
+
+  Read the breakdown on flabs.tech
+---
+
+Prompt engineering sounds like a technical discipline reserved for researchers and API engineers. It isn't. It's simply the practice of **designing effective instructions for AI systems** — and at its core, it borrows from skills you already have: clarity, context, and knowing your audience.
+
+The difference is that AI systems need a little more structure than a human colleague. They don't infer tone from your face, they don't ask follow-up questions unprompted, and they take ambiguous instructions literally. But once you know a handful of foundational techniques, most of the mystery disappears.
+
+Here are the six techniques we reach for every day, plus the troubleshooting moves that fix responses when they aren't quite right.
+
+---
+
+## What prompt engineering actually is
+
+A prompt is just an instruction. Prompt engineering is the practice of writing those instructions so an AI responds *usefully* instead of just *correctly*.
+
+Think of it like giving directions to a new hire:
+
+- Vague: "Prepare the report."
+- Effective: "Summarize Q3 revenue by region into a table, highlight the three biggest movers, and keep it under a page — I'll send it to leadership this afternoon."
+
+The second version works because it combines *what* you want, *why* you want it, and *how* it should look. That's not esoteric AI knowledge — it's good communication.
+
+What makes prompting different from everyday communication is a few AI-specific considerations: the model has no shared history with you, it fills gaps with its own assumptions, and you generally get one shot before you refine. The six techniques below address exactly those gaps.
+
+---
+
+## The six foundational techniques
+
+### 1. Give context
+
+Specificity beats brevity. Tell the AI **what** you want, **why** you want it, and any **relevant background** it needs to know.
+
+The minimum viable prompt is a task. The most effective prompt is a task plus context:
+
+> "Write a welcome email for new users."
+
+Versus:
+
+> "Write a welcome email for new users of a developer tool. Our users are engineers who dislike fluffy copy, they joined because they want to ship faster, and we want to mention the onboarding checklist and the community Discord."
+
+The second version produces something you can send. The first produces something you have to rewrite. More context isn't always more input — it's the difference between guessing and knowing.
+
+### 2. Show examples
+
+When you care about the *shape* of the output — format, tone, structure — describe it, but also **show it**.
+
+Examples anchor the AI to your exact format far more reliably than adjectives:
+
+> "Summarize this article in three bullet points."
+
+Versus:
+
+> "Summarize this article in three bullet points, like this:
+> - **Key idea:** the core argument in one sentence
+> - **Evidence:** the main supporting data points
+> - **Takeaway:** what the reader should do now"
+
+One or two examples ("few-shot prompting") are often all you need to lock in a consistent format across an entire batch of outputs. This is the single most reliable way to standardize results.
+
+### 3. Specify constraints
+
+The AI won't give you a ten-word answer unless you ask for ten words. **Define the constraints**: format, length, audience, tone, and anything to avoid.
+
+> "Explain how caching works."
+
+Versus:
+
+> "Explain how a content-addressable cache works, in under 100 words, for a junior developer, using accessible language. Don't use jargon without defining it first. Do not mention purge strategies."
+
+Constraints are where the AI stops guessing. Without them it optimizes for "a reasonable answer"; with them it optimizes for *your* answer.
+
+### 4. Break complex tasks into steps
+
+For multi-part requests, the AI — like a human — produces better results when it can **reason in sequence** than when it tries to compress everything into one leap.
+
+Break the task down:
+
+> "Step 1: Extract all the arguments the author makes.
+> Step 2: For each argument, identify its strongest counterpoint.
+> Step 3: Write a rebuttal paragraph, mentioning at least two of the counterpoints.
+> Step 4: End with a one-sentence takeaway."
+
+Each step builds on the previous one, and the AI can verify each stage before proceeding. You can also ask the AI to propose the steps itself and check them before it executes — that keeps you in control while still leveraging the plan.
+
+### 5. Ask the AI to think first
+
+The best-known technique (colloquially "chain-of-thought") is also the simplest: **ask the AI to work through its process before producing the final answer**.
+
+Encourage it to reason out loud:
+
+> "Think through this step by step: what are the possible causes of the timeout, what evidence would distinguish them, and then give me your recommended fix."
+
+When the AI lays out its reasoning, errors are easier to spot, the logic improves, and the final answer is more reliable. Even if you only see the final result, giving it space to think nearly always helps on anything non-trivial.
+
+### 6. Define the AI's role or tone
+
+Tell the AI **how to communicate**, not just what to say. A system with an assigned role behaves differently:
+
+> "You are a senior platform engineer reviewing a design doc. Be direct, cite specific trade-offs, and flag risks even if they're uncomfortable."
+
+Versus the same request without the role — you'll get generic, hedged feedback. Define what you are looking for:
+
+- **Friendly or formal** — set the tone
+- **Concise or thorough** — set the density
+- **Advocate or skeptic** — set the stance
+- **Specialist or generalist** — set the perspective
+
+The role isn't a trick. It's a constraint that tells the AI whose voice to speak in.
+
+---
+
+## Troubleshooting: when responses aren't right
+
+Even with all six techniques, you'll sometimes get an answer that misses. Resist the urge to loop indefinitely. Apply a targeted fix:
+
+| Symptom | Fix |
+|---------|-----|
+| Too vague or generic | Add context and constraints: why, audience, and format |
+| Wrong format or structure | Provide an example of the exact output you want |
+| Wrong style or tone | Define the role — "reply as a skeptical senior engineer" |
+| Truncated or shallow reasoning | Ask it to think step by step and show its work |
+| Missing a key requirement | State the constraint explicitly: "include X, omit Y" |
+| Skipped part of a multi-part ask | Break the task into numbered steps and have it confirm the plan first |
+| Hallucinating facts you know are wrong | Supply the facts yourself as context instead of leaving gaps |
+
+One targeted fix beats five vague redesigns. Change **one variable at a time** and you'll learn which part of the prompting was the problem.
+
+---
+
+## Common successful patterns
+
+Across every good prompt we've written, the same patterns recur:
+
+- **A clear task overview.** What are you doing? In one or two sentences, stated without jargon.
+- **Format specifications.** What should the output look like — length, structure, fields, headings.
+- **Explicit constraints.** What to include, what to avoid, what must be present.
+- **Relevant background.** The context the AI needs to answer well.
+
+If you have those four ingredients, you're already prompting better than the vast majority of users. Format them however you like — a paragraph, a bulleted list, or labeled sections.
+
+---
+
+## The secret weapon: ask the AI to improve your prompt
+
+When a prompt isn't working, there's a shortcut most people miss: **ask the AI to improve your prompt**.
+
+> "Rewrite the prompt I'm about to give you so it produces a more useful response. Explain what you changed and why."
+
+Then paste the improved version — iterate. This turns troubleshooting from a guessing game into a collaborative process, and it teaches you to spot the difference between a weak prompt and a good one.
+
+It's also the honest description of how we wrote this very post: draft the content, ask the AI to critique the structure, refine, repeat.
+
+---
+
+## Prompting is iterative
+
+The most important takeaway: prompting is **iterative and collaborative**. Expect to refine your approach based on results.
+
+Rarely does the first prompt produce the perfect output — for humans or AIs. You give context, get a response, notice the format is off, add an example, notice the tone is flat, define a role, and suddenly you have something worth sending.
+
+None of the six techniques is complicated. Combined, they turn prompting from a guessing game into a craft.
+
+**Give context. Show examples. Specify constraints. Break it into steps. Let it think. Define the voice. Then ask the AI how to do it better — and refine.**
+
+*Built on the principles this site uses daily — including the OpenCode-powered assistant chatting on every page of flabs.tech.*
