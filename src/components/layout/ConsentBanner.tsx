@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Group, Paper, Text } from "@mantine/core";
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { getConsent, setConsent, startTrackingSession, track } from "@/lib/tracking";
 import styles from "./ConsentBanner.module.scss";
 
@@ -18,6 +18,32 @@ interface ConsentBannerProps {
 
 export const ConsentBanner = ({ initialConsent }: ConsentBannerProps) => {
   const consent = useSyncExternalStore(subscribeConsent, getConsent, () => initialConsent);
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const visible = consent === null;
+
+  // Expose the banner height so fixed widgets (AI assistant toggle/panel)
+  // can shift above it instead of being covered.
+  useEffect(() => {
+    if (!visible || typeof window === "undefined") return;
+    const el = bannerRef.current;
+    if (!el) return;
+
+    document.body.dataset.consentBanner = "open";
+    const update = () => {
+      document.body.style.setProperty("--consent-banner-height", `${el.offsetHeight}px`);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    window.addEventListener("resize", update);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+      delete document.body.dataset.consentBanner;
+      document.body.style.removeProperty("--consent-banner-height");
+    };
+  }, [visible]);
 
   const handleAccept = useCallback(() => {
     setConsent("accepted");
@@ -29,10 +55,11 @@ export const ConsentBanner = ({ initialConsent }: ConsentBannerProps) => {
     setConsent("declined");
   }, []);
 
-  if (consent !== null) return null;
+  if (!visible) return null;
 
   return (
     <Paper
+      ref={bannerRef}
       className={styles.banner}
       role="dialog"
       aria-label="Analytics consent"
