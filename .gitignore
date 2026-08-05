@@ -66,3 +66,4 @@ playwright-report/
 # OS metadata
 Thumbs.db
 Desktop.ini
+.env*

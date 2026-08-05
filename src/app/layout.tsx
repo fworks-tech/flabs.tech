@@ -6,6 +6,7 @@ import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
 import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { JsonLd } from "@/components/layout/JsonLd";
+import { PostHogInit } from "@/components/layout/PostHogInit";
 import { SocialStats } from "@/components/layout/SocialStats";
 import { TrackingProvider } from "@/components/layout/TrackingProvider";
 import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
@@ -100,6 +101,7 @@ export default async function RootLayout({
       <UnhandledErrorLogger />
       <body style={{ minHeight: "100vh", margin: 0, padding: 0 }}>
         <Providers user={user}>
+          <PostHogInit />
           <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
             <ClientParticles quantity={60} staticity={30} ease={40} />
           </div>
