@@ -25,6 +25,7 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
       aria-label={`Switch to ${colorScheme === "dark" ? "light" : "dark"} theme`}
       title={`Switch to ${colorScheme === "dark" ? "light" : "dark"} theme`}
       className={className}
+      suppressHydrationWarning
     >
       {isClient && (colorScheme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />)}
     </ActionIcon>
