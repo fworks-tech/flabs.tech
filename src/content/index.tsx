@@ -246,6 +246,7 @@ const workExperience = {
       timeframe: "Dec 2025 – Jun 2026",
       role: "Full Stack Engineer",
       location: "United States (remote)",
+      type: "Full-time",
       achievements: [
         "Engineered automated AI checkout systems using GraphQL Federation for major US telecom partners, processing 1,000+ daily transactions.",
         "Architected subgraph solutions overseeing the full lifecycle — from API analysis to CI/infrastructure setup.",
@@ -258,6 +259,7 @@ const workExperience = {
       timeframe: "Jan 2025 – Sep 2025",
       role: "Full Stack Engineer",
       location: "United States (remote)",
+      type: "Full-time",
       achievements: [
         "Implemented reusable React interactive forms covering US regulations for Veterans, significantly reducing time spent on digital paperwork.",
         "Improved Core Web Vitals and React performance through advanced optimization techniques.",
@@ -271,6 +273,7 @@ const workExperience = {
       timeframe: "Jan 2023 – Apr 2024",
       role: "Full Stack Engineer",
       location: "Portugal (remote)",
+      type: "Full-time",
       achievements: [
         "Architected scalable front-end interfaces for Farfetch's global e-commerce platform, improving SEO and page load performance by 25%.",
         "Led the complete application rebuild of Liminal Link and contributed to LinkGPT, an AI-powered digital market assistant.",
@@ -283,6 +286,7 @@ const workExperience = {
       timeframe: "Aug 2021 – Sep 2022",
       role: "Senior Frontend Developer",
       location: "Brazil",
+      type: "Full-time",
       achievements: [
         "Designed front-end application architecture from scratch, influencing product decisions and supporting backend tasks.",
         "Built Chart.js dashboards that reduced data analysis time by 40% through modern chart types and data export methods.",
@@ -295,6 +299,7 @@ const workExperience = {
       timeframe: "Jul 2020 – Aug 2021",
       role: "Senior Frontend Developer",
       location: "Brazil",
+      type: "Full-time",
       achievements: [
         "Architected a product/store management platform and a geolocation-based product discovery app.",
         "Reduced deployment downtime by 50% through GitLab CI/CD integration and automated testing.",
@@ -307,6 +312,7 @@ const workExperience = {
       timeframe: "Jun 2019 – Jul 2020",
       role: "Senior Frontend Developer",
       location: "Brazil",
+      type: "Full-time",
       achievements: [
         "Engineered a scalable enterprise ERP system with React.js, Redux, and Material-UI.",
         "Developed core framework components in TypeScript with Formik, ensuring standardized UI/UX patterns.",
@@ -319,6 +325,7 @@ const workExperience = {
       timeframe: "Jun 2016 – Jun 2019",
       role: "R&D Engineer → QA Technician → Intern",
       location: "Joinville, Brazil",
+      type: "Full-time",
       achievements: [
         "Maintained and evolved core ERP product functionalities across front-end, back-end, and DevOps.",
         "Led internal Protractor e2e training, improving code quality and reducing production bugs.",

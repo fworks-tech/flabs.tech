@@ -55,6 +55,11 @@ export default function WorkPage() {
                 </Text>
               </Stack>
               <Badge size="md">{exp.timeframe}</Badge>
+              {exp.type && (
+                <Badge size="md" variant="light">
+                  {exp.type}
+                </Badge>
+              )}
             </Group>
             <Stack component="ul" gap="8" pl="md">
               {exp.achievements.map((item, j) => (
@@ -68,6 +73,15 @@ export default function WorkPage() {
                 </Group>
               ))}
             </Stack>
+            {exp.tags && exp.tags.length > 0 && (
+              <Group gap="8">
+                {exp.tags.map((tag) => (
+                  <Badge key={tag} size="sm" variant="light">
+                    {tag}
+                  </Badge>
+                ))}
+              </Group>
+            )}
             {i < workExperience.experiences.length - 1 && <Divider />}
           </Stack>
         ))}
