@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity 0.2s, transform 0.2s, bottom 0.2s;
   overflow: hidden;
   animation: avatarBreathe 3s ease-in-out infinite;
 
@@ -39,6 +39,18 @@
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+// Keep the assistant toggle and panel above the consent banner while it is
+// open instead of being covered by it.
+:global(body[data-consent-banner="open"]) {
+  .toggle {
+    bottom: calc(var(--consent-banner-height, 0px) + 16px);
+  }
+
+  .chat {
+    bottom: calc(var(--consent-banner-height, 0px) + 72px);
   }
 }
 

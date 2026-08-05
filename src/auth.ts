@@ -18,6 +18,9 @@ const redis = new Redis({ url: url ?? "", token: token ?? "" });
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: UpstashRedisAdapter(redis),
   providers: [GitHub],
+  // Dev/e2e fallback so `auth()` doesn't throw MissingSecret in `next dev`.
+  // Production always requires AUTH_SECRET (fails closed without it).
+  secret: process.env.AUTH_SECRET ?? (process.env.NODE_ENV === "production" ? undefined : "flabs-dev-secret"),
   session: {
     strategy: url && token ? "database" : "jwt",
     maxAge: 7 * 24 * 60 * 60,
