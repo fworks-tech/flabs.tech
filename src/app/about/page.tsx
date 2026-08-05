@@ -93,13 +93,16 @@ export default function About() {
                 Download CV
               </Button>
             )}
-            <iframe
-              src="https://github.com/sponsors/fworks-tech/button"
-              title="Sponsor Me! 😎"
-              height={32}
-              width={114}
-              style={{ border: 0, borderRadius: 6 }}
-            />
+            <Button
+              component="a"
+              href="https://github.com/sponsors/fworks-tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="filled"
+              size="sm"
+            >
+              Sponsor Me
+            </Button>
           </Group>
         )}
       </Stack>
