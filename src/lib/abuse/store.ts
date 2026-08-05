@@ -22,10 +22,22 @@ const url = process.env.UPSTASH_REDIS_REST_URL;
 const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const memory = new Map<string, { value: string; expiresAt: number }>();
+const memorySets = new Map<string, Set<string>>();
 
 let redis: Redis | null = null;
 if (url && token) {
   redis = new Redis({ url, token });
+}
+
+/** Converts a Redis-style glob pattern (`*`, `?`) to a RegExp. */
+function globToRegex(pattern: string): RegExp {
+  let out = "";
+  for (const ch of pattern) {
+    if (ch === "*") out += ".*";
+    else if (ch === "?") out += ".";
+    else out += ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  return new RegExp(`^${out}$`);
 }
 
 const memoryStore = {
@@ -94,5 +106,40 @@ export const store = {
       return value;
     }
     return memoryStore.incr(key, ttlSeconds);
+  },
+
+  /**
+   * Lists keys matching a Redis-style glob pattern (`*`, `?`).
+   *
+   * Note: `KEYS` is discouraged in production Redis, but this store is used
+   * by the admin dashboards on a low-traffic personal site where the
+   * key space is tiny and bounded by TTLs. In-memory fallback scans the Map.
+   */
+  async keys(pattern: string): Promise<string[]> {
+    if (redis) {
+      const result = await redis.keys(pattern);
+      return result ?? [];
+    }
+    const regex = globToRegex(pattern);
+    return Array.from(memory.keys()).filter((key) => regex.test(key));
+  },
+
+  /** Adds a member to a HyperLogLog set (unique-count approximation). */
+  async pfadd(key: string, value: string): Promise<void> {
+    if (redis) {
+      await redis.pfadd(key, value);
+      return;
+    }
+    const set = memorySets.get(key) ?? new Set<string>();
+    set.add(value);
+    memorySets.set(key, set);
+  },
+
+  /** Returns the approximate cardinality of a HyperLogLog set. */
+  async pfcount(key: string): Promise<number> {
+    if (redis) {
+      return redis.pfcount(key);
+    }
+    return memorySets.get(key)?.size ?? 0;
   },
 };

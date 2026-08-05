@@ -22,6 +22,7 @@ import {
   type SignalInput,
 } from '@/lib/abuse';
 import { logger } from '@/lib/logger';
+import { addAiTokensOut, recordAiEvent } from '@/lib/ai-stats';
 import { type NextRequest } from 'next/server';
 
 const zen = createOpenAICompatible({
@@ -32,7 +33,9 @@ const zen = createOpenAICompatible({
   },
 });
 
-const model = zen.chatModel('mimo-v2.5');
+const MODEL_ID = 'mimo-v2.5';
+
+const model = zen.chatModel(MODEL_ID);
 
 // PII signals strengthen the injection verdict (data-exfiltration attempts);
 // a bare email in a normal message is not flagged.
@@ -330,6 +333,16 @@ export async function POST(req: NextRequest) {
 
   const normalized = normalizeMessages(messages);
 
+  // Record request for the admin AI dashboard (output tokens corrected below).
+  void recordAiEvent({
+    model: MODEL_ID,
+    tokensIn: estimatedTokens,
+    tokensOut: 0,
+    tier,
+    blocked: injection.blocked,
+    injection: injection.blocked || injection.suspicious,
+  });
+
   try {
     const result = streamText({
       model,
@@ -350,6 +363,7 @@ export async function POST(req: NextRequest) {
     void Promise.resolve(result.usage)
       .then((usage) => {
         if (usage?.totalTokens) recordActualUsage(key, usage.totalTokens);
+        if (usage?.totalTokens) void addAiTokensOut(usage.totalTokens);
       })
       .catch(() => undefined);
 

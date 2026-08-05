@@ -1,0 +1,17 @@
+.banner {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  left: 16px;
+  z-index: 1000;
+  max-width: 420px;
+  margin-left: auto;
+  padding: 16px 20px;
+  backdrop-filter: blur(8px);
+}
+
+@media (min-width: 768px) {
+  .banner {
+    left: auto;
+  }
+}
