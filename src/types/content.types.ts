@@ -152,6 +152,12 @@ export interface About extends BasePageConfig {
       timeframe: string;
       /** Role or job title */
       role: string;
+      /** Location of the role */
+      location: string;
+      /** Employment type (e.g. Full-time, Part-time) */
+      type?: string;
+      /** Skill tags for the role */
+      tags?: string[];
       /** Achievements at the company */
       achievements: React.ReactNode[];
       /** Images related to the experience */
