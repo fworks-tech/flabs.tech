@@ -10,6 +10,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { DefaultChatTransport } from 'ai';
+import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import styles from './AiAssistant.module.scss';
@@ -159,9 +160,12 @@ export function AiAssistant() {
             : undefined
         }
       >
-        <img
+        <Image
           src="/images/ai-avatar.png"
           alt="Fabio's AI assistant"
+          width={56}
+          height={56}
+          priority
           className={styles.toggleAvatar}
         />
       </ActionIcon>
@@ -190,7 +194,7 @@ export function AiAssistant() {
       >
         <div className={styles.header} onMouseDown={handleDragStart} onTouchStart={handleDragStart}>
           <div className={styles.headerLeft}>
-            <img src="/images/ai-avatar.png" alt="" className={styles.headerAvatar} />
+            <Image src="/images/ai-avatar.png" alt="" width={20} height={20} className={styles.headerAvatar} />
             <span className={styles.headerTitle}>AI Assistant</span>
             <StatusDot status={status} />
             {userMsgCount > 0 && (
@@ -229,9 +233,11 @@ export function AiAssistant() {
           {messages.length === 0 && (
             <div className={styles.welcome}>
               <div className={styles.welcomeIcon}>
-                <img
+                <Image
                   src="/images/ai-avatar.png"
                   alt="Fabio's AI assistant"
+                  width={64}
+                  height={64}
                   className={styles.welcomeAvatar}
                 />
               </div>
