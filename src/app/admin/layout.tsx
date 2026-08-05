@@ -1,19 +1,12 @@
-import { AppShell, Button, Group, NavLink, Stack, Text, Title } from "@mantine/core";
-import Link from "next/link";
+import { AppShell, Button, Group, Stack, Text, Title } from "@mantine/core";
 import { requireSession } from "@/lib/session";
+import { AdminNavLinks } from "./AdminNavLinks";
 import { signOutAction } from "./actions";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
-
-const navItems = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/drafts", label: "Drafts" },
-  { href: "/admin/ai", label: "AI Assistant" },
-  { href: "/admin/analytics", label: "Analytics" },
-];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
@@ -24,19 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Group h="100%" px="lg" justify="space-between" wrap="nowrap">
           <Group gap="lg" wrap="nowrap">
             <Title order={4}>flabs.tech Admin</Title>
-            <Group gap="4" wrap="nowrap">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.href}
-                  component={Link}
-                  href={item.href}
-                  label={item.label}
-                  variant="subtle"
-                  active={false}
-                  py="6"
-                />
-              ))}
-            </Group>
+            <AdminNavLinks />
           </Group>
           <Group gap="md" wrap="nowrap">
             <Text size="sm" c="dimmed" visibleFrom="sm">
