@@ -4,6 +4,7 @@ import { Button, Group, Loader, PasswordInput, Stack, Title } from "@mantine/cor
 import NotFound from "@/app/not-found";
 import { protectedRoutes, routes } from "@/config";
 import { logger } from "@/lib/logger";
+import { trackEvent } from "@/lib/analytics";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -76,6 +77,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       });
 
       if (response.ok) {
+        trackEvent("protected_route_access_granted", { path: pathname ?? "unknown" });
         setIsAuthenticated(true);
         setError(undefined);
       } else {

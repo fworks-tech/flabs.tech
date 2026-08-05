@@ -13,8 +13,7 @@
  * </button>
  * ```
  *
- * Events are collected in the Vercel Analytics dashboard and in PostHog
- * (initialized by `PostHogTracker`). No additional setup required.
+ * Events are collected in the Vercel Analytics dashboard and in PostHog.
  */
 
 import { track } from "@vercel/analytics";
@@ -31,17 +30,17 @@ export type EventName =
   | "ai_assistant_open"
   | "ai_assistant_close"
   | "ai_assistant_send"
-  | "ai_assistant_error";
+  | "ai_assistant_error"
+  | "ai_assistant_generation_stopped"
+  | "protected_route_access_granted";
 
 type EventProperties = Record<string, string | number | boolean>;
 
 export function trackEvent(name: EventName, properties?: EventProperties) {
   if (typeof window === "undefined") return;
   track(name, properties);
-  try {
+  if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     posthog.capture(name, properties ?? {});
-  } catch {
-    // PostHog not initialized or blocked — Vercel track already succeeded.
   }
   trackSelfHosted(name);
 }

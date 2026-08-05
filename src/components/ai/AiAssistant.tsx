@@ -71,12 +71,6 @@ export function AiAssistant() {
     }
   }, [messages]);
 
-  useEffect(() => {
-    if (error) {
-      trackEvent('ai_assistant_error', { message: error.message ?? 'unknown' });
-    }
-  }, [error]);
-
   const handleDragStart = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       if (expanded) return;
@@ -140,6 +134,11 @@ export function AiAssistant() {
       sendMessage({ text: input });
       setInput('');
     }
+  }
+
+  function handleStopGeneration() {
+    trackEvent('ai_assistant_generation_stopped');
+    stop();
   }
 
   return (
@@ -212,7 +211,7 @@ export function AiAssistant() {
               {expanded ? <IconArrowsMinimize size={16} /> : <IconArrowsMaximize size={16} />}
             </ActionIcon>
             {isLoading && (
-              <ActionIcon variant="subtle" onClick={() => stop()} aria-label="Stop generating">
+              <ActionIcon variant="subtle" onClick={handleStopGeneration} aria-label="Stop generating">
                 <IconSquare size={16} />
               </ActionIcon>
             )}
@@ -295,7 +294,7 @@ export function AiAssistant() {
               </span>
             </div>
             {isLoading ? (
-              <ActionIcon variant="filled" color="red" onClick={() => stop()} aria-label="Stop">
+              <ActionIcon variant="filled" color="red" onClick={handleStopGeneration} aria-label="Stop">
                 <IconSquare size={16} />
               </ActionIcon>
             ) : (

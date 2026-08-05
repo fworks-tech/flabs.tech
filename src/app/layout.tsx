@@ -6,7 +6,6 @@ import { AiAssistant } from "@/components/ai";
 import { Footer, Header, Providers } from "@/components";
 import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { JsonLd } from "@/components/layout/JsonLd";
-import { PostHogInit } from "@/components/layout/PostHogInit";
 import { SocialStats } from "@/components/layout/SocialStats";
 import { TrackingProvider } from "@/components/layout/TrackingProvider";
 import { UnhandledErrorLogger } from "@/components/layout/UnhandledErrorLogger";
@@ -21,6 +20,7 @@ import { SpeedInsightsWithRedaction } from "@/components/layout/SpeedInsightsWit
 import type { Viewport } from "next";
 import { cookies } from "next/headers";
 import { CONSENT_COOKIE } from "@/lib/tracking";
+import { auth } from "@/auth";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -76,8 +76,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
+  const [cookieStore, session] = await Promise.all([cookies(), auth()]);
   const initialConsent = cookieStore.get(CONSENT_COOKIE)?.value ?? null;
+  const user = session?.user?.id
+    ? {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        login: session.user.login,
+      }
+    : undefined;
 
   return (
     <html
@@ -91,7 +99,7 @@ export default async function RootLayout({
       </head>
       <UnhandledErrorLogger />
       <body style={{ minHeight: "100vh", margin: 0, padding: 0 }}>
-        <Providers>
+        <Providers user={user}>
           <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
             <ClientParticles quantity={60} staticity={30} ease={40} />
           </div>
@@ -113,7 +121,6 @@ export default async function RootLayout({
         <TrackingProvider />
       <Analytics />
       <SpeedInsightsWithRedaction />
-      <PostHogInit />
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "Person",

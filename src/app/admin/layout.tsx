@@ -1,7 +1,7 @@
-import { AppShell, Button, Group, Stack, Text, Title } from "@mantine/core";
+import { AppShell, Group, Stack, Text, Title } from "@mantine/core";
 import { requireSession } from "@/lib/session";
 import { AdminNavLinks } from "./AdminNavLinks";
-import { signOutAction } from "./actions";
+import { SignOutButton } from "./SignOutButton";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -23,11 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Text size="sm" c="dimmed" visibleFrom="sm">
               {session.user.login ?? session.user.name}
             </Text>
-            <form action={signOutAction}>
-              <Button type="submit" variant="subtle" size="xs">
-                Sign out
-              </Button>
-            </form>
+            <SignOutButton />
           </Group>
         </Group>
       </AppShell.Header>
