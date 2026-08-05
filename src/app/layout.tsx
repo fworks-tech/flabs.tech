@@ -15,7 +15,7 @@ import { baseURL, fonts, sameAs } from "@/config";
 import { home, person } from "@/content";
 import { generateMeta } from "@/lib/seo";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SpeedInsightsWithRedaction } from "@/components/layout/SpeedInsightsWithRedaction";
 
 import type { Viewport } from "next";
 import { cookies } from "next/headers";
@@ -120,20 +120,7 @@ export default async function RootLayout({
         </Providers>
         <TrackingProvider />
       <Analytics />
-      <SpeedInsights
-        beforeSend={(data) => {
-          if (!data.url) return data;
-          const url = new URL(data.url);
-          // Redact sensitive query parameters
-          const sensitiveParams = ["token", "secret", "key", "password", "auth", "code", "email", "signature"];
-          sensitiveParams.forEach((param) => {
-            if (url.searchParams.has(param)) {
-              url.searchParams.set(param, "[REDACTED]");
-            }
-          });
-          return { ...data, url: url.toString() };
-        }}
-      />
+      <SpeedInsightsWithRedaction />
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "Person",
