@@ -38,6 +38,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         <Carousel withIndicators height={300}>
           {images.map((image, i) => (
             <Carousel.Slide key={i}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={image}
                 alt={`Screenshot of ${title} - project showcase image`}
