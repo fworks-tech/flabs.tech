@@ -14,6 +14,9 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   transpilePackages: ["next-mdx-remote"],
+  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
+    ? process.env.ALLOWED_DEV_ORIGINS.split(",").map((origin) => origin.trim())
+    : undefined,
   poweredByHeader: false,
   compress: true,
   experimental: {
