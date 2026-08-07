@@ -2,14 +2,14 @@
 
 import { Button, Group, Paper, Text } from "@mantine/core";
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
-import { getConsent, setConsent, startTrackingSession, track } from "@/lib/tracking";
+import {
+  getConsent,
+  setConsent,
+  startTrackingSession,
+  subscribeConsent,
+  track,
+} from "@/lib/tracking";
 import styles from "./ConsentBanner.module.scss";
-
-function subscribeConsent(callback: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  window.addEventListener("fa:consent", callback);
-  return () => window.removeEventListener("fa:consent", callback);
-}
 
 interface ConsentBannerProps {
   /** Consent cookie value read server-side (SSR-consistent initial state). */

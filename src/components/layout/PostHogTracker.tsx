@@ -3,15 +3,9 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
-import { getConsent } from "@/lib/tracking";
+import { getConsent, subscribeConsent } from "@/lib/tracking";
 
 let initialized = false;
-
-function subscribeConsent(callback: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  window.addEventListener("fa:consent", callback);
-  return () => window.removeEventListener("fa:consent", callback);
-}
 
 export default function PostHogTracker() {
   const pathname = usePathname();
@@ -56,7 +50,7 @@ export default function PostHogTracker() {
       if (getConsent() === "accepted") {
         consentedRef.current = true;
         ensureInit();
-        posthog.capture("$pageview");
+        if (initialized) posthog.capture("$pageview");
       } else {
         consentedRef.current = false;
       }
@@ -64,7 +58,7 @@ export default function PostHogTracker() {
   }, [ensureInit]);
 
   useEffect(() => {
-    if (!consentedRef.current) return;
+    if (!consentedRef.current || !initialized) return;
     posthog.capture("$pageview");
   }, [pathname, searchParams]);
 
