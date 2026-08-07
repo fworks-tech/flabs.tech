@@ -71,7 +71,7 @@ function buildSystemPrompt(): string {
     .map((s) => `${s.title}: ${(s.tags ?? []).map((t) => t.name).join(', ')}`)
     .join('\n');
 
-  return `You are an AI assistant for Fabio Ritzel Borges's portfolio website (flabs.tech).
+  return `You are an AI assistant for ${person.name}'s portfolio website (flabs.tech).
 
 ## About Fabio
 - Name: ${person.name}

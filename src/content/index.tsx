@@ -2,9 +2,9 @@ import type { About, Blog, Home, Newsletter, Person, Social, Work } from "@/type
 
 const person: Person = {
   firstName: "Fabio",
-  lastName: "Ritzel Borges",
-  name: "Fabio Ritzel Borges",
-  role: "Senior Full-Stack Engineer · AI Engineering",
+  lastName: "Borges",
+  name: "Fabio Borges",
+  role: "Full-Stack Engineer & AI Systems Architect",
   avatar: "/images/avatar.webp",
   email: "",
   resume: "/resume.pdf",
@@ -113,7 +113,7 @@ const about: About = {
   },
   work: {
     display: false,
-  title: "Work Experience — Fabio Ritzel Borges",
+  title: "Work Experience — Fabio Borges",
     experiences: [],
   },
   studies: {
@@ -352,8 +352,8 @@ const workExperience = {
 const blog: Blog = {
   path: "/blog",
   label: "Blog",
-  title: "Blog — Fabio Ritzel Borges",
-  description: "Engineering blog by Fabio Ritzel Borges — GraphQL Federation, multi-agent AI systems, TypeScript, React, and production full-stack engineering.",
+  title: `Blog — ${person.name}`,
+  description: `Engineering blog by ${person.name} — GraphQL Federation, multi-agent AI systems, TypeScript, React, and production full-stack engineering.`,
 };
 
 const work: Work = {
@@ -367,7 +367,7 @@ const work: Work = {
 const projects: Work = {
   path: "/projects",
   label: "Projects",
-  title: "Projects — Fabio Ritzel Borges",
+  title: `Projects — ${person.name}`,
   description: `Open-source tools, AI experiments, and personal builds by ${person.name}`,
 };
 
