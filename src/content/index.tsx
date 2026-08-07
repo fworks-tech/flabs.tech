@@ -48,7 +48,7 @@ const home: Home = {
   path: "/",
   image: "/api/og/generate",
   label: "Home",
-  title: `${person.name}'s Portfolio`,
+  title: "Fabio Borges' Portfolio",
   description:
     "Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.",
   headline: "Hey there, I'm Fabio Borges",
