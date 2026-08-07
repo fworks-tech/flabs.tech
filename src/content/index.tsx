@@ -49,7 +49,7 @@ const home: Home = {
   image: "/api/og/generate",
   label: "Home",
   title: "Fabio Borges' Portfolio",
-  description: `${person.role}. 10+ years across frontend, backend, testing, devops and AI engineering.`,
+  description: `${person.role}. 10+ years across frontend, backend, testing, devops & AI engineering.`,
   headline: "Fabio Borges",
   featured: {
     display: false,

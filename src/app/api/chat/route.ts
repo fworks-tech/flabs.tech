@@ -82,7 +82,7 @@ function buildSystemPrompt(): string {
 ## Bio
 ${home.subline}
 
-${person.role} with 10+ years across frontend, backend, testing, devops and AI engineering.
+${person.role} with 10+ years across frontend, backend, testing, devops & AI engineering.
 
 ## Skills
 ${skillList}
