@@ -82,7 +82,7 @@ function buildSystemPrompt(): string {
 ## Bio
 ${home.subline}
 
-${person.role} with 10+ years of experience across frontend, backend, and AI. Designs production GraphQL APIs, federated architectures, and agentic AI systems.
+${person.role} with 10+ years across frontend, backend, testing, devops and AI engineering.
 
 ## Skills
 ${skillList}
