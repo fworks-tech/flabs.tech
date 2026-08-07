@@ -29,10 +29,10 @@ export async function GET(request: Request) {
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           flex: 1,
-          alignItems: "center",
           justifyContent: "center",
-          color: "white",
+          gap: "1.5rem",
         }}
       >
         <div
@@ -54,6 +54,7 @@ export async function GET(request: Request) {
               fontSize: "2rem",
               fontWeight: 700,
               color: "#a8a0d0",
+              flexShrink: 0,
             }}
           >
             {INITIALS}
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
                 fontSize: "2.5rem",
                 lineHeight: "2.5rem",
                 fontWeight: 700,
+                color: "white",
               }}
             >
               {title}
@@ -78,24 +80,54 @@ export async function GET(request: Request) {
               style={{
                 fontSize: "1.25rem",
                 lineHeight: "1.5rem",
-                opacity: "0.6",
+                opacity: 0.6,
+                color: "white",
               }}
             >
               {person.role}
             </span>
           </div>
         </div>
+
+        <div
+          style={{
+            fontSize: "1.5rem",
+            lineHeight: "2rem",
+            opacity: 0.85,
+            color: "#a8a0d0",
+            maxWidth: "55rem",
+          }}
+        >
+          10+ years across frontend, backend, testing, devops &amp; AI engineering
+        </div>
       </div>
+
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-end",
-          fontSize: "1rem",
-          opacity: "0.4",
-          color: "white",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        flabs.tech
+        <span
+          style={{
+            fontSize: "1rem",
+            opacity: 0.4,
+            color: "white",
+          }}
+        >
+          flabs.tech
+        </span>
+        <span
+          style={{
+            fontSize: "1.25rem",
+            fontWeight: 600,
+            color: "#a8a0d0",
+            opacity: 0.9,
+          }}
+        >
+          View Portfolio →
+        </span>
       </div>
     </div>,
     {

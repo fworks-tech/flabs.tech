@@ -2,13 +2,14 @@ import type { About, Blog, Home, Newsletter, Person, Social, Work } from "@/type
 
 const person: Person = {
   firstName: "Fabio",
-  lastName: "Ritzel Borges",
-  name: "Fabio Ritzel Borges",
-  role: "Senior Full-Stack Engineer · AI Engineering",
+  lastName: "Borges",
+  name: "Fabio Borges",
+  role: "Full Stack Web Developer & AI Engineer",
   avatar: "/images/avatar.webp",
   email: "",
   resume: "/resume.pdf",
   location: "America/Sao_Paulo",
+  city: "Joinville, Brazil",
   languages: ["English", "Portuguese"],
 };
 
@@ -48,9 +49,8 @@ const home: Home = {
   path: "/",
   image: "/api/og/generate",
   label: "Home",
-  title: `${person.name}'s Portfolio`,
-  description:
-    "Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.",
+  title: "Fabio Borges' Portfolio",
+  description: `${person.role}. 10+ years across frontend, backend, testing, devops & AI engineering.`,
   headline: "Hey there, I'm Fabio Borges",
   featured: {
     display: false,
@@ -65,7 +65,7 @@ const about: About = {
   path: "/about",
   label: "About",
   title: `About – ${person.name}`,
-  description: "Senior Full-Stack Engineer & AI Systems Architect from Joinville, Brazil.",
+  description: `${person.role} from Joinville, Brazil.`,
   tableOfContent: {
     display: false,
     subItems: false,
@@ -113,7 +113,7 @@ const about: About = {
   },
   work: {
     display: false,
-  title: "Work Experience — Fabio Ritzel Borges",
+  title: "Work Experience — Fabio Borges",
     experiences: [],
   },
   studies: {
@@ -352,8 +352,8 @@ const workExperience = {
 const blog: Blog = {
   path: "/blog",
   label: "Blog",
-  title: "Blog — Fabio Ritzel Borges",
-  description: "Engineering blog by Fabio Ritzel Borges — GraphQL Federation, multi-agent AI systems, TypeScript, React, and production full-stack engineering.",
+  title: `Blog — ${person.name}`,
+  description: `Engineering blog by ${person.name} — web development, AI agents, and production systems from real-world engineering.`,
 };
 
 const work: Work = {
@@ -367,7 +367,7 @@ const work: Work = {
 const projects: Work = {
   path: "/projects",
   label: "Projects",
-  title: "Projects — Fabio Ritzel Borges",
+  title: `Projects — ${person.name}`,
   description: `Open-source tools, AI experiments, and personal builds by ${person.name}`,
 };
 

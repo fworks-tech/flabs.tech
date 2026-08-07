@@ -12,6 +12,7 @@ import {
 import { DefaultChatTransport } from 'ai';
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Markdown from 'react-markdown';
 import { trackEvent } from '@/lib/analytics';
 import styles from './AiAssistant.module.scss';
 
@@ -58,6 +59,10 @@ export function AiAssistant() {
   const isLoading = status === 'submitted' || status === 'streaming';
   const userMsgCount = messages.filter((m) => m.role === 'user').length;
   const sessionLimitReached = userMsgCount >= MAX_SESSION_MESSAGES;
+
+  useEffect(() => {
+    if (error) trackEvent('ai_assistant_error');
+  }, [error]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -254,7 +259,11 @@ export function AiAssistant() {
               }`}
             >
               <div className={styles.messageLabel}>{msg.role === 'user' ? 'You' : 'Assistant'}</div>
-              <div className={styles.messageContent}>{getMessageText(msg)}</div>
+              <div className={styles.messageContent}>
+                {msg.role === 'user' ? getMessageText(msg) : (
+                  <Markdown>{getMessageText(msg)}</Markdown>
+                )}
+              </div>
             </div>
           ))}
           {error && (

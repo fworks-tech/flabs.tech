@@ -290,6 +290,45 @@
 
 .messageContent {
   margin: 0;
+
+  // Markdown-rendered assistant messages
+  :global(b),
+  :global(strong) {
+    font-weight: 600;
+  }
+
+  :global(i),
+  :global(em) {
+    font-style: italic;
+  }
+
+  :global(code) {
+    background: var(--mantine-color-dark-4);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: var(--mantine-font-family-monospace);
+  }
+
+  :global(a) {
+    color: var(--mantine-color-violet-4);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  :global(ul),
+  :global(ol) {
+    margin: 4px 0;
+    padding-left: 20px;
+  }
+
+  :global(p) {
+    margin: 0 0 4px;
+  }
+
+  :global(p:last-child) {
+    margin-bottom: 0;
+  }
 }
 
 .error {

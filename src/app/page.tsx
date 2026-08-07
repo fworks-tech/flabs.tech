@@ -42,7 +42,7 @@ export default function Home() {
       <Group gap="xl" align="center" py="64">
         <Stack style={{ flex: 5 }} gap="lg">
           <Text size="sm" c="dimmed">
-            Senior Full-Stack Engineer · Joinville, Brazil
+            {person.role} · {person.city}
           </Text>
           <Title order={1}>{home.headline}</Title>
           <Text size="lg" c="dimmed">

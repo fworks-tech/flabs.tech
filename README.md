@@ -1,6 +1,6 @@
 # flabs.tech
 
-**Personal portfolio of Fábio Ritzel Borges** — Senior Full-Stack Engineer & AI Systems Architect
+**Personal portfolio of Fabio Borges** — Full Stack Web Developer & AI Engineer
 
 Live at **[flabs.tech](https://flabs.tech)**
 

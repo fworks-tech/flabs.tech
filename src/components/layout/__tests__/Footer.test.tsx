@@ -20,6 +20,6 @@ describe("Footer", () => {
 
   it("renders person name", () => {
     render(<Footer />, { wrapper: Wrapper });
-    expect(screen.getByText(/Fabio Ritzel Borges/)).toBeInTheDocument();
+    expect(screen.getByText(/Fabio Borges/)).toBeInTheDocument();
   });
 });

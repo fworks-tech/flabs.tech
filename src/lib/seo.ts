@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { person } from "@/content";
 
 export type GenerateMetaParams = {
   title: string;
@@ -23,7 +24,7 @@ export function generateMeta({
       title,
       description,
       url,
-      siteName: "Fabio Ritzel Borges",
+      siteName: person.name,
       locale: "en_US",
       type: "website",
       images: image
