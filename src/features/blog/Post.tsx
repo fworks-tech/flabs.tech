@@ -54,7 +54,7 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
         </Group>
         <Title order={3}>{post.metadata.title}</Title>
         {post.metadata.summary && (
-          <Text size="md" c="dimmed">
+          <Text size="md" c="dimmed" className={styles.summary}>
             {post.metadata.summary}
           </Text>
         )}
