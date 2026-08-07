@@ -98,7 +98,7 @@ export async function GET(request: Request) {
             maxWidth: "55rem",
           }}
         >
-          Building production GraphQL APIs &amp; autonomous AI agents
+          10+ years across frontend, backend, testing, devops &amp; AI engineering
         </div>
       </div>
 

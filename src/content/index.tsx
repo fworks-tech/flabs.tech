@@ -50,7 +50,7 @@ const home: Home = {
   label: "Home",
   title: "Fabio Borges' Portfolio",
   description:
-    "Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.",
+    "Senior Full-Stack Engineer & AI Systems Architect. 10+ years across frontend, backend, testing, devops and AI engineering.",
   headline: "Fabio Borges",
   featured: {
     display: false,
