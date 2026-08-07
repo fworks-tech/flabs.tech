@@ -2,6 +2,13 @@
   transition: background-color 0.2s ease;
 }
 
+.summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
 [data-mantine-color-scheme="dark"] .post:hover {
   background-color: var(--mantine-color-dark-5);
 }
