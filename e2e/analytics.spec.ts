@@ -79,4 +79,20 @@ test.describe("analytics tracking elements", () => {
     await page.locator('a[href="/blog"]:has-text("View all")').click();
     await expect(page).toHaveURL(/\/blog/);
   });
+
+  test("posthog stays dormant until consent is accepted", async ({ page }) => {
+    const posthogRequests: string[] = [];
+    page.on("request", (req) => {
+      if (/\.posthog\.com/i.test(req.url())) posthogRequests.push(req.url());
+    });
+
+    await page.goto("/");
+    await expect(page.locator('[data-testid="consent-banner"]')).toBeVisible();
+    await page.waitForTimeout(750);
+    expect(posthogRequests).toHaveLength(0);
+
+    await page.locator('[data-testid="consent-accept"]').click();
+    await expect(page.locator('[data-testid="consent-banner"]')).toBeHidden();
+    await expect.poll(() => posthogRequests.length).toBeGreaterThan(0);
+  });
 });

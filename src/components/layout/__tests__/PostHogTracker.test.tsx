@@ -25,7 +25,7 @@ function setConsentCookie(value: string | null) {
 }
 
 describe("PostHogTracker", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test_key");
@@ -80,5 +80,20 @@ describe("PostHogTracker", () => {
     unmount1();
     render(<PostHogTracker />);
     expect(initMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not init or capture when keys are not configured, even if consent is accepted", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "");
+    setConsentCookie("accepted");
+    const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
+    const { setConsent } = await import("@/lib/tracking");
+    render(<PostHogTracker />);
+    expect(initMock).not.toHaveBeenCalled();
+    expect(captureMock).not.toHaveBeenCalled();
+
+    setConsent("accepted");
+
+    expect(initMock).not.toHaveBeenCalled();
+    expect(captureMock).not.toHaveBeenCalled();
   });
 });

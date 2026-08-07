@@ -45,6 +45,12 @@ export function setConsent(state: "accepted" | "declined"): void {
   }
 }
 
+export function subscribeConsent(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("fa:consent", callback);
+  return () => window.removeEventListener("fa:consent", callback);
+}
+
 export function ensureIds(): { uid: string; sid: string } {
   let uid = getCookie(UID_COOKIE);
   if (!uid) {
