@@ -49,8 +49,7 @@ const home: Home = {
   image: "/api/og/generate",
   label: "Home",
   title: "Fabio Borges' Portfolio",
-  description:
-    "Senior Full-Stack Engineer & AI Systems Architect. 10+ years across frontend, backend, testing, devops and AI engineering.",
+  description: `${person.role}. 10+ years across frontend, backend, testing, devops and AI engineering.`,
   headline: "Fabio Borges",
   featured: {
     display: false,
@@ -65,7 +64,7 @@ const about: About = {
   path: "/about",
   label: "About",
   title: `About – ${person.name}`,
-  description: "Senior Full-Stack Engineer & AI Systems Architect from Joinville, Brazil.",
+  description: `${person.role} from Joinville, Brazil.`,
   tableOfContent: {
     display: false,
     subItems: false,
