@@ -18,7 +18,7 @@
 
 import { track } from "@vercel/analytics";
 import posthog from "posthog-js";
-import { track as trackSelfHosted } from "@/lib/tracking";
+import { getConsent, track as trackSelfHosted } from "@/lib/tracking";
 
 export type EventName =
   | "cta_click"
@@ -39,7 +39,7 @@ type EventProperties = Record<string, string | number | boolean>;
 export function trackEvent(name: EventName, properties?: EventProperties) {
   if (typeof window === "undefined") return;
   track(name, properties);
-  if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+  if (process.env.NEXT_PUBLIC_POSTHOG_KEY && getConsent() === "accepted") {
     posthog.capture(name, properties ?? {});
   }
   trackSelfHosted(name);
