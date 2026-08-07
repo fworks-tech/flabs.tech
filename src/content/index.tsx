@@ -352,7 +352,7 @@ const blog: Blog = {
   path: "/blog",
   label: "Blog",
   title: `Blog — ${person.name}`,
-  description: `Engineering blog by ${person.name} — GraphQL Federation, multi-agent AI systems, TypeScript, React, and production full-stack engineering.`,
+  description: `Engineering blog by ${person.name} — web development, AI agents, and production systems from 10+ years of shipping.`,
 };
 
 const work: Work = {
