@@ -51,7 +51,7 @@ const home: Home = {
   title: "Fabio Borges' Portfolio",
   description:
     "Senior Full-Stack Engineer & AI Systems Architect. Building production GraphQL APIs and autonomous AI agents.",
-  headline: "Hey there, I'm Fabio Borges",
+  headline: "Fabio Borges",
   featured: {
     display: false,
     title: <></>,
