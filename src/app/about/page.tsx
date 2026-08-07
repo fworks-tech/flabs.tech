@@ -52,7 +52,7 @@ export default function About() {
           <Group gap="8" align="center" pt="4">
             <IconGlobe size={16} />
             <Text size="sm" c="dimmed">
-              {person.location}
+              {person.city}
             </Text>
             {person.languages && person.languages.length > 0 && (
               <>

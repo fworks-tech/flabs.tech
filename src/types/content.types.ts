@@ -27,6 +27,8 @@ export type Person = {
   resume?: string;
   /** IANA time zone location */
   location: IANATimeZone;
+  /** Human-readable city/country, e.g. "Joinville, Brazil" */
+  city?: string;
   /** Languages spoken */
   languages?: string[];
 };

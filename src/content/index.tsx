@@ -9,6 +9,7 @@ const person: Person = {
   email: "",
   resume: "/resume.pdf",
   location: "America/Sao_Paulo",
+  city: "Joinville, Brazil",
   languages: ["English", "Portuguese"],
 };
 
