@@ -50,7 +50,7 @@ const home: Home = {
   label: "Home",
   title: "Fabio Borges' Portfolio",
   description: `${person.role}. 10+ years across frontend, backend, testing, devops & AI engineering.`,
-  headline: "Fabio Borges",
+  headline: "Hey there, I'm Fabio Borges",
   featured: {
     display: false,
     title: <></>,
