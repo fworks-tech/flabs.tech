@@ -1,6 +1,7 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { streamText } from 'ai';
 import { about, home, person, workExperience } from '@/content';
+import { sameAs } from '@/config';
 import { getPosts } from '@/lib/mdx';
 import { rateLimit } from '@/lib/rateLimiter';
 import {
@@ -83,6 +84,8 @@ function buildSystemPrompt(): string {
 - Name: ${person.name}
 - Role: ${person.role}
 - Location: ${person.city ?? 'Joinville, Brazil'}
+- GitHub: ${sameAs.github ?? 'https://github.com/fworks-tech'}
+- LinkedIn: ${sameAs.linkedin ?? 'https://www.linkedin.com/in/fabiorborges/'}
 
 ## Bio
 ${home.subline}
