@@ -57,7 +57,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
       <Card withBorder p="md" radius="md" maw={420} className={styles.rules}>
         <List size="sm" spacing="xs">
           <List.Item icon={<IconBolt size={16} aria-hidden="true" />}>
-            15s per question — correct answers earn a 2s bonus
+            30s per question — correct answers earn a 2s bonus
           </List.Item>
           <List.Item icon={<IconBolt size={16} aria-hidden="true" />}>
             Streaks multiply your points (up to x5)
