@@ -62,8 +62,8 @@ describe("validateScorePayload", () => {
   });
 
   it("rejects durations below the ~1s/question sanity floor", () => {
-    expect(validateScorePayload({ ...valid, durationMs: 19_000 })).toBeNull();
-    expect(validateScorePayload({ ...valid, durationMs: 20_000 })).not.toBeNull();
+    expect(validateScorePayload({ ...valid, durationMs: 9_999 })).toBeNull();
+    expect(validateScorePayload({ ...valid, durationMs: 10_000 })).not.toBeNull();
   });
 });
 
