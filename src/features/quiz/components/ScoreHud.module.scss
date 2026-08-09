@@ -1,0 +1,18 @@
+.hud {
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.score {
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.15s ease;
+}
+
+.heart {
+  color: var(--mantine-color-red-6);
+}
+
+.heartLost {
+  color: var(--mantine-color-dark-4);
+  opacity: 0.4;
+}

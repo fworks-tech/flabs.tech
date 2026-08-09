@@ -1,0 +1,31 @@
+.correct {
+  border-color: var(--mantine-color-green-6);
+}
+
+.wrong {
+  border-color: var(--mantine-color-red-6);
+  animation: shake 0.4s ease-in-out;
+}
+
+.icon {
+  display: inline-block;
+  vertical-align: -4px;
+  margin-right: 0.25rem;
+}
+
+.explanation {
+  margin-top: 0.25rem;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
