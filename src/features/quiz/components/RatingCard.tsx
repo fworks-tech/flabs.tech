@@ -4,6 +4,8 @@ import { ActionIcon, Button, Group, Paper, Text, TextInput } from "@mantine/core
 import { IconThumbDown, IconThumbUp } from "@tabler/icons-react";
 import { useState } from "react";
 
+import { trackEvent } from "@/lib/analytics";
+
 interface RatingCardProps {
   onSubmitted: () => void;
 }
@@ -31,6 +33,7 @@ export function RatingCard({ onSubmitted }: RatingCardProps) {
       });
       if (!res.ok) throw new Error(`rating ${res.status}`);
       setDone(true);
+      trackEvent("quiz_rating_submit", { rating, hasComment: comment.length > 0 });
       onSubmitted();
     } catch {
       setFailed(true);

@@ -55,7 +55,7 @@ export function Certificate({
           {displayName}
         </Text>
         <Text ta="center" mt="md" size="sm">
-          completed the Micro1 JavaScript sprint with a score of{" "}
+          completed the JavaScript sprint with a score of{" "}
           <Text component="span" fw={700}>
             {score} / {total}
           </Text>{" "}

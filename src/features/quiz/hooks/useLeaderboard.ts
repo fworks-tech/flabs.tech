@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import type { LeaderboardEntry, ScorePayload } from "@/features/quiz/lib/leaderboard";
+import { trackEvent } from "@/lib/analytics";
 
 export type LeaderboardWeek = "current" | "all";
 
@@ -73,6 +74,11 @@ export function useLeaderboard() {
         const data = (await res.json()) as { ok: boolean; id: string; rank: number | null };
         setSaved({ id: data.id, rank: data.rank });
         await fetchBoard(week);
+        trackEvent("quiz_score_saved", {
+          score: payload.score,
+          accuracy: payload.total === 0 ? 0 : payload.correct / payload.total,
+          rank: data.rank ?? -1,
+        });
         return data.rank;
       } catch {
         return null;

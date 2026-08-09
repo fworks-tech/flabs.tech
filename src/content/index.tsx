@@ -228,20 +228,6 @@ const about: About = {
 const workExperience = {
   experiences: [
     {
-      company: "micro1",
-      timeframe: "Jun 2026 – Present",
-      role: "AI Trainer",
-      location: "Remote",
-      type: "Part-time",
-      achievements: [
-        "Applying subject matter expertise to support AI training pipelines.",
-        "Supporting the development of advanced AI systems by contributing expert feedback and domain-specific evaluation of model responses.",
-        "Tasks include evaluating model outputs, reviewing technical reasoning, and contributing domain knowledge used to improve model performance.",
-      ],
-      tags: ["Generative AI Development"],
-      images: [],
-    },
-    {
       company: "BairesDev",
       timeframe: "Dec 2025 – Jun 2026",
       role: "Full Stack Engineer",
@@ -252,6 +238,7 @@ const workExperience = {
         "Architected subgraph solutions overseeing the full lifecycle — from API analysis to CI/infrastructure setup.",
         "Enhanced system observability by implementing New Relic flow-tracking instrumentation.",
       ],
+      tags: [],
       images: [],
     },
     {
@@ -266,6 +253,7 @@ const workExperience = {
         "Ensured a11y and WCAG 2.1 AA compliance with mobile-first design patterns.",
         "Established robust testing strategies with Jest and Playwright, reducing regression bugs by 35%.",
       ],
+      tags: [],
       images: [],
     },
     {
@@ -279,6 +267,7 @@ const workExperience = {
         "Led the complete application rebuild of Liminal Link and contributed to LinkGPT, an AI-powered digital market assistant.",
         "Implemented automated testing and performance monitoring tools, significantly reducing memory leaks.",
       ],
+      tags: [],
       images: [],
     },
     {
@@ -292,6 +281,7 @@ const workExperience = {
         "Built Chart.js dashboards that reduced data analysis time by 40% through modern chart types and data export methods.",
         "Developed responsive applications in React.js with reusable component libraries.",
       ],
+      tags: [],
       images: [],
     },
     {
@@ -305,6 +295,7 @@ const workExperience = {
         "Reduced deployment downtime by 50% through GitLab CI/CD integration and automated testing.",
         "Optimized performance using Clean Architecture, Context API, and Zod form validation.",
       ],
+      tags: [],
       images: [],
     },
     {
@@ -318,6 +309,7 @@ const workExperience = {
         "Developed core framework components in TypeScript with Formik, ensuring standardized UI/UX patterns.",
         "Integrated RESTful APIs in collaboration with backend teams, improving API response time by 20%.",
       ],
+      tags: [],
       images: [],
     },
     {
@@ -332,6 +324,7 @@ const workExperience = {
         "Integrated testing into CI/CD pipelines using Jenkins; monitored static analysis with SonarQube.",
         "Developed internal frameworks for web application development, enhancing delivery velocity.",
       ],
+      tags: [],
       images: [],
     },
   ],

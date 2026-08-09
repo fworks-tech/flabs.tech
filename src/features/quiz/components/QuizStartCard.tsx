@@ -6,6 +6,7 @@ import { IconBolt, IconCalendarEvent, IconHeart, IconTrophy } from "@tabler/icon
 import type { QuizQuestion } from "@/features/quiz/data/questions";
 import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
 import { useRatings } from "@/features/quiz/hooks/useRatings";
+import { trackEvent } from "@/lib/analytics";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import styles from "./QuizStartCard.module.scss";
 
@@ -27,7 +28,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
           DevSprint
         </Title>
         <Text c="dimmed" size="sm">
-          The Micro1 JavaScript sprint — 20 questions, 3 lives, 15 seconds each.
+          The JavaScript sprint — 20 questions, 3 lives, 15 seconds each.
         </Text>
       </Stack>
 
@@ -90,7 +91,10 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
 
       <Button
         size="lg"
-        onClick={onStart}
+        onClick={() => {
+          trackEvent("quiz_start", { questionCount: 20 });
+          onStart();
+        }}
         data-testid="start-quiz"
         className={styles.startButton}
         autoFocus
@@ -98,7 +102,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
         Start the sprint
       </Button>
       <Text size="xs" c="dimmed">
-        Answer with 1–4 or A–D. Good luck — Zara is watching.
+        Answer with 1–4 or A–D. Good luck!
       </Text>
     </Stack>
   );

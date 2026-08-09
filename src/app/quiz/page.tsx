@@ -18,6 +18,7 @@ import {
 } from "@/features/quiz/hooks/useAchievements";
 import { useCountdown } from "@/features/quiz/hooks/useCountdown";
 import { useHighScore } from "@/features/quiz/hooks/useHighScore";
+import { trackEvent } from "@/lib/analytics";
 import { gameOverStats, useQuizEngine, type EngineState } from "@/features/quiz/hooks/useQuizEngine";
 
 const QUESTION_TIME_MS = 15000;
@@ -88,11 +89,27 @@ export default function QuizPage() {
 
   const handleTimeout = useCallback(() => dispatch({ type: "timeout" }), [dispatch]);
 
+  const currentQuestion = state.phase === "running" || state.phase === "answered"
+    ? state.deck[state.index]
+    : null;
+  const currentStreak = state.phase === "running" || state.phase === "answered"
+    ? state.streak
+    : 0;
+
   const handleAnswer = useCallback(
     (index: number, timeMs: number) => {
       dispatch({ type: "answer", index, timeMs });
+      if (currentQuestion) {
+        trackEvent("quiz_answer", {
+          questionId: currentQuestion.id,
+          category: currentQuestion.category,
+          correct: currentQuestion.correctIndex === index,
+          timeMs: Math.round(timeMs),
+          streak: currentStreak,
+        });
+      }
     },
-    [dispatch],
+    [dispatch, currentQuestion, currentStreak],
   );
 
   useEffect(() => {
@@ -118,6 +135,20 @@ export default function QuizPage() {
         );
         if (fresh.length > 0) setNewlyUnlocked(fresh);
         sendAttemptBeacon(state);
+        trackEvent("quiz_complete", {
+          score: state.score,
+          accuracy: state.deck.length === 0 ? 0 : correctCount / state.deck.length,
+          maxStreak: state.maxStreak,
+          livesLeft: state.lives,
+          durationMs: Date.now() - state.startedAt,
+          rankTitle: (() => {
+            const acc = state.deck.length === 0 ? 0 : correctCount / state.deck.length;
+            if (acc >= 0.9) return "Staff";
+            if (acc >= 0.75) return "Senior";
+            if (acc >= 0.6) return "Mid-Level";
+            return "Junior";
+          })(),
+        });
       }
       dispatch({ type: "advance", now: Date.now() });
     }, FEEDBACK_PAUSE_MS);

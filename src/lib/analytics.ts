@@ -32,7 +32,16 @@ export type EventName =
   | "ai_assistant_send"
   | "ai_assistant_error"
   | "ai_assistant_generation_stopped"
-  | "protected_route_access_granted";
+  | "protected_route_access_granted"
+  | "quiz_start"
+  | "quiz_answer"
+  | "quiz_complete"
+  | "quiz_score_saved"
+  | "quiz_feedback_submit"
+  | "quiz_rating_submit"
+  | "quiz_referral_cta_shown"
+  | "quiz_referral_click"
+  | "quiz_share";
 
 type EventProperties = Record<string, string | number | boolean>;
 

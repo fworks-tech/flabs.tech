@@ -51,6 +51,21 @@
   align-items: center;
 }
 
+.highlight::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mantine-color-grape-6);
+}
+
+[data-mantine-color-scheme="light"] .highlight::after {
+  background: var(--mantine-color-grape-7);
+}
+
 @include bp.s {
   .navItem {
     flex-shrink: 0;

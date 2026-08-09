@@ -35,8 +35,16 @@ export const EVENT_TYPES = new Set([
   "ai_assistant_error",
   "consent_accepted",
   "consent_declined",
+  "quiz_start",
+  "quiz_answer",
+  "quiz_complete",
+  "quiz_score_saved",
+  "quiz_feedback_submit",
+  "quiz_rating_submit",
+  "quiz_referral_cta_shown",
+  "quiz_referral_click",
+  "quiz_share",
 ]);
-
 export interface TrackedEvent {
   t: number;
   ty: string;
