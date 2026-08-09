@@ -29,6 +29,7 @@ export type EngineState =
       lives: number;
       answers: AnswerRecord[];
       startedAt: number;
+      bonusMs: number;
     }
   | {
       phase: "answered";
@@ -44,6 +45,7 @@ export type EngineState =
       correct: boolean;
       timeMs: number;
       points: number;
+      bonusMs: number;
     }
   | {
       phase: "gameover";
@@ -115,6 +117,7 @@ function answeredBase(
     streak: correct ? state.streak + 1 : 0,
     maxStreak: correct ? Math.max(state.maxStreak, state.streak + 1) : state.maxStreak,
     lives: correct ? state.lives : state.lives - 1,
+    bonusMs: correct ? TIME_BONUS_MS : 0,
     answers: [
       ...state.answers,
       { questionId: question.id, correct, timeMs, points },
@@ -136,6 +139,7 @@ export function quizReducer(state: EngineState, action: EngineAction): EngineSta
         lives: MAX_LIVES,
         answers: [],
         startedAt: action.now,
+        bonusMs: 0,
       };
 
     case "answer":
@@ -165,7 +169,7 @@ export function quizReducer(state: EngineState, action: EngineAction): EngineSta
           durationMs: Math.max(0, action.now - state.startedAt),
         };
       }
-      return { ...state, phase: "running", index: state.index + 1 };
+      return { ...state, phase: "running", index: state.index + 1, bonusMs: 0 };
 
     case "retry":
       return { phase: "idle" };

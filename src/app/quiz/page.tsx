@@ -54,24 +54,27 @@ function sendAttemptBeacon(state: Extract<EngineState, { phase: "answered" }>) {
  */
 function QuestionStage({
   question,
+  bonusMs,
   onAnswer,
   onTimeout,
   onReport,
 }: {
   question: QuizQuestion;
+  bonusMs: number;
   onAnswer: (index: number, timeMs: number) => void;
   onTimeout: () => void;
   onReport: () => void;
 }) {
-  const remaining = useCountdown(QUESTION_TIME_MS, true, onTimeout);
+  const duration = QUESTION_TIME_MS + bonusMs;
+  const remaining = useCountdown(duration, true, onTimeout);
   return (
     <QuizQuestionCard
       question={question}
       remainingMs={remaining}
-      durationMs={QUESTION_TIME_MS}
+      durationMs={duration}
       selectedIndex={null}
       disabled={false}
-      onAnswer={(index) => onAnswer(index, QUESTION_TIME_MS - remaining)}
+      onAnswer={(index) => onAnswer(index, duration - remaining)}
       onReport={onReport}
     />
   );
@@ -199,6 +202,7 @@ export default function QuizPage() {
             <QuestionStage
               key={question.id}
               question={question}
+              bonusMs={state.bonusMs}
               onAnswer={handleAnswer}
               onTimeout={handleTimeout}
               onReport={handleReport}
