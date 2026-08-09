@@ -40,20 +40,28 @@ export function useLeaderboard() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       try {
         const res = await fetch(`/api/quiz/leaderboard?week=${week}`);
         if (!res.ok) throw new Error(`leaderboard ${res.status}`);
         const data = (await res.json()) as { entries: LeaderboardEntry[] };
-        setEntries(Array.isArray(data.entries) ? data.entries : []);
-        setError(false);
+        if (!cancelled) {
+          setEntries(Array.isArray(data.entries) ? data.entries : []);
+          setError(false);
+        }
       } catch {
-        setEntries([]);
-        setError(true);
+        if (!cancelled) {
+          setEntries([]);
+          setError(true);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [week]);
 
   /** Week toggle: shows the loading state and lets the effect re-fetch. */

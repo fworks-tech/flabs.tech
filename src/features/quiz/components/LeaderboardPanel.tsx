@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Group, Loader, SegmentedControl, Stack, Text } from "@mantine/core";
+import { Badge, Group, Loader, SegmentedControl, Skeleton, Stack, Text } from "@mantine/core";
 
 import type { LeaderboardEntry } from "@/features/quiz/lib/leaderboard";
 import type { LeaderboardWeek } from "@/features/quiz/hooks/useLeaderboard";
@@ -21,6 +21,21 @@ function medal(rank: number) {
   if (rank === 1) return styles.silver;
   if (rank === 2) return styles.bronze;
   return styles.plain;
+}
+
+function SkeletonRow() {
+  return (
+    <Group justify="space-between" wrap="nowrap" className={styles.row}>
+      <Group gap="xs" wrap="nowrap">
+        <Skeleton width={24} height={16} />
+        <Skeleton width={80} height={14} />
+      </Group>
+      <Group gap="xs" wrap="nowrap">
+        <Skeleton width={32} height={14} />
+        <Skeleton width={40} height={14} />
+      </Group>
+    </Group>
+  );
 }
 
 /**
@@ -54,17 +69,24 @@ export function LeaderboardPanel({
       </Group>
 
       {loading ? (
-        <Group justify="center" py="md">
-          <Loader size="sm" />
-        </Group>
+        <Stack gap="2">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </Stack>
       ) : error ? (
         <Text size="xs" c="dimmed" ta="center" py="md" data-testid="leaderboard-unavailable">
           Leaderboard unavailable right now.
         </Text>
       ) : entries.length === 0 ? (
-        <Text size="sm" c="dimmed" ta="center" py="md" data-testid="leaderboard-empty">
-          No scores yet this {week === "current" ? "week" : "period"} — be the first!
-        </Text>
+        <Stack gap="4" align="center" py="md" data-testid="leaderboard-empty">
+          <Text size="sm" c="dimmed">
+            No scores yet this {week === "current" ? "week" : "period"}
+          </Text>
+          <Text size="xs" c="dimmed">
+            Be the first to claim your spot!
+          </Text>
+        </Stack>
       ) : (
         <Stack gap="2" data-testid="leaderboard-list">
           {entries.map((entry) => {

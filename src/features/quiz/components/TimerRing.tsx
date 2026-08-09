@@ -22,7 +22,7 @@ export function TimerRing({ remainingMs, durationMs }: TimerRingProps) {
 
   return (
     <div
-      className={urgent ? styles.urgent : undefined}
+      className={`${styles.wrap} ${urgent ? styles.urgent : ""}`}
       role="timer"
       aria-live="assertive"
       aria-label={`Time remaining: ${seconds} seconds`}

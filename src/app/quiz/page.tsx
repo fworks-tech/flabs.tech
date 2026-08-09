@@ -21,7 +21,7 @@ import { useHighScore } from "@/features/quiz/hooks/useHighScore";
 import { trackEvent } from "@/lib/analytics";
 import { gameOverStats, useQuizEngine, type EngineState } from "@/features/quiz/hooks/useQuizEngine";
 
-const QUESTION_TIME_MS = 30000;
+const QUESTION_TIME_MS = 20000;
 const FEEDBACK_PAUSE_MS = 1200;
 
 /**
