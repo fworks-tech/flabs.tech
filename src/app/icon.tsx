@@ -44,7 +44,7 @@ export default async function Icon() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={avatarBase64} 
-        alt="Fábio Ritzel Borges - Senior Full-Stack Engineer and AI Systems Architect" 
+        alt="Fábio Ritzel Borges - Full Stack Web Developer & AI Engineer" 
         style={{ width: 32, height: 32, objectFit: "cover" }} 
       />
     </div>,

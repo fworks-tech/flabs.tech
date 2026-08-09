@@ -58,7 +58,7 @@ const home: Home = {
     href: "/projects",
   },
   subline:
-    "I'm a Senior Full-Stack & AI Engineer with 10+ years of experience across frontend, backend, and testing. I've shipped products for companies in the US, Europe, and Brazil, always balancing solid architecture with real‑world delivery.",
+    "Full Stack Web Developer & AI Engineer with 10+ years of experience across frontend, backend, testing, and DevOps. I've shipped products for companies in the US, Europe, and Brazil, always balancing solid architecture with real‑world delivery.",
 };
 
 const about: About = {
@@ -82,8 +82,8 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        I&apos;m a Senior Full‑Stack Engineer & AI Systems Architect with 10+ years of experience across
-        frontend, backend, and testing. I&apos;ve shipped products for companies in the US, Europe, and
+        I&apos;m a Full Stack Web Developer & AI Engineer with 10+ years of experience across
+        frontend, backend, testing, and DevOps. I&apos;ve shipped products for companies in the US, Europe, and
         Brazil, always balancing solid architecture with real‑world delivery.
         <br />
         <br />
@@ -368,7 +368,7 @@ const work: Work = {
   label: "Work",
   title: "Work Experience",
   description:
-    "10+ years across USA, Europe, and Brazil — TypeScript, GraphQL, React, and AI systems",
+    "Architecture, frontend, backend, AI, and DevOps — real-world notes from a Full Stack Web Developer & AI Engineer",
 };
 
 const projects: Work = {
