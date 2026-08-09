@@ -1,11 +1,12 @@
 "use client";
 
 import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { IconExternalLink } from "@tabler/icons-react";
+import { IconExternalLink, IconRefresh } from "@tabler/icons-react";
 
 import { useHighScore } from "@/features/quiz/hooks/useHighScore";
 import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
 import { rankMeta } from "@/features/quiz/lib/ranking";
+import { Celebration } from "./Celebration";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { RatingCard } from "./RatingCard";
 import { ReferralCard } from "./ReferralCard";
@@ -40,10 +41,11 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
 
   return (
     <Paper withBorder p="xl" radius="md" className={styles.card} role="status" aria-live="polite">
+      <Celebration active={accuracy >= 0.75} type={accuracy >= 0.9 ? "sparkle" : "confetti"} />
       <Stack align="center" gap="md">
         <Title order={2}>Sprint complete</Title>
 
-        <Group gap="xs">
+        <Group gap="xs" className={styles.rankBadge}>
           <Badge size="lg" color="grape" variant="gradient" data-testid="rank-badge">
             {rank.badge}
           </Badge>
@@ -133,9 +135,17 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
 
         <RatingCard onSubmitted={() => undefined} />
 
-        <Button size="md" variant="light" onClick={onRetry} data-testid="retry-quiz">
-          Run it back
-        </Button>
+        <div className={styles.actions}>
+          <Button
+            size="md"
+            variant="light"
+            onClick={onRetry}
+            data-testid="retry-quiz"
+            rightSection={<IconRefresh size={16} aria-hidden="true" />}
+          >
+            Run it back
+          </Button>
+        </div>
       </Stack>
     </Paper>
   );

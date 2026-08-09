@@ -1,10 +1,46 @@
 .correct {
   border-color: var(--mantine-color-green-6);
+  animation: correctSlideIn 0.4s ease-out;
+}
+
+@keyframes correctSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    border-color: transparent;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    border-color: var(--mantine-color-green-6);
+  }
 }
 
 .wrong {
   border-color: var(--mantine-color-red-6);
-  animation: shake 0.4s ease-in-out;
+  animation: wrongShake 0.5s ease-in-out;
+}
+
+@keyframes wrongShake {
+  0%,
+  100% {
+    transform: translateX(0);
+    border-color: transparent;
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-6px);
+    border-color: var(--mantine-color-red-6);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(6px);
+  }
 }
 
 .icon {
@@ -15,17 +51,32 @@
 
 .explanation {
   margin-top: 0.25rem;
+  animation: fadeIn 0.3s ease-out 0.2s backwards;
 }
 
-@keyframes shake {
-  0%,
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.points {
+  font-weight: 700;
+  animation: pointsPop 0.4s ease-out;
+}
+
+@keyframes pointsPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    color: var(--mantine-color-grape-4);
+  }
   100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-6px);
-  }
-  75% {
-    transform: translateX(6px);
+    transform: scale(1);
   }
 }

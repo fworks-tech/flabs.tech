@@ -1,18 +1,80 @@
 .wrap {
   width: 100%;
   padding: 2rem 0;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .title {
   letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--mantine-color-grape-4), var(--mantine-color-cyan-4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .daily {
   width: 100%;
   max-width: 420px;
   text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+.daily:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .startButton {
   min-width: 15rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out 0.3s backwards;
+}
+
+.startButton:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(var(--mantine-color-grape-6-rgb), 0.4);
+}
+
+.startButton:active {
+  transform: scale(0.98);
+}
+
+.rules {
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.leaderboard {
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
+.ratings {
+  animation: fadeInUp 0.6s ease-out 0.5s backwards;
+}
+
+.hint {
+  animation: fadeInUp 0.6s ease-out 0.6s backwards;
 }

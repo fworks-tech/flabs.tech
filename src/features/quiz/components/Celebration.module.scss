@@ -1,0 +1,44 @@
+.container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: fall 3s ease-out forwards;
+}
+
+.confetti {
+  border-radius: 2px;
+  background: linear-gradient(
+    135deg,
+    var(--mantine-color-grape-4),
+    var(--mantine-color-cyan-4),
+    var(--mantine-color-yellow-4),
+    var(--mantine-color-green-4)
+  );
+}
+
+.sparkle {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mantine-color-yellow-4);
+  box-shadow: 0 0 10px var(--mantine-color-yellow-4);
+}
+
+@keyframes fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg) scale(0.5);
+  }
+}

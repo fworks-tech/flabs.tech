@@ -39,7 +39,8 @@ export function QuizFeedbackBar({
       <Text fw={700} size="md" component="p">
         {correct ? (
           <>
-            <Icon className={styles.icon} size={20} aria-hidden="true" /> Correct! +{points} pts
+            <Icon className={styles.icon} size={20} aria-hidden="true" /> Correct!{" "}
+            <span className={styles.points}>+{points} pts</span>
           </>
         ) : timedOut ? (
           <>

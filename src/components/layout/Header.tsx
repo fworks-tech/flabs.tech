@@ -77,8 +77,8 @@ export const Header = () => {
     { path: "/work", label: work.label, icon: "grid", selected: pathname.startsWith("/work") },
     { path: "/projects", label: projects.label, icon: "code", selected: pathname.startsWith("/projects") },
     { path: "/blog", label: blog.label, icon: "book", selected: pathname.startsWith("/blog") },
-    { path: "/quiz", label: "Quiz", icon: "puzzle", selected: pathname.startsWith("/quiz"), highlight: true },
     { path: "/about", label: about.label, icon: "person", selected: pathname === "/about" },
+    { path: "/quiz", label: "Try Yourself!", icon: "puzzle", selected: pathname.startsWith("/quiz"), highlight: true },
   ].filter((item) => routes[item.path as keyof typeof routes]);
 
   return (
@@ -103,6 +103,7 @@ export const Header = () => {
                   variant={item.selected ? "light" : "subtle"}
                   visibleFrom="sm"
                   onClick={() => trackEvent("nav_click", { page: item.path })}
+                  className={item.highlight ? styles.tryYourself : undefined}
                 >
                   {item.label}
                 </Button>

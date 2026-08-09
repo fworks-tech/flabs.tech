@@ -1,6 +1,18 @@
 .card {
   width: 100%;
   max-width: 46rem;
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .code {
@@ -15,25 +27,71 @@
 
 .answers {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .answer {
   min-height: 3rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  animation: fadeIn 0.3s ease-out backwards;
+}
+
+.answer:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.answer:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.answer:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.answer:nth-child(4) {
+  animation-delay: 0.25s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.answer:not(:disabled):hover {
+  transform: translateX(4px);
 }
 
 .correct {
   border-color: var(--mantine-color-green-6);
   background-color: color-mix(in srgb, var(--mantine-color-green-6) 20%, transparent);
+  animation: correctPulse 0.5s ease-out;
+}
+
+@keyframes correctPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .wrong {
   border-color: var(--mantine-color-red-6);
   background-color: color-mix(in srgb, var(--mantine-color-red-6) 20%, transparent);
-  animation: shake 0.4s ease-in-out;
-}
-
-.dimmed {
-  opacity: 0.45;
+  animation: shake 0.5s ease-in-out;
 }
 
 @keyframes shake {
@@ -41,10 +99,22 @@
   100% {
     transform: translateX(0);
   }
-  25% {
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-6px);
   }
-  75% {
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(6px);
   }
+}
+
+.dimmed {
+  opacity: 0.4;
+  transform: scale(0.98);
 }

@@ -66,7 +66,7 @@ export function LeaderboardPanel({
           No scores yet this {week === "current" ? "week" : "period"} — be the first!
         </Text>
       ) : (
-        <Stack gap="4" data-testid="leaderboard-list">
+        <Stack gap="2" data-testid="leaderboard-list">
           {entries.map((entry) => {
             const isPlayer = highlightId != null && entry.id === highlightId;
             return (
