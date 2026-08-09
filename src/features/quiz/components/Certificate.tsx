@@ -57,9 +57,9 @@ export function Certificate({
         <Text ta="center" mt="md" size="sm">
           completed the JavaScript sprint with a score of{" "}
           <Text component="span" fw={700}>
-            {score} / {total}
+            {score} points
           </Text>{" "}
-          ({Math.round((correct / Math.max(1, total)) * 100)}% accuracy, max streak {maxStreak}),
+          ({correct}/{total} correct, {Math.round((correct / Math.max(1, total)) * 100)}% accuracy, max streak {maxStreak}),
           earning the rank of{" "}
           <Text component="span" fw={700} data-testid="certificate-rank">
             {rank.badge}
