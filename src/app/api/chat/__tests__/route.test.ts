@@ -74,6 +74,7 @@ const mockStreamText = vi.fn();
 vi.mock("ai", () => ({
   streamText: (...args: unknown[]) => mockStreamText(...args),
   tool: (t: unknown) => t,
+  isStepCount: (n: number) => ({ steps }) => steps.length === n,
 }));
 
 vi.mock("@ai-sdk/openai-compatible", () => ({

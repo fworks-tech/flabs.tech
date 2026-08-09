@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { streamText } from 'ai';
+import { isStepCount, streamText } from 'ai';
 import { about, home, person, workExperience } from '@/content';
 import { sameAs } from '@/config';
 import { getPosts } from '@/lib/mdx';
@@ -66,7 +66,9 @@ function buildSystemPrompt(): string {
     .map((p) => `- ${p.metadata.title}: ${p.metadata.summary}`)
     .join('\n');
 
-  const blogList = blogs.map((b) => `- ${b.metadata.title}`).join('\n');
+  const blogList = blogs
+    .map((b) => `- ${b.metadata.title} (${b.metadata.publishedAt})`)
+    .join('\n');
 
   const experienceList = workExperience.experiences
     .map(
@@ -366,6 +368,10 @@ export async function POST(req: NextRequest) {
       messages: normalized,
       system: systemPrompt,
       tools: aiTools,
+      // Default stopWhen: isStepCount(1) ends the stream right after a tool
+      // call, so the final answer would never be generated. Allow up to 3
+      // steps: tool round(s) + the answer step.
+      stopWhen: isStepCount(3),
       maxOutputTokens: 1000,
       temperature: 0.3,
     });
