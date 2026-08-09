@@ -25,7 +25,7 @@ function renderCard(props: Partial<Parameters<typeof QuizQuestionCard>[0]> = {})
     <QuizQuestionCard
       question={question}
       remainingMs={10000}
-      durationMs={15000}
+      durationMs={20000}
       selectedIndex={null}
       disabled={false}
       onAnswer={() => {}}

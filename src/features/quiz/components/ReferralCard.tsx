@@ -2,7 +2,7 @@
 
 import { Button, Card, Group, Text } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { referral } from "@/config";
 import { trackEvent } from "@/lib/analytics";
@@ -27,10 +27,14 @@ export function ReferralCard({ score, accuracy }: ReferralCardProps) {
   });
 
   const config = referral.default;
-  if (!config.display || dismissed) return null;
 
-  // Track when the referral CTA becomes visible
-  trackEvent("quiz_referral_cta_shown", { score, accuracy });
+  useEffect(() => {
+    if (config.display && !dismissed) {
+      trackEvent("quiz_referral_cta_shown", { score, accuracy });
+    }
+  }, [config.display, dismissed, score, accuracy]);
+
+  if (!config.display || dismissed) return null;
 
   function dismiss() {
     window.localStorage.setItem(DISMISS_KEY, "1");
