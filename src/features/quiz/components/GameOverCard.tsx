@@ -2,7 +2,11 @@
 
 import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 
+import { useHighScore } from "@/features/quiz/hooks/useHighScore";
+import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
 import { rankMeta } from "@/features/quiz/lib/ranking";
+import { LeaderboardPanel } from "./LeaderboardPanel";
+import { SaveScoreForm } from "./SaveScoreForm";
 import styles from "./GameOverCard.module.scss";
 
 export interface GameOverStats {
@@ -26,6 +30,8 @@ function formatDuration(ms: number): string {
 }
 
 export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
+  const { playerName, setPlayerName } = useHighScore();
+  const leaderboard = useLeaderboard();
   const accuracy = stats.total === 0 ? 0 : stats.correctCount / stats.total;
   const rank = rankMeta(stats.correctCount, stats.total);
 
@@ -84,6 +90,26 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
             </Text>
           </Stack>
         </SimpleGrid>
+
+        <SaveScoreForm
+          defaultName={playerName}
+          score={stats.score}
+          correct={stats.correctCount}
+          total={stats.total}
+          maxStreak={stats.maxStreak}
+          durationMs={stats.durationMs}
+          onNameChange={setPlayerName}
+          onSave={leaderboard.saveScore}
+        />
+
+        <LeaderboardPanel
+          entries={leaderboard.entries}
+          loading={leaderboard.loading}
+          error={leaderboard.error}
+          week={leaderboard.week}
+          onWeekChange={leaderboard.switchWeek}
+          highlightId={leaderboard.saved?.id ?? null}
+        />
 
         <Button size="md" variant="light" onClick={onRetry} data-testid="retry-quiz">
           Run it back

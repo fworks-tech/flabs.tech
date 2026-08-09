@@ -4,6 +4,8 @@ import { Badge, Button, Card, Group, List, Stack, Text, Title } from "@mantine/c
 import { IconBolt, IconCalendarEvent, IconTrophy } from "@tabler/icons-react";
 
 import type { QuizQuestion } from "@/features/quiz/data/questions";
+import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
+import { LeaderboardPanel } from "./LeaderboardPanel";
 import styles from "./QuizStartCard.module.scss";
 
 interface QuizStartCardProps {
@@ -14,6 +16,8 @@ interface QuizStartCardProps {
 }
 
 export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizStartCardProps) {
+  const leaderboard = useLeaderboard();
+
   return (
     <Stack align="center" gap="lg" className={styles.wrap}>
       <Stack align="center" gap="4">
@@ -63,6 +67,15 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
           </List.Item>
         </List>
       </Card>
+
+      <LeaderboardPanel
+        entries={leaderboard.entries}
+        loading={leaderboard.loading}
+        error={leaderboard.error}
+        week={leaderboard.week}
+        onWeekChange={leaderboard.switchWeek}
+        highlightId={null}
+      />
 
       <Button
         size="lg"

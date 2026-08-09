@@ -1,0 +1,35 @@
+.row {
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.rank {
+  width: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.gold .rank {
+  color: var(--mantine-color-yellow-6);
+}
+
+.silver .rank {
+  color: var(--mantine-color-gray-5);
+}
+
+.bronze .rank {
+  color: var(--mantine-color-orange-7);
+}
+
+.plain .rank {
+  color: var(--mantine-color-dimmed);
+}
+
+[data-mantine-color-scheme="dark"] .player {
+  background-color: color-mix(in srgb, var(--mantine-color-grape-6) 25%, transparent);
+}
+
+[data-mantine-color-scheme="light"] .player {
+  background-color: color-mix(in srgb, var(--mantine-color-grape-3) 40%, transparent);
+}

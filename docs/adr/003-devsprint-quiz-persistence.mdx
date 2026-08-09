@@ -1,0 +1,52 @@
+# ADR-003: DevSprint quiz persistence — leaderboard, feedback, ratings
+
+**Date:** 2026-08-09
+**Status:** Accepted
+
+## Context
+
+The DevSprint quiz mini-game (`/quiz`, issue #225) needs server-side persistence for growth surfaces: an all-time + weekly leaderboard, question-feedback reports, recommendation ratings, and referral click counting. The site already has a single persistence seam — the `store` adapter in `src/lib/abuse/store.ts` (Upstash Redis with an in-memory fallback) — which the analytics and abuse modules share. The quiz must reuse it rather than introduce a second backend.
+
+Constraints:
+
+- No new dependencies; `@upstash/redis` is already installed.
+- The leaderboard is a **growth surface, not a rigorous benchmark**: cheap forgery mitigations (duration sanity floor, score caps, per-IP durable rate limits) are enough.
+- Everything must degrade gracefully: if Redis is unreachable the game keeps working and stats hide quietly.
+- Admin review of feedback/ratings must reuse the existing `/admin` auth (`requireSession()`).
+
+## Decision
+
+**Extend the existing `store` adapter with sorted-set (ZSET) operations and store all quiz state under the `quiz:*` key namespace.**
+
+1. **Store adapter gains ZSET methods** — `zadd`, `zrange`, `zrevrange` (implemented as `zrange(key, start, stop, { rev: true })` because Upstash v1 has no `zrevrange`), `zrevrank`, `zremrangebyrank`, each with an in-memory fallback (sorted `Map`s). ZSETs are the right primitive: O(log n) top-N reads and rank lookups, atomic inserts, built-in trimming.
+
+2. **Leaderboard members are JSON payloads, scores are the points.** `ZADD quiz:leaderboard <score> <member>` where member is `{ id, displayName, score, accuracy, maxStreak, ts }`. This avoids a second key per entry (uuid → display data); collisions are impossible because `id` is a fresh `crypto.randomUUID()` per save. The weekly key is `quiz:leaderboard:<YYYY-Www>` (Monday-based ISO week) with a TTL set to the next Monday 00:00 UTC via `EXPIREAT`-equivalent (`zadd(key, score, member, ttlSeconds)`), so weekly boards self-clean without a cron.
+
+3. **Ratings counters use plain `incr` keys instead of `HINCRBY`.** `quiz:ratings:<iso-day>:up` / `:down` (TTL 30d) — the adapter deliberately has no hash operations, and JSON read-modify-write on a shared hash would race. Separate counters are atomic, testable, and trivially aggregated. Comments live in a bounded list (`quiz:ratings:comments`, last 100, TTL 30d).
+
+4. **All quiz endpoints use durable rate limits** via `store.incr("quiz:rl:<scope>:<ip>", 60)` — not the in-memory `rateLimiter`, which resets on cold start and can't be shared across serverless instances. The rightmost `X-Forwarded-For` entry is used for identity (see ADR-002). Responses are 429 with `Retry-After`.
+
+5. **Best-effort everywhere** — every client call is fire-and-forget with graceful degradation ("Leaderboard unavailable right now"), and the game never blocks on persistence.
+
+## Alternatives considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|-------------|
+| New Postgres/SQLite instance | Rigid schema, joins | New infra + dependency, ops burden | Overkill for a portfolio-site mini-game |
+| Upstash Ratelimit SDK for limits | Purpose-built | New dependency; store already has `incr` | One more dep to justify |
+| `HINCRBY` for rating counters | Single key per day | Adapter has no hash ops; read-modify-write races in memory fallback | Plain `incr` counters are atomic and sufficient |
+| UUID member + separate display-data hash | Cleaner separation | Extra key per entry, extra reads per board render | Self-contained JSON members keep one round-trip |
+| Member = JSON without `id` | Smaller payload | Collisions on equal `ts` overwrite entries | `id` makes members unique and enables player highlight |
+
+## Consequences
+
+- **Easier:** any future quiz stat (attempts, per-question accuracy) reuses the same key namespace and adapter; the admin stats tab reads `quiz:*` with the existing bounded `keys()` pattern.
+- **Harder:** the in-memory fallback stores ZSETs without TTL semantics (expiry only applies to key-value entries), so dev-mode weekly keys persist until server restart — acceptable for a fallback.
+- **New risks:** leaderboard forgery is mitigated but not prevented (deliberate — documented in the route comment); the `keys("quiz:*")` admin scan stays safe only because the key space is tiny and TTL-bounded.
+- **Replaced by:** none — superseded only if a real leaderboard backend is ever needed.
+
+## References
+
+- Issue #225 (DevSprint quiz)
+- `docs/adr/002-abuse-prevention.mdx` — IP identity, durable state, shadow-first principles
+- `src/lib/abuse/store.ts` — the extended persistence seam
