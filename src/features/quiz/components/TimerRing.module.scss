@@ -1,0 +1,48 @@
+.ring {
+  position: relative;
+  width: 7.5rem;
+  height: 7.5rem;
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: var(--mantine-color-dark-4);
+  stroke-width: 8;
+}
+
+.progress {
+  fill: none;
+  stroke: var(--mantine-color-green-6);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition:
+    stroke-dashoffset 0.1s linear,
+    stroke 0.2s ease;
+}
+
+.urgent .progress {
+  stroke: var(--mantine-color-red-6);
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.seconds {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
