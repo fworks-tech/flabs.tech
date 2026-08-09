@@ -1,0 +1,21 @@
+.certificate {
+  width: 100%;
+  max-width: 480px;
+  border: 2px solid var(--mantine-color-grape-6);
+}
+
+@media print {
+  :global(body) * {
+    visibility: hidden;
+  }
+  .certificate,
+  .certificate * {
+    visibility: visible;
+  }
+  .certificate {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border-width: 3px;
+  }
+}
