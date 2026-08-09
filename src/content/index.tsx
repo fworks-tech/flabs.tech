@@ -228,6 +228,20 @@ const about: About = {
 const workExperience = {
   experiences: [
     {
+      company: "Micro1",
+      timeframe: "Jun 2026 – Present",
+      role: "AI Trainer",
+      location: "Remote",
+      type: "Part-time",
+      achievements: [
+        "Applying subject matter expertise to support AI training pipelines.",
+        "Supporting the development of advanced AI systems by contributing expert feedback and domain-specific evaluation of model responses.",
+        "Tasks include evaluating model outputs, reviewing technical reasoning, and contributing domain knowledge used to improve model performance.",
+      ],
+      tags: [],
+      images: [],
+    },
+    {
       company: "BairesDev",
       timeframe: "Dec 2025 – Jun 2026",
       role: "Full Stack Engineer",

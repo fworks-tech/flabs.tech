@@ -28,8 +28,8 @@ export const MAX_DISPLAY_NAME = 20;
 export const MAX_SCORE = 10_000;
 export const MAX_TOTAL = 20;
 export const MIN_TOTAL = 1;
-/** Sanity floor: a legit run takes at least ~1s per question. */
-export const MIN_MS_PER_QUESTION = 1000;
+/** Sanity floor: a legit run takes at least ~0.5s per question on average. */
+export const MIN_MS_PER_QUESTION = 500;
 
 export const ALL_TIME_KEY = "quiz:leaderboard";
 

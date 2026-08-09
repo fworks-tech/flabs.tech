@@ -9,6 +9,7 @@ import {
   weeklyTtlSeconds,
 } from "@/features/quiz/lib/leaderboard";
 import { store } from "@/lib/abuse/store";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -20,10 +21,6 @@ const ATTEMPT_TTL_SECONDS = 7 * 24 * 60 * 60;
  * Saves a finished run: inserts into the all-time + weekly leaderboards
  * (weekly key expires at the next Monday 00:00 UTC), trims to the top
  * 100, persists the attempt record and returns the player's 0-based rank.
- *
- * Note: the leaderboard is a growth surface, not a rigorous benchmark —
- * the validation floors (duration sanity, caps) mitigate obvious forgery
- * only.
  */
 export async function POST(request: NextRequest) {
   const limited = await isRateLimited("score", request, MAX_SCORES_PER_MINUTE);
@@ -38,6 +35,7 @@ export async function POST(request: NextRequest) {
 
   const payload = validateScorePayload(body);
   if (!payload) {
+    logger.warn({ body }, "score validation failed");
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
@@ -50,5 +48,8 @@ export async function POST(request: NextRequest) {
   await store.set(`quiz:attempt:${id}`, payload, { ex: ATTEMPT_TTL_SECONDS });
 
   const rank = await store.zrevrank(ALL_TIME_KEY, member);
+
+  logger.info({ id, displayName: payload.displayName, score: payload.score, rank }, "score saved");
+
   return NextResponse.json({ ok: true, id, rank });
 }

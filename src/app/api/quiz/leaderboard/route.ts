@@ -7,6 +7,7 @@ import {
   weeklyKey,
 } from "@/features/quiz/lib/leaderboard";
 import { store } from "@/lib/abuse/store";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -21,15 +22,23 @@ export async function GET(request: NextRequest) {
   }
 
   const key = week === "all" ? ALL_TIME_KEY : weeklyKey();
-  const members = await store.zrevrange(key, 0, TOP_N - 1);
 
-  const entries: LeaderboardEntry[] = [];
-  for (const [index, member] of members.entries()) {
-    const parsed = parseMember(member);
-    if (parsed) {
-      entries.push({ rank: index, ...parsed });
+  try {
+    const members = await store.zrevrange(key, 0, TOP_N - 1);
+
+    const entries: LeaderboardEntry[] = [];
+    for (let index = 0; index < members.length; index++) {
+      const parsed = parseMember(members[index]);
+      if (parsed) {
+        entries.push({ rank: index, ...parsed });
+      }
     }
-  }
 
-  return NextResponse.json({ entries });
+    logger.debug({ key, memberCount: members.length, entryCount: entries.length }, "leaderboard fetch");
+
+    return NextResponse.json({ entries });
+  } catch (error) {
+    logger.error({ key, error }, "leaderboard fetch failed");
+    return NextResponse.json({ entries: [] });
+  }
 }
