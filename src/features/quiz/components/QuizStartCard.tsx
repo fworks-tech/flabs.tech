@@ -1,10 +1,11 @@
 "use client";
 
 import { Badge, Button, Card, Group, List, Stack, Text, Title } from "@mantine/core";
-import { IconBolt, IconCalendarEvent, IconTrophy } from "@tabler/icons-react";
+import { IconBolt, IconCalendarEvent, IconHeart, IconTrophy } from "@tabler/icons-react";
 
 import type { QuizQuestion } from "@/features/quiz/data/questions";
 import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
+import { useRatings } from "@/features/quiz/hooks/useRatings";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import styles from "./QuizStartCard.module.scss";
 
@@ -17,6 +18,7 @@ interface QuizStartCardProps {
 
 export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizStartCardProps) {
   const leaderboard = useLeaderboard();
+  const ratings = useRatings();
 
   return (
     <Stack align="center" gap="lg" className={styles.wrap}>
@@ -76,6 +78,15 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
         onWeekChange={leaderboard.switchWeek}
         highlightId={null}
       />
+
+      {ratings && ratings.total > 0 && ratings.recommendPct !== null && (
+        <Group gap="xs" data-testid="ratings-stat">
+          <IconHeart size={18} aria-hidden="true" />
+          <Text size="sm" c="dimmed">
+            {ratings.recommendPct}% of players recommend this quiz
+          </Text>
+        </Group>
+      )}
 
       <Button
         size="lg"

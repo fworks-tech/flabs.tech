@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Group, Paper, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, Paper, Text } from "@mantine/core";
+import { IconFlag } from "@tabler/icons-react";
 import { useEffect, useRef } from "react";
 
 import type { QuizQuestion } from "@/features/quiz/data/questions";
@@ -17,6 +18,8 @@ interface QuizQuestionCardProps {
   onAnswer: (index: number) => void;
   /** Hide the countdown ring (e.g. on the reveal after answering). */
   showTimer?: boolean;
+  /** Opens the "report issue" modal for this question. */
+  onReport?: () => void;
 }
 
 const KEY_INDICES: Record<string, number> = {
@@ -49,6 +52,7 @@ export function QuizQuestionCard({
   disabled,
   onAnswer,
   showTimer = true,
+  onReport,
 }: QuizQuestionCardProps) {
   const firstButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -79,7 +83,20 @@ export function QuizQuestionCard({
             {question.prompt}
           </Text>
         </div>
-        {showTimer && <TimerRing remainingMs={remainingMs} durationMs={durationMs} />}
+        <Group gap="xs" wrap="nowrap">
+          {onReport && (
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              aria-label="Report issue with this question"
+              onClick={onReport}
+              data-testid="report-issue"
+            >
+              <IconFlag size={16} aria-hidden="true" />
+            </ActionIcon>
+          )}
+          {showTimer && <TimerRing remainingMs={remainingMs} durationMs={durationMs} />}
+        </Group>
       </Group>
 
       {question.code && (
