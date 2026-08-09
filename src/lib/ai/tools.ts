@@ -110,7 +110,13 @@ import { getPosts } from "@/lib/mdx";
 
 async function searchContent(query: string) {
   const q = query.toLowerCase();
-  const results: { type: string; title: string; summary: string; link: string }[] = [];
+  const results: {
+    type: string;
+    title: string;
+    summary: string;
+    publishedAt?: string;
+    link: string;
+  }[] = [];
 
   try {
     const blogPosts = getPosts(["src", "content", "blog"]);
@@ -124,6 +130,7 @@ async function searchContent(query: string) {
           type: "blog",
           title,
           summary: summary.slice(0, 200),
+          publishedAt: post.metadata.publishedAt,
           link: `/blog/${post.slug}`,
         });
       }
@@ -137,10 +144,17 @@ async function searchContent(query: string) {
           type: "project",
           title,
           summary: summary.slice(0, 200),
+          publishedAt: project.metadata.publishedAt,
           link: `/projects/${project.slug}`,
         });
       }
     }
+
+    results.sort((a, b) => {
+      const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return bDate - aDate;
+    });
 
     return { results: results.slice(0, 10) };
   } catch (error) {
