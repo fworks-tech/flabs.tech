@@ -1,15 +1,16 @@
-export const RANK_TITLES = ["Junior", "Mid-Level", "Senior", "Staff"] as const;
+export const RANK_TITLES = ["Script Kiddie", "Code Monkey", "Bug Slayer", "Code Ninja", "JS Overlord"] as const;
 export type RankTitle = (typeof RANK_TITLES)[number];
 
 /**
  * Maps an accuracy fraction (0–1) to a rank title.
- * Junior < 60%, Mid-Level < 75%, Senior < 90%, Staff >= 90%.
+ * Script Kiddie < 50%, Code Monkey < 65%, Bug Slayer < 80%, Code Ninja < 90%, JS Overlord >= 90%.
  */
 export function rankFromAccuracy(accuracy: number): RankTitle {
-  if (accuracy >= 0.9) return "Staff";
-  if (accuracy >= 0.75) return "Senior";
-  if (accuracy >= 0.6) return "Mid-Level";
-  return "Junior";
+  if (accuracy >= 0.9) return "JS Overlord";
+  if (accuracy >= 0.8) return "Code Ninja";
+  if (accuracy >= 0.65) return "Bug Slayer";
+  if (accuracy >= 0.5) return "Code Monkey";
+  return "Script Kiddie";
 }
 
 export function rankFromScore(correct: number, total: number): RankTitle {
@@ -18,10 +19,11 @@ export function rankFromScore(correct: number, total: number): RankTitle {
 
 /** Fun, run-specific copy shown next to the rank badge. */
 export const RANK_COPY: Record<RankTitle, string> = {
-  Junior: "You survived the sprint — barely.",
-  "Mid-Level": "Solid fundamentals. The sprint liked you.",
-  Senior: "Strong run. You've got the skills for senior roles.",
-  Staff: "Flawless fundamentals. You're ready for the next step.",
+  "Script Kiddie": "You copy-pasted your way through. We respect the hustle.",
+  "Code Monkey": "Solid fundamentals. The console.log is strong with this one.",
+  "Bug Slayer": "You hunt bugs like a pro. The stack trace fears you.",
+  "Code Ninja": "Silent. Precise. Deadly. Your code compiles on the first try.",
+  "JS Overlord": "You ARE the JavaScript. The spec was written about you.",
 };
 
 export interface RankMeta {

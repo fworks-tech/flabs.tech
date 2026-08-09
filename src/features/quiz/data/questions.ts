@@ -361,4 +361,265 @@ obj.a = 2;`,
     explanation:
       "Two pointers walk inward comparing characters in one pass — no extra storage beyond two indices.",
   },
+  {
+    id: "promise-all",
+    category: "functions",
+    prompt: "What does Promise.all do when one promise rejects?",
+    answers: [
+      "Immediately rejects with that error",
+      "Waits for all to finish, then rejects",
+      "Returns partial results",
+      "Throws a synchronous error",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Promise.all short-circuits on the first rejection — it doesn't wait for other promises to settle.",
+  },
+  {
+    id: "promise-allsettled",
+    category: "functions",
+    prompt: "What does Promise.allSettled return for each promise?",
+    answers: [
+      "{ status: 'fulfilled', value } or { status: 'rejected', reason }",
+      "The resolved value directly",
+      "Throws on any rejection",
+      "undefined for rejected promises",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Promise.allSettled never rejects — it returns an array of status objects showing the outcome of each promise.",
+  },
+  {
+    id: "async-await-try-catch",
+    category: "functions",
+    prompt: "What happens if you forget try/catch around an awaited rejected promise?",
+    answers: [
+      "The async function returns a rejected promise",
+      "It throws synchronously",
+      "The error is silently ignored",
+      "Node.js crashes",
+    ],
+    correctIndex: 0,
+    explanation:
+      "An unhandled rejection in an async function propagates as a rejected promise — it doesn't throw synchronously.",
+  },
+  {
+    id: "event-loop-microtask",
+    category: "core",
+    prompt: "Which has higher priority in the event loop: microtasks or macrotasks?",
+    answers: [
+      "Microtasks (Promise callbacks)",
+      "Macrotasks (setTimeout callbacks)",
+      "They run in parallel",
+      "It depends on the browser",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Microtasks (Promise.then, queueMicrotask) run after each macrotask completes, before the next macrotask.",
+  },
+  {
+    id: "prototype-chain",
+    category: "core",
+    prompt: "What is the prototype chain?",
+    answers: [
+      "An object's lookup path for properties via __proto__",
+      "A linked list of constructors",
+      "A copy of all parent properties",
+      "A memory optimization technique",
+    ],
+    correctIndex: 0,
+    explanation:
+      "When a property isn't found on an object, JavaScript walks up the prototype chain via [[Prototype]] until it finds it or reaches null.",
+  },
+  {
+    id: "class-inheritance",
+    category: "core",
+    prompt: "What must you call before accessing `this` in a subclass constructor?",
+    answers: [
+      "super()",
+      "this.init()",
+      "parent.constructor()",
+      "Nothing — this is always available",
+    ],
+    correctIndex: 0,
+    explanation:
+      "super() must be called before `this` is accessible in a subclass constructor — it initializes the parent part of the object.",
+  },
+  {
+    id: "event-delegation",
+    category: "core",
+    prompt: "What is event delegation?",
+    answers: [
+      "Handling events on a parent to catch events from children",
+      "Passing event handlers to child components",
+      "Removing event listeners after use",
+      "Using capture phase instead of bubble",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Event delegation leverages event bubbling — attach one listener to a parent and use event.target to identify which child triggered it.",
+  },
+  {
+    id: "spread-vs-rest",
+    category: "functions",
+    prompt: "What's the difference between ...spread and ...rest?",
+    answers: [
+      "Spread expands iterables; rest collects into an array",
+      "They are identical",
+      "Rest expands; spread collects",
+      "Spread works only with arrays",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Spread (...) expands an array/string into individual elements; rest (...) collects remaining arguments/elements into an array.",
+  },
+  {
+    id: "destructuring-default",
+    category: "functions",
+    prompt: "What does `const { a = 5 } = {}` assign to `a`?",
+    answers: ["5", "undefined", "null", "ReferenceError"],
+    correctIndex: 0,
+    explanation:
+      "Destructuring defaults kick in when the value is undefined — since {} has no `a`, it defaults to 5.",
+  },
+  {
+    id: "template-literal",
+    category: "functions",
+    prompt: "What's the difference between 'hello' and `hello` in JavaScript?",
+    answers: [
+      "Backticks support multi-line and ${} interpolation",
+      "No difference",
+      "Backticks are for regex",
+      "Single quotes are deprecated",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Template literals (backticks) support multi-line strings and expression interpolation via ${expression}.",
+  },
+  {
+    id: "optional-chaining",
+    category: "gotchas",
+    prompt: "What does `user?.address?.city` return if user is null?",
+    answers: [
+      "undefined",
+      "null",
+      "TypeError",
+      "'' (empty string)",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Optional chaining (?.) short-circuits to undefined when the left side is null/undefined — no error thrown.",
+  },
+  {
+    id: "object-freeze",
+    category: "gotchas",
+    prompt: "Is Object.freeze shallow or deep?",
+    answers: [
+      "Shallow — nested objects can still be modified",
+      "Deep — all levels are frozen",
+      "Depends on the third argument",
+      "Freeze doesn't exist",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Object.freeze only freezes the top level — nested objects remain mutable unless you recursively freeze them.",
+  },
+  {
+    id: "json-parse-stringify",
+    category: "functions",
+    prompt: "What does JSON.stringify do to undefined values?",
+    answers: [
+      "Removes them entirely from the output",
+      "Converts to 'undefined' string",
+      "Throws an error",
+      "Converts to null",
+    ],
+    correctIndex: 0,
+    explanation:
+      "JSON.stringify skips undefined values in objects and arrays — they simply don't appear in the output.",
+  },
+  {
+    id: "dom-queryselector",
+    category: "core",
+    prompt: "What's the difference between getElementById and querySelector?",
+    answers: [
+      "querySelector accepts any CSS selector; getElementById only IDs",
+      "querySelector is faster",
+      "getElementById is deprecated",
+      "They return different types",
+    ],
+    correctIndex: 0,
+    explanation:
+      "getElementById is optimized for ID lookups only; querySelector accepts any CSS selector but is slightly slower.",
+  },
+  {
+    id: "requestanimationframe",
+    category: "core",
+    prompt: "When does requestAnimationFrame execute its callback?",
+    answers: [
+      "Before the next repaint (typically 60fps)",
+      "Immediately and synchronously",
+      "After setTimeout with 0ms",
+      "In the microtask queue",
+    ],
+    correctIndex: 0,
+    explanation:
+      "requestAnimationFrame fires before the browser repaints — ideal for smooth animations without jank.",
+  },
+  {
+    id: "weakmap-weakset",
+    category: "data-structures",
+    prompt: "Why use WeakMap/WeakSet instead of Map/Set?",
+    answers: [
+      "They allow garbage collection of keys",
+      "They are faster",
+      "They support iteration",
+      "They have smaller memory footprint",
+    ],
+    correctIndex: 0,
+    explanation:
+      "WeakMap/WeakSet hold weak references to keys — if no other references exist, the entries can be garbage collected.",
+  },
+  {
+    id: "iife",
+    category: "functions",
+    prompt: "What is an IIFE?",
+    answers: [
+      "Immediately Invoked Function Expression",
+      "Interface Inheritance from Functions",
+      "Inline Function Execution",
+      "Internal Iterator for Functional Evaluation",
+    ],
+    correctIndex: 0,
+    explanation:
+      "An IIFE runs as soon as it's defined — useful for creating isolated scopes without polluting the global namespace.",
+  },
+  {
+    id: "closure-private",
+    category: "functions",
+    prompt: "How can closures create private variables?",
+    answers: [
+      "Encapsulate state in a function scope and expose getters/setters",
+      "Use the private keyword",
+      "Store in __private property",
+      "Closures cannot be private",
+    ],
+    correctIndex: 0,
+    explanation:
+      "A closure retains access to its enclosing scope — variables declared there are inaccessible from outside the function.",
+  },
+  {
+    id: "promise-chain",
+    category: "functions",
+    prompt: "What happens if you forget to return in a .then() callback?",
+    answers: [
+      "The next .then receives undefined",
+      "The chain breaks",
+      "It throws an error",
+      "The promise is automatically resolved",
+    ],
+    correctIndex: 0,
+    explanation:
+      "Without a return, the .then() callback returns undefined implicitly — the next handler receives that undefined.",
+  },
 ];
