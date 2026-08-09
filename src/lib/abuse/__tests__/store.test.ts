@@ -65,3 +65,69 @@ describe("store memory fallback", () => {
     await expect(store.pfcount("test:missing")).resolves.toBe(0);
   });
 });
+
+describe("store memory ZSETs", () => {
+  it("zadd + zrevrange returns members by descending score", async () => {
+    const store = await loadStore();
+    await store.zadd("quiz:lb", 100, "alpha");
+    await store.zadd("quiz:lb", 300, "charlie");
+    await store.zadd("quiz:lb", 200, "bravo");
+    await expect(store.zrevrange("quiz:lb", 0, -1)).resolves.toEqual([
+      "charlie",
+      "bravo",
+      "alpha",
+    ]);
+    await expect(store.zrevrange("quiz:lb", 0, 1)).resolves.toEqual(["charlie", "bravo"]);
+    await expect(store.zrevrange("quiz:lb", -2, -1)).resolves.toEqual(["bravo", "alpha"]);
+  });
+
+  it("zrange returns members by ascending score", async () => {
+    const store = await loadStore();
+    await store.zadd("quiz:lb", 100, "alpha");
+    await store.zadd("quiz:lb", 300, "charlie");
+    await store.zadd("quiz:lb", 200, "bravo");
+    await expect(store.zrange("quiz:lb", 0, -1)).resolves.toEqual([
+      "alpha",
+      "bravo",
+      "charlie",
+    ]);
+  });
+
+  it("zadd replaces the score of an existing member", async () => {
+    const store = await loadStore();
+    await store.zadd("quiz:lb", 100, "alpha");
+    await store.zadd("quiz:lb", 900, "alpha");
+    await expect(store.zrevrange("quiz:lb", 0, -1)).resolves.toEqual(["alpha"]);
+  });
+
+  it("zrevrank returns the descending rank or null", async () => {
+    const store = await loadStore();
+    await store.zadd("quiz:lb", 100, "alpha");
+    await store.zadd("quiz:lb", 300, "charlie");
+    await store.zadd("quiz:lb", 200, "bravo");
+    await expect(store.zrevrank("quiz:lb", "charlie")).resolves.toBe(0);
+    await expect(store.zrevrank("quiz:lb", "alpha")).resolves.toBe(2);
+    await expect(store.zrevrank("quiz:lb", "missing")).resolves.toBeNull();
+  });
+
+  it("zremrangebyrank trims the ascending tail", async () => {
+    const store = await loadStore();
+    for (const [member, score] of [
+      ["a", 1],
+      ["b", 2],
+      ["c", 3],
+      ["d", 4],
+    ] as const) {
+      await store.zadd("quiz:lb", score, member);
+    }
+    await expect(store.zremrangebyrank("quiz:lb", 2, -1)).resolves.toBe(2);
+    await expect(store.zrevrange("quiz:lb", 0, -1)).resolves.toEqual(["b", "a"]);
+  });
+
+  it("operations on missing keys return empty results", async () => {
+    const store = await loadStore();
+    await expect(store.zrevrange("quiz:none", 0, -1)).resolves.toEqual([]);
+    await expect(store.zrevrank("quiz:none", "x")).resolves.toBeNull();
+    await expect(store.zremrangebyrank("quiz:none", 0, -1)).resolves.toBe(0);
+  });
+});
