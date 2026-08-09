@@ -122,29 +122,38 @@ export interface MemberData {
   ts: number;
 }
 
-/** Parses a leaderboard member JSON payload; null when malformed. */
-export function parseMember(member: string): MemberData | null {
-  try {
-    const parsed = JSON.parse(member) as Record<string, unknown>;
-    if (
-      typeof parsed.id !== "string" ||
-      typeof parsed.displayName !== "string" ||
-      typeof parsed.score !== "number" ||
-      typeof parsed.accuracy !== "number" ||
-      typeof parsed.maxStreak !== "number" ||
-      typeof parsed.ts !== "number"
-    ) {
+/**
+ * Parses a leaderboard member. The Upstash SDK auto-deserializes JSON
+ * responses, so `member` may arrive as a JSON string (raw REST, mocks,
+ * in-memory fallback) or as an already-parsed object. Handles both.
+ */
+export function parseMember(member: string | Record<string, unknown>): MemberData | null {
+  let parsed: Record<string, unknown>;
+  if (typeof member === "string") {
+    try {
+      parsed = JSON.parse(member) as Record<string, unknown>;
+    } catch {
       return null;
     }
-    return {
-      id: parsed.id,
-      displayName: parsed.displayName.slice(0, MAX_DISPLAY_NAME),
-      score: parsed.score,
-      accuracy: parsed.accuracy,
-      maxStreak: parsed.maxStreak,
-      ts: parsed.ts,
-    };
-  } catch {
+  } else {
+    parsed = member;
+  }
+  if (
+    typeof parsed.id !== "string" ||
+    typeof parsed.displayName !== "string" ||
+    typeof parsed.score !== "number" ||
+    typeof parsed.accuracy !== "number" ||
+    typeof parsed.maxStreak !== "number" ||
+    typeof parsed.ts !== "number"
+  ) {
     return null;
   }
+  return {
+    id: parsed.id,
+    displayName: parsed.displayName.slice(0, MAX_DISPLAY_NAME),
+    score: parsed.score,
+    accuracy: parsed.accuracy,
+    maxStreak: parsed.maxStreak,
+    ts: parsed.ts,
+  };
 }

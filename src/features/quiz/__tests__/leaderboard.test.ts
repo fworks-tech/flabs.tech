@@ -115,9 +115,23 @@ describe("leaderboardMember / parseMember", () => {
     expect(parsed?.ts).toBeGreaterThan(0);
   });
 
+  it("accepts an already-deserialized member (Upstash SDK auto-parses JSON)", () => {
+    const member = leaderboardMember(valid, "abc-123");
+    const asObject = JSON.parse(member) as Record<string, unknown>;
+    const parsed = parseMember(asObject);
+    expect(parsed).toMatchObject({
+      id: "abc-123",
+      displayName: "Zara",
+      score: 3400,
+      accuracy: 17 / 20,
+      maxStreak: 9,
+    });
+  });
+
   it("returns null for malformed members", () => {
     expect(parseMember("not json")).toBeNull();
     expect(parseMember('{"id":1}')).toBeNull();
     expect(parseMember(JSON.stringify({ id: "x", displayName: "y", score: "high" }))).toBeNull();
+    expect(parseMember({ id: 1 })).toBeNull();
   });
 });
