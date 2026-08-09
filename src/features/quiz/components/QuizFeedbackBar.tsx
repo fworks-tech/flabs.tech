@@ -1,7 +1,7 @@
 "use client";
 
-import { Paper, Text } from "@mantine/core";
-import { IconClockExclamation, IconCheck, IconX } from "@tabler/icons-react";
+import { ActionIcon, Paper, Text } from "@mantine/core";
+import { IconClockExclamation, IconCheck, IconFlag, IconX } from "@tabler/icons-react";
 
 import styles from "./QuizFeedbackBar.module.scss";
 
@@ -10,13 +10,21 @@ interface QuizFeedbackBarProps {
   timedOut: boolean;
   explanation: string;
   points: number;
+  /** Opens the "report issue" modal for the answered question. */
+  onReport?: () => void;
 }
 
 /**
  * Post-answer feedback: green/red flash, points flyout and the WHY for
  * the question. Announced to screen readers via aria-live.
  */
-export function QuizFeedbackBar({ correct, timedOut, explanation, points }: QuizFeedbackBarProps) {
+export function QuizFeedbackBar({
+  correct,
+  timedOut,
+  explanation,
+  points,
+  onReport,
+}: QuizFeedbackBarProps) {
   const Icon = correct ? IconCheck : timedOut ? IconClockExclamation : IconX;
   return (
     <Paper
@@ -41,6 +49,18 @@ export function QuizFeedbackBar({ correct, timedOut, explanation, points }: Quiz
           <>
             <Icon className={styles.icon} size={20} aria-hidden="true" /> Not quite
           </>
+        )}
+        {onReport && (
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            ml="xs"
+            aria-label="Report issue with this question"
+            onClick={onReport}
+            data-testid="report-issue-feedback"
+          >
+            <IconFlag size={16} aria-hidden="true" />
+          </ActionIcon>
         )}
       </Text>
       <Text size="sm" c="dimmed" className={styles.explanation} component="p">

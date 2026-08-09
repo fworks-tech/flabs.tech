@@ -4,6 +4,7 @@ import { Stack } from "@mantine/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AchievementToast } from "@/features/quiz/components/AchievementToast";
+import { FeedbackModal } from "@/features/quiz/components/FeedbackModal";
 import { GameOverCard } from "@/features/quiz/components/GameOverCard";
 import { QuizFeedbackBar } from "@/features/quiz/components/QuizFeedbackBar";
 import { QuizQuestionCard } from "@/features/quiz/components/QuizQuestionCard";
@@ -17,10 +18,33 @@ import {
 } from "@/features/quiz/hooks/useAchievements";
 import { useCountdown } from "@/features/quiz/hooks/useCountdown";
 import { useHighScore } from "@/features/quiz/hooks/useHighScore";
-import { gameOverStats, useQuizEngine } from "@/features/quiz/hooks/useQuizEngine";
+import { gameOverStats, useQuizEngine, type EngineState } from "@/features/quiz/hooks/useQuizEngine";
 
 const QUESTION_TIME_MS = 15000;
 const FEEDBACK_PAUSE_MS = 1200;
+
+/**
+ * Best-effort attempt log via sendBeacon (fires once per finished game;
+ * the browser flushes it even when the tab closes).
+ */
+function sendAttemptBeacon(state: Extract<EngineState, { phase: "answered" }>) {
+  try {
+    const payload = {
+      attemptId: crypto.randomUUID(),
+      answers: state.answers.map(({ questionId, correct, timeMs }) => ({
+        questionId,
+        correct,
+        timeMs,
+      })),
+      durationMs: Date.now() - state.startedAt,
+    };
+    navigator.sendBeacon("/api/quiz/attempt", new Blob([JSON.stringify(payload)], {
+      type: "application/json",
+    }));
+  } catch {
+    // best-effort: ignore beacon failures
+  }
+}
 
 /**
  * Owns the per-question countdown. Remounted with `key={question.id}` so
@@ -31,10 +55,12 @@ function QuestionStage({
   question,
   onAnswer,
   onTimeout,
+  onReport,
 }: {
   question: QuizQuestion;
   onAnswer: (index: number, timeMs: number) => void;
   onTimeout: () => void;
+  onReport: () => void;
 }) {
   const remaining = useCountdown(QUESTION_TIME_MS, true, onTimeout);
   return (
@@ -45,6 +71,7 @@ function QuestionStage({
       selectedIndex={null}
       disabled={false}
       onAnswer={(index) => onAnswer(index, QUESTION_TIME_MS - remaining)}
+      onReport={onReport}
     />
   );
 }
@@ -54,7 +81,10 @@ export default function QuizPage() {
   const { bestScore, bestStreak, submitScore } = useHighScore();
   const { unlock } = useAchievements();
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementId[]>([]);
+  const [reportOpen, setReportOpen] = useState(false);
   const daily = useMemo(() => dailyQuestion(), []);
+
+  const handleReport = useCallback(() => setReportOpen(true), []);
 
   const handleTimeout = useCallback(() => dispatch({ type: "timeout" }), [dispatch]);
 
@@ -87,6 +117,7 @@ export default function QuizPage() {
           }),
         );
         if (fresh.length > 0) setNewlyUnlocked(fresh);
+        sendAttemptBeacon(state);
       }
       dispatch({ type: "advance", now: Date.now() });
     }, FEEDBACK_PAUSE_MS);
@@ -139,6 +170,7 @@ export default function QuizPage() {
               question={question}
               onAnswer={handleAnswer}
               onTimeout={handleTimeout}
+              onReport={handleReport}
             />
           )}
           {state.phase === "answered" && (
@@ -151,12 +183,14 @@ export default function QuizPage() {
                 selectedIndex={state.selectedIndex}
                 disabled
                 onAnswer={(index) => handleAnswer(index, 0)}
+                onReport={handleReport}
               />
               <QuizFeedbackBar
                 correct={state.correct}
                 timedOut={state.selectedIndex === -1}
                 explanation={question.explanation}
                 points={state.points}
+                onReport={handleReport}
               />
             </>
           )}
@@ -166,6 +200,12 @@ export default function QuizPage() {
       {state.phase === "gameover" && (
         <GameOverCard stats={gameOverStats(state)!} onRetry={handleRetry} />
       )}
+
+      <FeedbackModal
+        opened={reportOpen}
+        onClose={() => setReportOpen(false)}
+        questionId={question?.id ?? ""}
+      />
     </Stack>
   );
 }

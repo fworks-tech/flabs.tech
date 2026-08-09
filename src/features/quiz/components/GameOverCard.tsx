@@ -6,6 +6,7 @@ import { useHighScore } from "@/features/quiz/hooks/useHighScore";
 import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
 import { rankMeta } from "@/features/quiz/lib/ranking";
 import { LeaderboardPanel } from "./LeaderboardPanel";
+import { RatingCard } from "./RatingCard";
 import { SaveScoreForm } from "./SaveScoreForm";
 import styles from "./GameOverCard.module.scss";
 
@@ -110,6 +111,8 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
           onWeekChange={leaderboard.switchWeek}
           highlightId={leaderboard.saved?.id ?? null}
         />
+
+        <RatingCard onSubmitted={() => undefined} />
 
         <Button size="md" variant="light" onClick={onRetry} data-testid="retry-quiz">
           Run it back
