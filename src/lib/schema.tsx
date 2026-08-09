@@ -32,7 +32,16 @@ type BlogPostingSchema = {
   dateModified?: string;
 };
 
-type SchemaProps = WebPageSchema | BlogPostingSchema;
+type FAQPageSchema = {
+  as: "faqPage";
+  baseURL: string;
+  path?: string;
+  title?: string;
+  description?: string;
+  faqs: { question: string; answer: string }[];
+};
+
+type SchemaProps = WebPageSchema | BlogPostingSchema | FAQPageSchema;
 
 function buildWebPageSchema(props: WebPageSchema) {
   return {
@@ -76,11 +85,31 @@ function buildBlogPostingSchema(props: BlogPostingSchema) {
   };
 }
 
+function buildFAQPageSchema(props: FAQPageSchema) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    ...(props.title && { name: props.title }),
+    ...(props.description && { description: props.description }),
+    ...(props.path && { url: `${props.baseURL}${props.path}` }),
+    mainEntity: props.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
 export function Schema(props: SchemaProps) {
   const data =
     props.as === "webPage"
       ? buildWebPageSchema(props)
-      : buildBlogPostingSchema(props);
+      : props.as === "blogPosting"
+        ? buildBlogPostingSchema(props)
+        : buildFAQPageSchema(props);
 
   return <JsonLd data={data} />;
 }

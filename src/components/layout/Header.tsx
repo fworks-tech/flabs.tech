@@ -6,6 +6,7 @@ import {
   IconCode,
   IconGridDots,
   IconHome,
+  IconPuzzle,
   IconUser,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -56,6 +57,7 @@ const iconMap: Record<string, React.ReactNode> = {
   grid: <IconGridDots size={16} />,
   code: <IconCode size={16} />,
   book: <IconBook size={16} />,
+  puzzle: <IconPuzzle size={16} />,
   person: <IconUser size={16} />,
 };
 
@@ -64,6 +66,7 @@ type NavItem = {
   label: string;
   icon: string;
   selected: boolean;
+  highlight?: boolean;
 };
 
 export const Header = () => {
@@ -74,6 +77,7 @@ export const Header = () => {
     { path: "/work", label: work.label, icon: "grid", selected: pathname.startsWith("/work") },
     { path: "/projects", label: projects.label, icon: "code", selected: pathname.startsWith("/projects") },
     { path: "/blog", label: blog.label, icon: "book", selected: pathname.startsWith("/blog") },
+    { path: "/quiz", label: "Quiz", icon: "puzzle", selected: pathname.startsWith("/quiz"), highlight: true },
     { path: "/about", label: about.label, icon: "person", selected: pathname === "/about" },
   ].filter((item) => routes[item.path as keyof typeof routes]);
 
@@ -92,7 +96,7 @@ export const Header = () => {
         <nav aria-label="Main navigation" style={{ flex: 1 }}>
           <Group justify="center" gap="4" align="center" wrap="nowrap">
             {navItems.map((item) => (
-              <div key={item.path} className={styles.navItem}>
+              <div key={item.path} className={`${styles.navItem} ${item.highlight ? styles.highlight : ""}`}>
                 <Button
                   component={Link}
                   href={item.path}

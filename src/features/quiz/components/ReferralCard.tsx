@@ -5,6 +5,7 @@ import { IconX } from "@tabler/icons-react";
 import { useState } from "react";
 
 import { referral } from "@/config";
+import { trackEvent } from "@/lib/analytics";
 import styles from "./ReferralCard.module.scss";
 
 const DISMISS_KEY = "devsprint.referralDismissed";
@@ -15,7 +16,7 @@ interface ReferralCardProps {
 }
 
 /**
- * Micro1 referral CTA — shown only to eligible scorers (≥80% accuracy),
+ * Referral CTA — shown only to eligible scorers (≥80% accuracy),
  * once per device (localStorage dismiss). Clicking fires a server-side
  * counter via sendBeacon so it counts even without PostHog consent.
  */
@@ -25,8 +26,11 @@ export function ReferralCard({ score, accuracy }: ReferralCardProps) {
     return window.localStorage.getItem(DISMISS_KEY) === "1";
   });
 
-  const config = referral.micro1;
+  const config = referral.default;
   if (!config.display || dismissed) return null;
+
+  // Track when the referral CTA becomes visible
+  trackEvent("quiz_referral_cta_shown", { score, accuracy });
 
   function dismiss() {
     window.localStorage.setItem(DISMISS_KEY, "1");
@@ -34,6 +38,7 @@ export function ReferralCard({ score, accuracy }: ReferralCardProps) {
   }
 
   function trackClick() {
+    trackEvent("quiz_referral_click", { score, accuracy });
     try {
       navigator.sendBeacon(
         "/api/quiz/referral-click",

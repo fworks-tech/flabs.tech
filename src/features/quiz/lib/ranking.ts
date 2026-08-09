@@ -20,8 +20,8 @@ export function rankFromScore(correct: number, total: number): RankTitle {
 export const RANK_COPY: Record<RankTitle, string> = {
   Junior: "You survived the sprint — barely.",
   "Mid-Level": "Solid fundamentals. The sprint liked you.",
-  Senior: "Strong run. Zara would keep you on the team.",
-  Staff: "Flawless fundamentals. Micro1 wants to meet you.",
+  Senior: "Strong run. You've got the skills for senior roles.",
+  Staff: "Flawless fundamentals. You're ready for the next step.",
 };
 
 export interface RankMeta {

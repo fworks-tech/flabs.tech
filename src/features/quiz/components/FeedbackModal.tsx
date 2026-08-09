@@ -5,6 +5,7 @@ import { notifications } from "@mantine/notifications";
 import { useState } from "react";
 
 import { FEEDBACK_REASONS, type FeedbackReason } from "@/features/quiz/lib/feedback";
+import { trackEvent } from "@/lib/analytics";
 
 interface FeedbackModalProps {
   opened: boolean;
@@ -41,6 +42,7 @@ export function FeedbackModal({ opened, onClose, questionId }: FeedbackModalProp
         color: "green",
         autoClose: 3000,
       });
+      trackEvent("quiz_feedback_submit", { questionId, reason });
       reset();
       onClose();
     } catch {
