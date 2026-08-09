@@ -1,18 +1,76 @@
 .hud {
   width: 100%;
   padding: 1rem 0;
+  animation: fadeInDown 0.4s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .score {
   font-variant-numeric: tabular-nums;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, color 0.15s ease;
+  display: inline-block;
+}
+
+.scoreChanged {
+  animation: scorePop 0.3s ease-out;
+}
+
+@keyframes scorePop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+    color: var(--mantine-color-grape-4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.streakBadge {
+  animation: streakPulse 0.5s ease-out;
+}
+
+@keyframes streakPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .heart {
   color: var(--mantine-color-red-6);
+  transition: transform 0.2s ease;
+}
+
+.heart:hover {
+  transform: scale(1.1);
 }
 
 .heartLost {
   color: var(--mantine-color-dark-4);
   opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.progress {
+  transition: width 0.3s ease-out;
 }

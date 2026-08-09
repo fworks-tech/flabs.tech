@@ -1,6 +1,43 @@
 .row {
-  padding: 0.35rem 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--mantine-radius-sm);
+  transition: all 0.2s ease;
+  animation: fadeIn 0.3s ease-out backwards;
+}
+
+.row:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.row:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.row:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.row:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.row:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.row:hover {
+  background-color: color-mix(in srgb, var(--mantine-color-gray-8) 30%, transparent);
 }
 
 .rank {
@@ -12,14 +49,17 @@
 
 .gold .rank {
   color: var(--mantine-color-yellow-6);
+  text-shadow: 0 0 8px rgba(var(--mantine-color-yellow-6-rgb), 0.5);
 }
 
 .silver .rank {
   color: var(--mantine-color-gray-5);
+  text-shadow: 0 0 8px rgba(var(--mantine-color-gray-5-rgb), 0.3);
 }
 
 .bronze .rank {
   color: var(--mantine-color-orange-7);
+  text-shadow: 0 0 8px rgba(var(--mantine-color-orange-7-rgb), 0.3);
 }
 
 .plain .rank {
@@ -27,9 +67,19 @@
 }
 
 [data-mantine-color-scheme="dark"] .player {
-  background-color: color-mix(in srgb, var(--mantine-color-grape-6) 25%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--mantine-color-grape-6) 20%, transparent),
+    color-mix(in srgb, var(--mantine-color-grape-6) 10%, transparent)
+  );
+  border-left: 3px solid var(--mantine-color-grape-6);
 }
 
 [data-mantine-color-scheme="light"] .player {
-  background-color: color-mix(in srgb, var(--mantine-color-grape-3) 40%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--mantine-color-grape-3) 30%, transparent),
+    color-mix(in srgb, var(--mantine-color-grape-3) 15%, transparent)
+  );
+  border-left: 3px solid var(--mantine-color-grape-5);
 }

@@ -3,12 +3,19 @@
   width: 7.5rem;
   height: 7.5rem;
   transform: rotate(-90deg);
+  filter: drop-shadow(0 0 8px rgba(var(--mantine-color-green-6-rgb), 0.3));
+  transition: filter 0.3s ease;
+}
+
+.urgent .ring {
+  filter: drop-shadow(0 0 12px rgba(var(--mantine-color-red-6-rgb), 0.5));
 }
 
 .track {
   fill: none;
   stroke: var(--mantine-color-dark-4);
   stroke-width: 8;
+  opacity: 0.5;
 }
 
 .progress {
@@ -18,7 +25,7 @@
   stroke-linecap: round;
   transition:
     stroke-dashoffset 0.1s linear,
-    stroke 0.2s ease;
+    stroke 0.3s ease;
 }
 
 .urgent .progress {
@@ -35,14 +42,47 @@
   font-size: 1.75rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+
+.urgent .seconds {
+  color: var(--mantine-color-red-6);
+  animation: urgentPulse 0.8s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%,
   100% {
     opacity: 1;
+    stroke-width: 8;
   }
   50% {
-    opacity: 0.45;
+    opacity: 0.6;
+    stroke-width: 10;
   }
+}
+
+@keyframes urgentPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes ringEntry {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-90deg) scale(1);
+  }
+}
+
+.ring {
+  animation: ringEntry 0.4s ease-out;
 }

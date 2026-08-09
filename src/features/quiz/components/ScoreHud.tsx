@@ -28,7 +28,7 @@ export function ScoreHud({ score, streak, lives, answered, total }: ScoreHudProp
         <Text
           size="xl"
           fw={800}
-          className={styles.score}
+          className={`${styles.score} ${score > 0 ? styles.scoreChanged : ""}`}
           aria-live="polite"
           data-testid="score-value"
         >
@@ -42,7 +42,12 @@ export function ScoreHud({ score, streak, lives, answered, total }: ScoreHudProp
         </Text>
         <Group gap="4">
           {streak > 0 && (
-            <Badge color="orange" variant="light" data-testid="streak-badge">
+            <Badge
+              color="orange"
+              variant="light"
+              data-testid="streak-badge"
+              className={styles.streakBadge}
+            >
               x{streak + 1}
             </Badge>
           )}
@@ -67,6 +72,7 @@ export function ScoreHud({ score, streak, lives, answered, total }: ScoreHudProp
         <Progress
           value={(answered / total) * 100}
           w={120}
+          className={styles.progress}
           aria-label={`Question ${answered} of ${total}`}
           aria-live="polite"
           data-testid="progress-bar"

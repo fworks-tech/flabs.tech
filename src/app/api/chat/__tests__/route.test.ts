@@ -9,6 +9,14 @@ vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock("@/config", () => ({
+  baseURL: "https://flabs.tech",
+  sameAs: {
+    github: "https://github.com/fworks-tech",
+    linkedin: "https://www.linkedin.com/in/fabiorborges/",
+  },
+}));
+
 const abuseMock = vi.hoisted(() => ({
   resolveKey: (id: string) => id,
   effectiveTier: vi.fn(async () => "none"),

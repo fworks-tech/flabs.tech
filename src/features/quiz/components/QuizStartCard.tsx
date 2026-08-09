@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, Button, Card, Group, List, Stack, Text, Title } from "@mantine/core";
-import { IconBolt, IconCalendarEvent, IconHeart, IconTrophy } from "@tabler/icons-react";
+import { IconBolt, IconCalendarEvent, IconTrophy } from "@tabler/icons-react";
 
 import type { QuizQuestion } from "@/features/quiz/data/questions";
 import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
@@ -33,7 +33,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
       </Stack>
 
       {bestScore > 0 && (
-        <Group gap="xs">
+        <Group gap="xs" className={styles.hint}>
           <IconTrophy size={18} aria-hidden="true" />
           <Text size="sm" data-testid="best-score">
             Best score: {bestScore}
@@ -54,7 +54,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
         </Text>
       </Card>
 
-      <Card withBorder p="md" radius="md" maw={420}>
+      <Card withBorder p="md" radius="md" maw={420} className={styles.rules}>
         <List size="sm" spacing="xs">
           <List.Item icon={<IconBolt size={16} aria-hidden="true" />}>
             15s per question — correct answers earn a 2s bonus
@@ -66,23 +66,24 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
             3 lives. Wrong answer or timeout — you lose one
           </List.Item>
           <List.Item icon={<IconBolt size={16} aria-hidden="true" />}>
-            Reach 80% accuracy to get matched with top US companies
+            Score 80%+ to unlock referral opportunities
           </List.Item>
         </List>
       </Card>
 
-      <LeaderboardPanel
-        entries={leaderboard.entries}
-        loading={leaderboard.loading}
-        error={leaderboard.error}
-        week={leaderboard.week}
-        onWeekChange={leaderboard.switchWeek}
-        highlightId={null}
-      />
+      <div className={styles.leaderboard}>
+        <LeaderboardPanel
+          entries={leaderboard.entries}
+          loading={leaderboard.loading}
+          error={leaderboard.error}
+          week={leaderboard.week}
+          onWeekChange={leaderboard.switchWeek}
+          highlightId={null}
+        />
+      </div>
 
       {ratings && ratings.total > 0 && ratings.recommendPct !== null && (
-        <Group gap="xs" data-testid="ratings-stat">
-          <IconHeart size={18} aria-hidden="true" />
+        <Group gap="xs" data-testid="ratings-stat" className={styles.ratings}>
           <Text size="sm" c="dimmed">
             {ratings.recommendPct}% of players recommend this quiz
           </Text>
@@ -101,7 +102,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
       >
         Start the sprint
       </Button>
-      <Text size="xs" c="dimmed">
+      <Text size="xs" c="dimmed" className={styles.hint}>
         Answer with 1–4 or A–D. Good luck!
       </Text>
     </Stack>
