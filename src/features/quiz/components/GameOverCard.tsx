@@ -1,12 +1,14 @@
 "use client";
 
 import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { IconExternalLink } from "@tabler/icons-react";
 
 import { useHighScore } from "@/features/quiz/hooks/useHighScore";
 import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
 import { rankMeta } from "@/features/quiz/lib/ranking";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { RatingCard } from "./RatingCard";
+import { ReferralCard } from "./ReferralCard";
 import { SaveScoreForm } from "./SaveScoreForm";
 import styles from "./GameOverCard.module.scss";
 
@@ -102,6 +104,23 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
           onNameChange={setPlayerName}
           onSave={leaderboard.saveScore}
         />
+
+        {leaderboard.saved?.id && (
+          <Button
+            component="a"
+            href={`/quiz/result/${leaderboard.saved.id}`}
+            variant="subtle"
+            size="sm"
+            rightSection={<IconExternalLink size={14} aria-hidden="true" />}
+            data-testid="view-result"
+          >
+            View &amp; share your result card
+          </Button>
+        )}
+
+        {accuracy >= 0.8 && (
+          <ReferralCard score={stats.score} accuracy={accuracy} />
+        )}
 
         <LeaderboardPanel
           entries={leaderboard.entries}

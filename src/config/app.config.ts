@@ -97,12 +97,28 @@ const mailchimp = {
   },
 };
 
+/**
+ * DevSprint referral CTA (shown to ≥80% accuracy scorers). The URL comes
+ * from `NEXT_PUBLIC_MICRO1_REFERRAL_URL` so the slug can change without a
+ * deploy; `display: false` hides the card entirely.
+ */
+const referral = {
+  micro1: {
+    url: process.env.NEXT_PUBLIC_MICRO1_REFERRAL_URL || "https://talent.micro1.ai/",
+    headline: "Score 80%+? Put your skills to work.",
+    body: "You've proven your JS fundamentals. Create a free account on talent.micro1.ai and get matched with top US companies.",
+    cta: "Join talent.micro1.ai",
+    display: true,
+  },
+};
+
 export {
   baseURL,
   display,
   fonts,
   mailchimp,
   protectedRoutes,
+  referral,
   routes,
   sameAs,
   socialSharing,
