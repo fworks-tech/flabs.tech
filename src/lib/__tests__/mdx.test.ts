@@ -77,10 +77,11 @@ describe("getPosts", () => {
     expect(mockReaddirSync).toHaveBeenCalledWith("/mock/cwd/content/blog");
   });
 
-  it("calls notFound when directory is missing", () => {
+  it("returns empty array when directory is missing", () => {
     mockExistsSync.mockReturnValue(false);
 
-    expect(() => getPosts(["content", "blog"])).toThrow("NEXT_NOT_FOUND");
+    const result = getPosts(["content", "blog"]);
+    expect(result).toEqual([]);
   });
 
   it("reads and parses each MDX file", () => {

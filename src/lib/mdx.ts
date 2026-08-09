@@ -28,26 +28,24 @@ export type Metadata = {
   devtoId?: number;
 };
 
-import { notFound } from "next/navigation";
-
 function getMDXFiles(dir: string) {
   if (!fs.existsSync(dir)) {
     logger.warn({ dir }, "content directory not found");
-    notFound();
+    return [];
   }
 
   try {
     return fs.readdirSync(dir).filter((file) => path.extname(file) === ".mdx");
   } catch (error) {
     logger.error(error, "failed to read content directory");
-    notFound();
+    return [];
   }
 }
 
 function readMDXFile(filePath: string) {
   if (!fs.existsSync(filePath)) {
     logger.warn({ filePath }, "content file not found");
-    notFound();
+    return null;
   }
 
   let rawContent: string;
@@ -55,7 +53,7 @@ function readMDXFile(filePath: string) {
     rawContent = fs.readFileSync(filePath, "utf-8");
   } catch (error) {
     logger.error(error, "failed to read content file");
-    notFound();
+    return null;
   }
 
   let parsed: matter.GrayMatterFile<string>;
@@ -63,7 +61,7 @@ function readMDXFile(filePath: string) {
     parsed = matter(rawContent);
   } catch (error) {
     logger.error(error, "failed to parse frontmatter");
-    notFound();
+    return null;
   }
 
   const { data, content } = parsed;
@@ -90,16 +88,15 @@ function readMDXFile(filePath: string) {
 
 function getMDXData(dir: string) {
   const mdxFiles = getMDXFiles(dir);
-  return mdxFiles.map((file) => {
-    const { metadata, content } = readMDXFile(path.join(dir, file));
-    const slug = path.basename(file, path.extname(file));
-
-    return {
-      metadata,
-      slug,
-      content,
-    };
-  });
+  return mdxFiles
+    .map((file) => {
+      const result = readMDXFile(path.join(dir, file));
+      if (!result) return null;
+      const { metadata, content } = result;
+      const slug = path.basename(file, path.extname(file));
+      return { metadata, slug, content };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 /**
