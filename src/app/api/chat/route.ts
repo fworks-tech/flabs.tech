@@ -369,9 +369,11 @@ export async function POST(req: NextRequest) {
       system: systemPrompt,
       tools: aiTools,
       // Default stopWhen: isStepCount(1) ends the stream right after a tool
-      // call, so the final answer would never be generated. Allow up to 3
-      // steps: tool round(s) + the answer step.
-      stopWhen: isStepCount(3),
+      // call, so the final answer would never be generated. The loop exits
+      // naturally once a step makes no tool calls; cap at 6 steps so a
+      // runaway tool chain still terminates (and the abuse pipeline bounds
+      // the cost).
+      stopWhen: isStepCount(6),
       maxOutputTokens: 1000,
       temperature: 0.3,
     });
