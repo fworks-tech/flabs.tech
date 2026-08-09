@@ -22,6 +22,8 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **Projects** — 7 open-source projects with MDX detail pages and GitHub links: Agenthood, ApolloDroid, LogRoute, VeriHire, Jupyter Crypto Wizard, Fashionista, flabs.tech
 - **Blog** — Engineering blog with MDX posts on GraphQL Federation, multi-agent AI, and skills registries
 - **About** — Full professional bio, location, social links, and skill tags across Frontend · Backend & APIs · AI & Agents
+- **Quiz (DevSprint)** — Timed dev-trivia game: 20s per question, streaks, achievements, weekly leaderboard (Upstash Redis), referral sharing
+- **AI Assistant** — Chat widget on every page; answers about the site's content and author via OpenCode Zen (`mimo-v2.5`). Equipped with tools: GitHub repo stats, authorized URL fetching, and content search across blog/projects
 
 ### Technical
 - **Next.js 16** App Router with full TypeScript
@@ -29,6 +31,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **MDX** content pipeline for blog posts and project detail pages with gray-matter
 - **Dynamic OG images** via `next/og` — auto-generated for every page with 1200×630 (1.91:1)
 - **Profile photo favicon** generated server-side via `icon.tsx` (no binary files)
+- **Abuse prevention** for the AI chat endpoint — deterministic pipeline (`src/lib/abuse/`): signal scoring → quarantine tiers → shadow/enforce modes; privacy-first HMAC keyed identities
 - **AGENTS.md** — AI agent instructions (build/test commands, conventions, git workflow)
 - Deployed on **Vercel** with PR preview deployments
 
@@ -39,10 +42,13 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Layer | Tech |
 |-------|------|
 | Framework | Next.js 16 (App Router) |
-| UI System | Once UI |
+| UI System | Once UI + Mantine |
 | Language | TypeScript |
 | Content | MDX + gray-matter |
 | Styling | SCSS Modules |
+| AI Runtime | Vercel AI SDK v7 + OpenCode Zen (OpenAI-compatible, `mimo-v2.5`) |
+| Storage | Upstash Redis (leaderboard, sessions, abuse signals) |
+| Observability | PostHog · pino + OpenTelemetry logs |
 | Linting | ESLint 9 (flat config) + Prettier |
 | Bundler | Turbopack |
 | Type Checking | TypeScript 5.8 (`tsc --noEmit`) |
@@ -59,6 +65,8 @@ Live at **[flabs.tech](https://flabs.tech)**
 ```
 src/
 ├── app/              # Next.js App Router (routes, API, layout)
+│   ├── api/          #   chat, quiz/*, authenticate, analytics, og, rss, auth
+│   └── quiz/         #   DevSprint quiz game
 ├── components/       # Presentational components by role
 │   ├── layout/       #   Header, Footer, Providers, RouteGuard
 │   ├── ui/           #   Mailchimp, HeadingLink, ProjectCard
@@ -71,6 +79,8 @@ src/
 ├── features/         # Domain-specific components (by page)
 ├── hooks/            # Custom React hooks
 ├── lib/              # Pure utility functions
+│   ├── abuse/        #   AI chat abuse-prevention pipeline
+│   └── ai/           #   Chat tool definitions + web search
 ├── styles/           # Global SCSS/CSS
 └── types/            # Shared TypeScript types
 ```
@@ -83,6 +93,7 @@ Layered dependency rule: inner layers (`lib/`, `config/`) never import from oute
 
 ```bash
 npm install
+cp .env.example .env   # fill in keys (see Env vars)
 npm run dev
 ```
 
@@ -94,6 +105,10 @@ Open [http://localhost:3000](http://localhost:3000).
 npm run storybook       # Start at http://localhost:6006
 npm run build-storybook # Static build
 ```
+
+### Env vars
+
+Required: `OPENCODE_API_KEY`, `UPSTASH_REDIS_REST_URL/TOKEN`, `POSTHOG_API_KEY`; optional: `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL`, `ABUSE_KEY_SECRET`, `ABUSE_RESPONSE_MODE`, `ABUSE_TRACK_IP`, `ABUSE_RETENTION_MS` (see `.env.example`).
 
 ---
 
@@ -107,7 +122,7 @@ npm run build-storybook # Static build
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with v8 coverage report |
 
-**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 88 tests across 20 test files
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 514 tests across 81 test files
 
 **Convention:** Tests live in `__tests__/` directories next to the files they cover.
 
@@ -128,9 +143,10 @@ src/features/about/TableOfContents.tsx → src/features/about/__tests__/TableOfC
 | `npm run test:e2e` | Run all E2E tests |
 | `npm run test:e2e:ui` | Interactive UI mode |
 | `npm run test:e2e:chrome` | Chromium only |
+| `npm run test:e2e:ci` | Chromium only, no visual snapshots (CI) |
 | `npm run test:e2e:update-snapshots` | Update visual baselines |
 
-**Stack:** Playwright 1.x · axe-core · navigation, pages, a11y, visual snapshots, API routes, responsive
+**Stack:** Playwright 1.x · axe-core · navigation, pages, a11y, visual snapshots, API routes, responsive, AI assistant, sign-in
 
 **Browsers:** Chromium + WebKit (local) · Chromium only (CI)
 
@@ -144,6 +160,10 @@ e2e/
 ├── api-routes.spec.ts       # API endpoint checks
 ├── aux-routes.spec.ts       # Sitemap, robots, RSS
 ├── responsive.spec.ts       # Viewport breakpoints
+├── analytics.spec.ts        # PostHog event capture
+├── signin.spec.ts           # Auth redirect flow
+├── ai-assistant.spec.ts     # Chat open/send/tool responses
+├── ai-assistant.screenshots.spec.ts  # Chat visual snapshots
 ├── pages/
 │   ├── home.spec.ts         # Title, favicon, OG meta
 │   ├── about.spec.ts        # Title, social links
@@ -165,17 +185,19 @@ push/PR to main
 ```
 
 **Mocks:** Centralized in `__mocks__/` at project root:
-- `@once-ui-system/core` — all components, providers, hooks
-- `next/navigation` — useRouter, usePathname, notFound
-- `gray-matter` — frontmatter parser
+- `@once-ui-system` — all components, providers, hooks
+- `next/` — navigation, headers (router, pathname, notFound)
+- `gray-matter.ts` — frontmatter parser
 
 ---
 
 ## Security
 
 - **Security headers** via `vercel.json` — CSP, HSTS (preload), X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy
-- **Rate limiting** on `/api/authenticate` — 5 requests per 60s per IP
-- **Auth token** uses `crypto.randomUUID()` — httpOnly, SameSite: strict, Secure cookie
+- **Rate limiting** on all public APIs — `/api/authenticate` (5 req/60s/IP), `/api/chat` (10–30 req/60s/IP), `/api/analytics/event`, and quiz endpoints
+- **Session auth** — NextAuth 5 with Upstash Redis sessions; httpOnly, SameSite: strict, Secure cookies
+- **AI abuse pipeline** (`src/lib/abuse/`) — deterministic logistic scoring over a decaying feature vector (30-min half-life, actors auto-recover); two-tier prompt-injection detection (block vs. signal); quarantine tiers throttle → soft-quarantine → hard-block; `ABUSE_RESPONSE_MODE=shadow` (observe, default) or `enforce` (block)
+- **Privacy** — `ABUSE_TRACK_IP=false` → HMAC-keyed identities (`ABUSE_KEY_SECRET`); alert recipients (PostHog/webhooks) only see masked keys; client IP read from the rightmost `X-Forwarded-For` entry to defeat spoofing
 
 ---
 
