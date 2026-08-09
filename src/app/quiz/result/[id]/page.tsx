@@ -79,11 +79,22 @@ export default async function QuizResultPage({ params }: ResultPageProps) {
               · {rank.badge}
             </Text>
           </Group>
-          <Text className="quiz-result-score" fw={900} style={{ fontSize: "4rem", lineHeight: 1 }} data-testid="result-score">
+          <Text
+            fw={900}
+            style={{
+              fontSize: "4rem",
+              lineHeight: 1,
+              background: "linear-gradient(135deg, var(--mantine-color-grape-4), var(--mantine-color-cyan-4))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+            data-testid="result-score"
+          >
             {attempt.score}
           </Text>
           <Text size="sm" c="dimmed">
-            / {attempt.total} · {Math.round(accuracy * 100)}% accuracy · max streak{" "}
+            points · {attempt.correct}/{attempt.total} correct · {Math.round(accuracy * 100)}% accuracy · max streak{" "}
             {attempt.maxStreak}
           </Text>
           <Button
