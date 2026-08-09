@@ -251,21 +251,35 @@ export function AiAssistant() {
               </p>
             </div>
           )}
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`${styles.message} ${
-                msg.role === 'user' ? styles.messageUser : styles.messageAssistant
-              }`}
-            >
-              <div className={styles.messageLabel}>{msg.role === 'user' ? 'You' : 'Assistant'}</div>
-              <div className={styles.messageContent}>
-                {msg.role === 'user' ? getMessageText(msg) : (
-                  <Markdown>{getMessageText(msg)}</Markdown>
-                )}
+          {messages.map((msg, idx) => {
+            const isLast = idx === messages.length - 1;
+            const isAssistant = msg.role === 'assistant';
+            const isEmpty = !getMessageText(msg);
+            const showTyping = isAssistant && isLast && isEmpty && isLoading;
+            return (
+              <div
+                key={msg.id}
+                className={`${styles.message} ${
+                  msg.role === 'user' ? styles.messageUser : styles.messageAssistant
+                }`}
+              >
+                <div className={styles.messageLabel}>{msg.role === 'user' ? 'You' : 'Assistant'}</div>
+                <div className={styles.messageContent}>
+                  {msg.role === 'user' ? (
+                    getMessageText(msg)
+                  ) : showTyping ? (
+                    <span className={styles.typingDots}>
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  ) : (
+                    <Markdown>{getMessageText(msg)}</Markdown>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {error && (
             <div className={styles.error}>
               {error.message?.includes('429') || error.message?.includes('rate limit')
