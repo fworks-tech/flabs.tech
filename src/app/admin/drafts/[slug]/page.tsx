@@ -1,11 +1,11 @@
-import { Badge, Button, Group, Stack, Text, Title } from "@mantine/core";
-import Link from "next/link";
+import { Badge, Group, Stack, Text, Title } from "@mantine/core";
 import { CustomMDX } from "@/components";
 import { formatDate } from "@/lib/formatDate";
 import { isPostVisible } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { BackToDraftsLink } from "../DraftLinks";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -30,9 +30,7 @@ export default async function AdminDraftPreview({
     <Stack gap="md" maw={900} w="100%" mx="auto">
       <Group justify="space-between">
         <Group gap="sm">
-          <Button component={Link} href="/admin/drafts" variant="subtle" size="xs">
-            ← Back to drafts
-          </Button>
+          <BackToDraftsLink href="/admin/drafts" />
           {!visible && <Badge color="yellow">Draft</Badge>}
           {scheduledAt && (
             <Badge color="blue" variant="light">
