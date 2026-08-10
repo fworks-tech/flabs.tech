@@ -1,4 +1,4 @@
-import { Badge, Card, Group, Paper, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
+import { Card, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { AiRequestsChart, AiTokensChart } from "@/components/admin/AiCharts";
 import {
   getAbuseOverview,
@@ -6,6 +6,11 @@ import {
   getAiTotals,
   getRecentAiEvents,
 } from "@/lib/ai-stats";
+import {
+  InvestigationCasesTable,
+  QuarantinedActors,
+  RecentRequestsTable,
+} from "./AiTables";
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -72,90 +77,11 @@ export default async function AdminAiPage() {
         </Paper>
       </SimpleGrid>
 
-      <Paper withBorder p="lg">
-        <Title order={4} mb="md">Recent requests</Title>
-        {recent.length === 0 ? (
-          <Text c="dimmed" size="sm">No requests recorded yet.</Text>
-        ) : (
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Time</Table.Th>
-                <Table.Th>Model</Table.Th>
-                <Table.Th>Tokens in</Table.Th>
-                <Table.Th>Tokens out</Table.Th>
-                <Table.Th>Tier</Table.Th>
-                <Table.Th>Flags</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {recent.map((ev, i) => (
-                <Table.Tr key={i}>
-                  <Table.Td>
-                    <Text size="xs" c="dimmed">{new Date(ev.t).toLocaleString()}</Text>
-                  </Table.Td>
-                  <Table.Td>{ev.model}</Table.Td>
-                  <Table.Td>{ev.tokensIn}</Table.Td>
-                  <Table.Td>{ev.tokensOut}</Table.Td>
-                  <Table.Td>{ev.tier}</Table.Td>
-                  <Table.Td>
-                    <Group gap="6">
-                      {ev.blocked && <Badge color="red" size="xs">blocked</Badge>}
-                      {ev.injection && <Badge color="orange" size="xs">injection</Badge>}
-                      {!ev.blocked && !ev.injection && <Text size="xs" c="dimmed">—</Text>}
-                    </Group>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        )}
-      </Paper>
+      <RecentRequestsTable rows={recent} />
 
       <SimpleGrid cols={{ base: 1, lg: 2 }}>
-        <Paper withBorder p="lg">
-          <Title order={4} mb="md">Investigation cases</Title>
-          {abuse.cases.length === 0 ? (
-            <Text c="dimmed" size="sm">No open cases.</Text>
-          ) : (
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Actor</Table.Th>
-                  <Table.Th>Kind</Table.Th>
-                  <Table.Th>Detail</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {abuse.cases.map((c) => (
-                  <Table.Tr key={c.key}>
-                    <Table.Td>
-                      <Text size="xs" ff="monospace">{c.key}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge variant="light" size="xs">{c.kind ?? "—"}</Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" lineClamp={1}>{c.detail ?? "—"}</Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          )}
-        </Paper>
-        <Paper withBorder p="lg">
-          <Title order={4} mb="md">Quarantined actors</Title>
-          {abuse.quarantines.length === 0 ? (
-            <Text c="dimmed" size="sm">Nothing quarantined.</Text>
-          ) : (
-            <Stack gap="4">
-              {abuse.quarantines.map((key) => (
-                <Text key={key} size="xs" ff="monospace">{key}</Text>
-              ))}
-            </Stack>
-          )}
-        </Paper>
+        <InvestigationCasesTable rows={abuse.cases} />
+        <QuarantinedActors keys={abuse.quarantines} />
       </SimpleGrid>
     </Stack>
   );
