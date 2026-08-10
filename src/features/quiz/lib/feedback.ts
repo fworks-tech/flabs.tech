@@ -49,7 +49,7 @@ export async function listFeedback(): Promise<FeedbackItem[]> {
 }
 
 export async function markFeedbackRead(id: string): Promise<void> {
-  await store.set(`quiz:feedback:read:${id}`, true);
+  await store.set(`quiz:feedback:read:${id}`, true, { ex: FEEDBACK_TTL_SECONDS });
 }
 
 export async function isFeedbackRead(id: string): Promise<boolean> {

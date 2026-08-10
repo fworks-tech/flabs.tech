@@ -23,7 +23,7 @@ export default function AdminError({
           Redis) and try again.
         </Alert>
         <Text size="xs" c="dimmed" ff="monospace">
-          {error.message || 'An unexpected error occurred.'}
+          {error.digest ? `Error digest: ${error.digest}` : 'An unexpected error occurred.'}
         </Text>
         <Button onClick={reset} variant="light">
           Try again

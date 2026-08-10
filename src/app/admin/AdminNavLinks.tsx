@@ -19,7 +19,7 @@ export function AdminNavLinks() {
     <Group gap="4" wrap="nowrap">
       {navItems.map((item) => {
         const isActive =
-          item.href === '/admin' ? pathname === item.href : pathname.startsWith(item.href);
+          pathname === item.href || pathname.startsWith(item.href + '/');
         return (
           <NavLink
             key={item.href}

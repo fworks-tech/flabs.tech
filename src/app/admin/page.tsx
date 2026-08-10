@@ -1,13 +1,8 @@
 import { Alert, Card, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { getAiTotals } from '@/lib/ai-stats';
 import { getTotals } from '@/lib/tracking-store';
+import { formatTokens } from '@/lib/formatTokens';
 import { LastUpdated } from './LastUpdated';
-
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
-}
 
 export const metadata = {
   robots: { index: false, follow: false },
