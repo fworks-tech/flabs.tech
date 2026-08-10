@@ -24,16 +24,9 @@ import {
   useQuizEngine,
   type EngineState,
 } from '@/features/quiz/hooks/useQuizEngine';
+import { feedbackDelayMs } from '@/features/quiz/lib/pacing';
 
 const QUESTION_TIME_MS = 20000;
-/** Quick auto-advance after a correct answer — keeps the arcade pace. */
-const CORRECT_FEEDBACK_MS = 1200;
-/**
- * Learning pause after a wrong answer: hold the feedback (text + code
- * snippet) for up to 15s so players can study the mistake, or let them
- * click "Next" to advance sooner.
- */
-const WRONG_FEEDBACK_MS = 15000;
 
 /**
  * Best-effort attempt log via sendBeacon (fires once per finished game;
@@ -181,7 +174,7 @@ export default function QuizPage() {
 
   useEffect(() => {
     if (!answered) return;
-    const delay = answered.correct ? CORRECT_FEEDBACK_MS : WRONG_FEEDBACK_MS;
+    const delay = feedbackDelayMs(answered.correct);
     const startedAt = Date.now();
     const timer = window.setTimeout(() => {
       advanceRef.current(answered);
