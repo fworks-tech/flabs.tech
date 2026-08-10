@@ -151,63 +151,65 @@ export const Header = () => {
       </Group>
 
       {/* Mobile: hamburger menu replaces floating pill + floating ThemeToggle */}
-      {display.themeSwitcher && (
-        <div className={styles.mobileMenuTrigger}>
-          <Popover
-            opened={menuOpen}
-            onChange={setMenuOpen}
-            position="bottom-end"
-            shadow="md"
-            radius="lg"
-            width={220}
-            withinPortal
-          >
-            <Popover.Target>
-              <ActionIcon
-                variant="default"
-                size="lg"
-                aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                aria-haspopup="menu"
-                onClick={() => setMenuOpen((o) => !o)}
-                className={styles.hamburgerButton}
-              >
-                {menuOpen ? <IconX size={18} /> : <IconMenu2 size={18} />}
-              </ActionIcon>
-            </Popover.Target>
+      <div className={styles.mobileMenuTrigger}>
+        <Popover
+          opened={menuOpen}
+          onChange={setMenuOpen}
+          position="bottom-end"
+          shadow="md"
+          radius="lg"
+          width={220}
+          withinPortal
+        >
+          <Popover.Target>
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-haspopup="menu"
+              onClick={() => setMenuOpen((o) => !o)}
+              className={styles.hamburgerButton}
+            >
+              {menuOpen ? <IconX size={18} /> : <IconMenu2 size={18} />}
+            </ActionIcon>
+          </Popover.Target>
 
-            <Popover.Dropdown className={styles.mobileMenuDropdown}>
-              <nav aria-label="Mobile navigation">
-                <Stack gap="4">
-                  {navItems.map((item) => (
-                    <Button
-                      key={item.path}
-                      component={Link}
-                      href={item.path}
-                      variant={item.selected ? 'light' : 'subtle'}
-                      justify="flex-start"
-                      leftSection={iconMap[item.icon] || null}
-                      onClick={() => {
-                        trackEvent('nav_click', { page: item.path });
-                        setMenuOpen(false);
-                      }}
-                      className={item.highlight ? styles.tryYourself : undefined}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </Stack>
-              </nav>
-              <Divider my="sm" />
-              <Group justify="space-between" px="xs">
-                <Text size="sm" c="dimmed">
-                  Theme
-                </Text>
-                <ThemeToggle />
-              </Group>
-            </Popover.Dropdown>
-          </Popover>
-        </div>
-      )}
+          <Popover.Dropdown className={styles.mobileMenuDropdown}>
+            <nav aria-label="Mobile navigation">
+              <Stack gap="4">
+                {navItems.map((item) => (
+                  <Button
+                    key={item.path}
+                    component={Link}
+                    href={item.path}
+                    variant={item.selected ? 'light' : 'subtle'}
+                    justify="flex-start"
+                    leftSection={iconMap[item.icon] || null}
+                    onClick={() => {
+                      trackEvent('nav_click', { page: item.path });
+                      setMenuOpen(false);
+                    }}
+                    className={item.highlight ? styles.tryYourself : undefined}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Stack>
+            </nav>
+            {display.themeSwitcher && (
+              <>
+                <Divider my="sm" />
+                <Group justify="space-between" px="xs">
+                  <Text size="sm" c="dimmed">
+                    Theme
+                  </Text>
+                  <ThemeToggle />
+                </Group>
+              </>
+            )}
+          </Popover.Dropdown>
+        </Popover>
+      </div>
     </>
   );
 };
