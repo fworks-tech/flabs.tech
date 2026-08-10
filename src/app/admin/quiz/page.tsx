@@ -1,7 +1,8 @@
-import { Stack, Text, Title } from "@mantine/core";
+import { Stack, Text, Title } from '@mantine/core';
 
-import { getQuizOverview } from "@/features/quiz/lib/adminStats";
-import { QuizTabs } from "./QuizTabs";
+import { getQuizOverview } from '@/features/quiz/lib/adminStats';
+import { QuizTabs } from './QuizTabs';
+import { LastUpdated } from '../LastUpdated';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -17,6 +18,7 @@ export default async function AdminQuizPage() {
         <Text size="sm" c="dimmed">
           DevSprint feedback, ratings and attempt stats.
         </Text>
+        <LastUpdated />
       </Stack>
 
       <QuizTabs overview={overview} />

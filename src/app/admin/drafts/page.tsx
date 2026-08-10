@@ -1,15 +1,16 @@
-import { Stack, Text, Title } from "@mantine/core";
-import { formatDate } from "@/lib/formatDate";
-import { isPostVisible } from "@/lib/draft";
-import { getPosts } from "@/lib/mdx";
-import { DraftsTable, type DraftRow } from "./DraftLinks";
+import { Stack, Text, Title } from '@mantine/core';
+import { formatDate } from '@/lib/formatDate';
+import { isPostVisible } from '@/lib/draft';
+import { getPosts } from '@/lib/mdx';
+import { DraftsTable, type DraftRow } from './DraftLinks';
+import { LastUpdated } from '../LastUpdated';
 
 export const metadata = {
   robots: { index: false, follow: false },
 };
 
 export default async function AdminDraftsPage() {
-  const allPosts = getPosts(["src", "content", "blog"]);
+  const allPosts = getPosts(['src', 'content', 'blog']);
   const hidden = allPosts.filter((post) => !isPostVisible(post.metadata));
 
   const rows: DraftRow[] = hidden.map((post) => ({
@@ -27,9 +28,10 @@ export default async function AdminDraftsPage() {
     <Stack gap="lg">
       <Title order={2}>Drafts &amp; scheduled posts</Title>
       <Text size="sm" c="dimmed">
-        Posts hidden from public view (draft flag or future scheduledAt). {hidden.length} hidden of{" "}
+        Posts hidden from public view (draft flag or future scheduledAt). {hidden.length} hidden of{' '}
         {allPosts.length} total.
       </Text>
+      <LastUpdated />
 
       {rows.length === 0 ? (
         <Text c="dimmed">Nothing hidden right now — every post is published.</Text>
