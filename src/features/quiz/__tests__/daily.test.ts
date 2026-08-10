@@ -86,4 +86,36 @@ describe('daily history persistence', () => {
     window.localStorage.setItem('devsprint.dailyHistory', '{not json');
     expect(loadDailyHistory()).toEqual([]);
   });
+
+  it('drops entries that do not match the DailyAttempt shape', () => {
+    const valid = {
+      date: '2026-08-09',
+      questionId: 'q1',
+      selectedIndex: 2,
+      correct: true,
+    };
+    const tampered = [
+      { ...valid, correct: 'yes' }, // truthy non-boolean — streak gaming
+      { ...valid, selectedIndex: '2' }, // string index
+      { ...valid, selectedIndex: 99 }, // out of range
+      { ...valid, date: 'not-a-date' }, // bad date key
+      { ...valid, questionId: '' }, // empty question id
+      null,
+      'string entry',
+    ];
+    window.localStorage.setItem('devsprint.dailyHistory', JSON.stringify([...tampered, valid]));
+    expect(loadDailyHistory()).toEqual([valid]);
+  });
+
+  it('keeps entries with extra fields — validation checks required fields only', () => {
+    const withExtra = {
+      date: '2026-08-09',
+      questionId: 'q1',
+      selectedIndex: 0,
+      correct: false,
+      migrated: true,
+    };
+    window.localStorage.setItem('devsprint.dailyHistory', JSON.stringify([withExtra]));
+    expect(loadDailyHistory()).toEqual([withExtra]);
+  });
 });

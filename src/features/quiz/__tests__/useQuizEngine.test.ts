@@ -138,6 +138,20 @@ describe("quizReducer", () => {
     expect(next.phase).toBe("running");
   });
 
+  it("ignores a second advance — no double-advance from timer + button", () => {
+    const answered = quizReducer(runningState(), {
+      type: "answer",
+      index: 0,
+      timeMs: 1000,
+    });
+    if (answered.phase !== "answered") return;
+    const advanced = quizReducer(answered, { type: "advance", now: 2000 });
+    if (advanced.phase !== "running") return;
+    expect(advanced.index).toBe(1);
+    const twice = quizReducer(advanced, { type: "advance", now: 2500 });
+    expect(twice).toBe(advanced);
+  });
+
   it("ignores answers outside the running phase", () => {
     const idle = quizReducer(initialState(), { type: "answer", index: 0, timeMs: 100 });
     expect(idle.phase).toBe("idle");

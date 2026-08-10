@@ -9,6 +9,25 @@ export interface DailyAttempt {
 const HISTORY_KEY = 'devsprint.dailyHistory';
 /** Keep ~3 months of history — enough for streaks + last result. */
 const HISTORY_LIMIT = 90;
+/** Strict UTC day key, e.g. "2026-08-10". */
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Rejects entries that don't match the DailyAttempt shape (tampered or corrupt storage). */
+function isDailyAttempt(value: unknown): value is DailyAttempt {
+  if (typeof value !== 'object' || value === null) return false;
+  const attempt = value as Record<string, unknown>;
+  return (
+    typeof attempt.date === 'string' &&
+    DATE_KEY_PATTERN.test(attempt.date) &&
+    typeof attempt.questionId === 'string' &&
+    attempt.questionId.length > 0 &&
+    typeof attempt.selectedIndex === 'number' &&
+    Number.isInteger(attempt.selectedIndex) &&
+    attempt.selectedIndex >= 0 &&
+    attempt.selectedIndex <= 3 &&
+    typeof attempt.correct === 'boolean'
+  );
+}
 
 /** UTC day key, aligned with `dailyQuestion` so the prompt and the lock flip together. */
 export function todayKey(date = new Date()): string {
@@ -27,7 +46,7 @@ export function loadDailyHistory(): DailyAttempt[] {
     const raw = window.localStorage.getItem(HISTORY_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as DailyAttempt[]) : [];
+    return Array.isArray(parsed) ? parsed.filter(isDailyAttempt) : [];
   } catch {
     return [];
   }

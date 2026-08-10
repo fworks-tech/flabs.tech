@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 
 import type { QuizQuestion } from '@/features/quiz/data/questions';
 import { useDailyHistory } from '@/features/quiz/hooks/useDailyHistory';
+import { answerState, KEY_INDICES, type AnswerState } from '@/features/quiz/lib/answerUi';
 import { computeDailyStreak, todayKey } from '@/features/quiz/lib/daily';
 import { trackEvent } from '@/lib/analytics';
 import { QuizFeedbackBar } from './QuizFeedbackBar';
@@ -15,26 +16,11 @@ interface DailyQuestionCardProps {
   question: QuizQuestion;
 }
 
-const KEY_INDICES: Record<string, number> = {
-  '1': 0,
-  '2': 1,
-  '3': 2,
-  '4': 3,
-  a: 0,
-  b: 1,
-  c: 2,
-  d: 3,
-  A: 0,
-  B: 1,
-  C: 2,
-  D: 3,
-};
-
-function answerClass(index: number, selectedIndex: number | null, question: QuizQuestion) {
-  if (selectedIndex === null) return '';
-  if (index === question.correctIndex) return styles.correct;
-  if (index === selectedIndex) return styles.wrong;
-  return styles.dimmed;
+function stateClass(state: AnswerState): string {
+  if (state === 'correct') return styles.correct;
+  if (state === 'wrong') return styles.wrong;
+  if (state === 'dimmed') return styles.dimmed;
+  return '';
 }
 
 /**
@@ -106,7 +92,7 @@ export function DailyQuestionCard({ question }: DailyQuestionCardProps) {
         {question.answers.map((answer, index) => (
           <Button
             key={`${question.id}-${index}`}
-            className={`${styles.answer} ${answerClass(index, selected, question)}`}
+            className={`${styles.answer} ${stateClass(answerState(index, selected, question))}`}
             fullWidth
             justify="flex-start"
             variant={selected === null ? 'light' : 'subtle'}
