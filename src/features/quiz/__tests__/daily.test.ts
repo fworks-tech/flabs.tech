@@ -99,6 +99,8 @@ describe('daily history persistence', () => {
       { ...valid, selectedIndex: '2' }, // string index
       { ...valid, selectedIndex: 99 }, // out of range
       { ...valid, date: 'not-a-date' }, // bad date key
+      { ...valid, date: '2026-02-31' }, // impossible calendar date
+      { ...valid, date: '2026-99-99' }, // out-of-range components
       { ...valid, questionId: '' }, // empty question id
       null,
       'string entry',

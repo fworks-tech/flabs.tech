@@ -144,9 +144,9 @@ describe("quizReducer", () => {
       index: 0,
       timeMs: 1000,
     });
-    if (answered.phase !== "answered") return;
+    expect(answered.phase).toBe("answered");
     const advanced = quizReducer(answered, { type: "advance", now: 2000 });
-    if (advanced.phase !== "running") return;
+    expect(advanced.phase).toBe("running");
     expect(advanced.index).toBe(1);
     const twice = quizReducer(advanced, { type: "advance", now: 2500 });
     expect(twice).toBe(advanced);

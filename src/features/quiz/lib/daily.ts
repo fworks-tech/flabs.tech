@@ -12,13 +12,30 @@ const HISTORY_LIMIT = 90;
 /** Strict UTC day key, e.g. "2026-08-10". */
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Rejects entries that don't match the DailyAttempt shape (tampered or corrupt storage). */
+/**
+ * Rejects shape-valid keys that don't correspond to a real calendar date
+ * (e.g. "2026-02-31" or "2026-99-99"). Date.UTC normalizes out-of-range
+ * components instead of throwing, so the roundtrip simply won't match.
+ */
+function isRealDateKey(date: string): boolean {
+  const [y, m, d] = date.split('-').map(Number);
+  const normalized = new Date(Date.UTC(y, m - 1, d)).toISOString().slice(0, 10);
+  return normalized === date;
+}
+
+/**
+ * Rejects entries that don't match the DailyAttempt shape (tampered or corrupt storage).
+ * NOTE: `selectedIndex` is bounded to 0–3 — this assumes the 4-answer
+ * invariant enforced by `questions.test.ts`; a future answer-count change
+ * must update both.
+ */
 function isDailyAttempt(value: unknown): value is DailyAttempt {
   if (typeof value !== 'object' || value === null) return false;
   const attempt = value as Record<string, unknown>;
   return (
     typeof attempt.date === 'string' &&
     DATE_KEY_PATTERN.test(attempt.date) &&
+    isRealDateKey(attempt.date) &&
     typeof attempt.questionId === 'string' &&
     attempt.questionId.length > 0 &&
     typeof attempt.selectedIndex === 'number' &&
