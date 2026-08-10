@@ -96,7 +96,9 @@ export default async function RootLayout({
       {...mantineHtmlProps}
     >
       <head>
-        <ColorSchemeScript />
+        {/* Must mirror MantineProvider defaultColorScheme, or the pre-paint
+            script resolves unset preferences to light → light flash during load */}
+        <ColorSchemeScript defaultColorScheme="dark" />
       </head>
       <UnhandledErrorLogger />
       <body style={{ minHeight: "100vh", margin: 0, padding: 0 }}>
