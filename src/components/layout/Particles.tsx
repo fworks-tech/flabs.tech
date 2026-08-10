@@ -15,12 +15,24 @@ interface Circle {
   magnetism: number;
 }
 
+interface Comet {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  tailLength: number;
+  age: number;
+  maxAge: number;
+  fadeIn: number;
+}
+
 interface ParticlesProps {
   className?: string;
   quantity?: number;
   staticity?: number;
   ease?: number;
   refresh?: boolean;
+  comets?: boolean;
 }
 
 export default function Particles({
@@ -29,6 +41,7 @@ export default function Particles({
   staticity = 50,
   ease = 50,
   refresh = false,
+  comets = true,
 }: ParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -39,6 +52,9 @@ export default function Particles({
   const canvasSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
   const dpr = typeof window !== "undefined" ? window.devicePixelRatio : 1;
   const rafId = useRef<number>(0);
+  const comet = useRef<Comet | null>(null);
+  const cometTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastFrame = useRef<number>(0);
 
   const resizeCanvas = useCallback(() => {
     if (canvasContainerRef.current && canvasRef.current && context.current) {
@@ -66,6 +82,77 @@ export default function Particles({
     const magnetism = 0.1 + Math.random() * 4;
     return { x, y, translateX, translateY, size, alpha, targetAlpha, dx, dy, magnetism };
   };
+
+  /**
+   * Spawns a comet entering from a random edge and crossing the canvas
+   * diagonally toward the opposite half. Unlike the drifting dots it ignores
+   * the mouse entirely — it is a brief, autonomous visitor.
+   */
+  const spawnComet = useCallback((): void => {
+    const { w, h } = canvasSize.current;
+    if (w === 0 || h === 0) return;
+
+    const fromLeft = Math.random() < 0.5;
+    const fromTop = Math.random() < 0.5;
+    const x = fromLeft ? -24 : fromTop ? Math.random() * w : w + 24;
+    const y = fromTop ? -24 : fromLeft ? Math.random() * h : h + 24;
+
+    const targetX = fromLeft ? w * (0.6 + Math.random() * 0.4) : w * (0 - Math.random() * 0.4);
+    const targetY = fromTop ? h * (0.6 + Math.random() * 0.4) : h * (0 - Math.random() * 0.4);
+
+    const distance = Math.hypot(targetX - x, targetY - y);
+    const maxAge = 2600 + Math.random() * 1400;
+    const speed = distance / maxAge;
+    comet.current = {
+      x,
+      y,
+      vx: ((targetX - x) / distance) * speed,
+      vy: ((targetY - y) / distance) * speed,
+      tailLength: speed * 110,
+      age: 0,
+      maxAge,
+      fadeIn: 220,
+    };
+  }, []);
+
+  const drawComet = useCallback((c: Comet): void => {
+    const ctx = context.current;
+    if (!ctx) return;
+
+    const fadeIn = Math.min(1, c.age / c.fadeIn);
+    const fadeOut = Math.min(1, (c.maxAge - c.age) / 450);
+    const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
+    if (alpha <= 0) return;
+
+    const speed = Math.hypot(c.vx, c.vy);
+    const ux = c.vx / speed;
+    const uy = c.vy / speed;
+    const tailX = c.x - ux * c.tailLength;
+    const tailY = c.y - uy * c.tailLength;
+
+    const gradient = ctx.createLinearGradient(c.x, c.y, tailX, tailY);
+    gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 * alpha})`);
+    gradient.addColorStop(0.25, `rgba(190, 215, 255, ${0.4 * alpha})`);
+    gradient.addColorStop(1, "rgba(190, 215, 255, 0)");
+
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(c.x, c.y);
+    ctx.lineTo(tailX, tailY);
+    ctx.stroke();
+
+    ctx.fillStyle = `rgba(200, 225, 255, ${0.35 * alpha})`;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 4.2, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 1.8, 0, 2 * Math.PI);
+    ctx.fill();
+  }, []);
 
   const drawCircle = useCallback(
     (circle: Circle, update = false) => {
@@ -113,9 +200,25 @@ export default function Particles({
     return remapped > 0 ? remapped : 0;
   };
 
-  const animate = useCallback(function animateFrame() {
-    clearContext();
-    circles.current.forEach((circle, i) => {
+  const animate = useCallback(
+    function animateFrame(now: number) {
+      clearContext();
+      const delta = lastFrame.current > 0 ? now - lastFrame.current : 16.7;
+      lastFrame.current = now;
+
+      const activeComet = comet.current;
+      if (activeComet) {
+        activeComet.age += delta;
+        activeComet.x += activeComet.vx * delta;
+        activeComet.y += activeComet.vy * delta;
+        if (activeComet.age >= activeComet.maxAge) {
+          comet.current = null;
+        } else {
+          drawComet(activeComet);
+        }
+      }
+
+      circles.current.forEach((circle, i) => {
       const edge = [
         circle.x + circle.translateX - circle.size,
         canvasSize.current.w - circle.x - circle.translateX - circle.size,
@@ -151,13 +254,14 @@ export default function Particles({
       }
     });
     rafId.current = window.requestAnimationFrame(animateFrame);
-  }, [clearContext, staticity, ease, drawCircle]);
+  }, [clearContext, staticity, ease, drawCircle, drawComet]);
 
   useEffect(() => {
     if (canvasRef.current) {
       context.current = canvasRef.current.getContext("2d");
     }
     initCanvas();
+    lastFrame.current = 0;
     rafId.current = window.requestAnimationFrame(animate);
     window.addEventListener("resize", initCanvas);
     return () => {
@@ -174,6 +278,25 @@ export default function Particles({
       mouse.current.y = mousePosition.y - rect.top;
     }
   }, [mousePosition]);
+
+  // Occasional surprise comet: flies across on its own schedule, regardless
+  // of the mouse. Skipped when the user prefers reduced motion.
+  useEffect(() => {
+    if (!comets) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const schedule = (): void => {
+      cometTimer.current = setTimeout(() => {
+        spawnComet();
+        schedule();
+      }, 6000 + Math.random() * 14000);
+    };
+    schedule();
+
+    return () => {
+      if (cometTimer.current) clearTimeout(cometTimer.current);
+    };
+  }, [comets, spawnComet]);
 
   return (
     <div
