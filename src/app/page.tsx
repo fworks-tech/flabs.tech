@@ -39,7 +39,7 @@ export default function Home() {
         }}
       />
 
-      <Group gap="xl" align="center" py="64">
+      <Group gap="xl" align="center" py={{ base: 24, sm: 64 }}>
         <Stack style={{ flex: 5 }} gap="lg">
           <Text size="sm" c="dimmed">
             {person.role} · {person.city}
