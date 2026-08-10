@@ -45,6 +45,9 @@ export default defineConfig({
       // a public client SDK key; PostHog simply rejects it server-side.
       NEXT_PUBLIC_POSTHOG_KEY: "phc_test_key",
       NEXT_PUBLIC_POSTHOG_HOST: "https://us.i.posthog.com",
+      // Enable the admin fake-session backdoor (requires the
+      // `e2e_fake_session` cookie, set by e2e/admin.spec.ts).
+      E2E_FAKE_SESSION: "1",
     },
   },
   snapshotPathTemplate: "{testDir}/{arg}{ext}",
