@@ -6,22 +6,29 @@ test.describe("mobile viewport (375px)", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
   for (const route of staticRoutes) {
-    test(`${route} nav pill is visible and within bounds`, async ({ page }) => {
+    test(`${route} hamburger menu button is visible and within bounds`, async ({ page }) => {
       await page.goto(route);
-      const header = page.locator("header");
-      await expect(header).toBeVisible();
 
-      const box = await header.boundingBox();
+      // The floating nav pill was replaced by a hamburger: the header itself
+      // is hidden on mobile, the hamburger is the single nav entry point.
+      await expect(page.locator("header")).toBeHidden();
+      const hamburger = page.locator('[aria-label="Open navigation menu"]');
+      await expect(hamburger).toBeVisible();
+
+      const box = await hamburger.boundingBox();
       expect(box).not.toBeNull();
       expect(box!.x + box!.width).toBeLessThanOrEqual(375);
     });
   }
 
   for (const route of staticRoutes) {
-    test(`${route} all mobile nav icons are visible`, async ({ page }) => {
+    test(`${route} hamburger menu shows all nav links`, async ({ page }) => {
       await page.goto(route);
-      const navItems = page.locator("header nav a:visible, header nav button:visible");
-      const count = await navItems.count();
+      await page.locator('[aria-label="Open navigation menu"]').click();
+
+      const links = page.locator('nav[aria-label="Mobile navigation"] a');
+      await expect(links.first()).toBeVisible();
+      const count = await links.count();
       expect(count).toBeGreaterThanOrEqual(5);
     });
   }
