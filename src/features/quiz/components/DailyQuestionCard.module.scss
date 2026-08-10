@@ -1,0 +1,52 @@
+.card {
+  width: 100%;
+  max-width: 46rem;
+}
+
+.flame {
+  vertical-align: -2px;
+  margin-right: 0.25rem;
+  color: var(--mantine-color-orange-5);
+}
+
+.code {
+  margin: 0.75rem 0;
+  padding: 1rem;
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-dark-8);
+  border: 1px solid var(--mantine-color-dark-5);
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+.answers {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.answer {
+  min-height: 3rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.answer:not(:disabled):hover {
+  transform: translateX(4px);
+}
+
+.correct {
+  border-color: var(--mantine-color-green-6);
+  background-color: color-mix(in srgb, var(--mantine-color-green-6) 20%, transparent);
+}
+
+.wrong {
+  border-color: var(--mantine-color-red-6);
+  background-color: color-mix(in srgb, var(--mantine-color-red-6) 20%, transparent);
+}
+
+.dimmed {
+  opacity: 0.4;
+  transform: scale(0.98);
+}

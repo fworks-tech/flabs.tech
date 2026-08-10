@@ -1,14 +1,15 @@
-"use client";
+'use client';
 
-import { Badge, Button, Card, Group, List, Stack, Text, Title } from "@mantine/core";
-import { IconBolt, IconCalendarEvent, IconTrophy } from "@tabler/icons-react";
+import { Badge, Button, Card, Group, List, Stack, Text, Title } from '@mantine/core';
+import { IconBolt, IconTrophy } from '@tabler/icons-react';
 
-import type { QuizQuestion } from "@/features/quiz/data/questions";
-import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
-import { useRatings } from "@/features/quiz/hooks/useRatings";
-import { trackEvent } from "@/lib/analytics";
-import { LeaderboardPanel } from "./LeaderboardPanel";
-import styles from "./QuizStartCard.module.scss";
+import type { QuizQuestion } from '@/features/quiz/data/questions';
+import { useLeaderboard } from '@/features/quiz/hooks/useLeaderboard';
+import { useRatings } from '@/features/quiz/hooks/useRatings';
+import { trackEvent } from '@/lib/analytics';
+import { DailyQuestionCard } from './DailyQuestionCard';
+import { LeaderboardPanel } from './LeaderboardPanel';
+import styles from './QuizStartCard.module.scss';
 
 interface QuizStartCardProps {
   bestScore: number;
@@ -37,22 +38,12 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
           <IconTrophy size={18} aria-hidden="true" />
           <Text size="sm" data-testid="best-score">
             Best score: {bestScore}
-            {bestStreak > 0 ? ` · best streak ${bestStreak}` : ""}
+            {bestStreak > 0 ? ` · best streak ${bestStreak}` : ''}
           </Text>
         </Group>
       )}
 
-      <Card withBorder p="md" radius="md" className={styles.daily} data-testid="daily-question">
-        <Group gap="xs" wrap="nowrap">
-          <IconCalendarEvent size={18} aria-hidden="true" />
-          <Badge color="grape" variant="light" size="sm">
-            Daily challenge
-          </Badge>
-        </Group>
-        <Text size="sm" mt="6">
-          {daily.prompt}
-        </Text>
-      </Card>
+      <DailyQuestionCard question={daily} />
 
       <Card withBorder p="md" radius="md" maw={420} className={styles.rules}>
         <List size="sm" spacing="xs">
@@ -93,7 +84,7 @@ export function QuizStartCard({ bestScore, bestStreak, daily, onStart }: QuizSta
       <Button
         size="lg"
         onClick={() => {
-          trackEvent("quiz_start", { questionCount: 20 });
+          trackEvent('quiz_start', { questionCount: 20 });
           onStart();
         }}
         data-testid="start-quiz"
