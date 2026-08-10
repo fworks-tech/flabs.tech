@@ -103,7 +103,7 @@ export default async function RootLayout({
         <Providers user={user}>
           <PostHogInit />
           <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-            <ClientParticles quantity={60} staticity={30} ease={40} />
+            <ClientParticles quantity={120} staticity={30} ease={40} />
           </div>
 
           <div style={{ height: "16px" }} />
