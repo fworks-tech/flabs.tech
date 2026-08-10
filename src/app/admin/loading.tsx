@@ -17,8 +17,8 @@ export default function AdminLoading() {
         <Skeleton h={14} w={320} />
       </Stack>
 
-      <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }}>
-        {Array.from({ length: 6 }).map((_, i) => (
+      <SimpleGrid cols={{ base: 2, sm: 3, lg: 7 }}>
+        {Array.from({ length: 7 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
       </SimpleGrid>

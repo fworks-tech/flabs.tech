@@ -1,6 +1,9 @@
 'use client';
 
 import { Badge, Group, Paper, Stack, Table, Text, Title } from '@mantine/core';
+import { formatTokens } from '@/lib/formatTokens';
+import type { Severity } from '@/lib/abuse/model';
+import type { QuarantineTier } from '@/lib/abuse/quarantine';
 
 /**
  * Client-side AI tables. `Table.Thead/Tr/Th/Tbody/Td` are static
@@ -33,12 +36,6 @@ export interface QuarantineRow {
   tier: string;
   reason: string;
   expiresAt: number;
-}
-
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
 }
 
 export function RecentRequestsTable({ rows }: { rows: AiEventRow[] }) {
@@ -103,14 +100,14 @@ export function RecentRequestsTable({ rows }: { rows: AiEventRow[] }) {
   );
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
+const SEVERITY_COLORS: Record<Severity, string> = {
   low: 'gray',
   medium: 'yellow',
   high: 'orange',
   critical: 'red',
 };
 
-const TIER_COLORS: Record<string, string> = {
+const TIER_COLORS: Record<Exclude<QuarantineTier, 'none'>, string> = {
   throttle: 'yellow',
   'soft-quarantine': 'orange',
   'hard-block': 'red',
@@ -145,7 +142,11 @@ export function InvestigationCasesTable({ rows }: { rows: AbuseCaseRow[] }) {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Badge color={SEVERITY_COLORS[c.severity] ?? 'gray'} variant="light" size="xs">
+                  <Badge
+                    color={SEVERITY_COLORS[c.severity as Severity] ?? 'gray'}
+                    variant="light"
+                    size="xs"
+                  >
                     {c.severity} · {Math.round(c.score * 100)}
                   </Badge>
                 </Table.Td>
@@ -183,7 +184,11 @@ export function QuarantinedActors({ rows }: { rows: QuarantineRow[] }) {
           {rows.map((q) => (
             <Group key={q.key} gap="8" wrap="nowrap" justify="space-between">
               <Group gap="8" wrap="nowrap" maw="60%">
-                <Badge color={TIER_COLORS[q.tier] ?? 'gray'} variant="light" size="xs">
+                <Badge
+                  color={TIER_COLORS[q.tier as Exclude<QuarantineTier, 'none'>] ?? 'gray'}
+                  variant="light"
+                  size="xs"
+                >
                   {q.tier}
                 </Badge>
                 <Text size="xs" ff="monospace" lineClamp={1}>

@@ -82,11 +82,11 @@ describe('ai-stats', () => {
     expect(totals.requests).toBe(0);
   });
 
-  it('updateAiEventTokensOut patches the last event after the stream completes', async () => {
+  it('updateAiEventTokensOut patches the event that matches the id', async () => {
     const { recordAiEvent, updateAiEventTokensOut, getRecentAiEvents } =
       await import('@/lib/ai-stats');
 
-    await recordAiEvent({
+    const id = await recordAiEvent({
       model: 'mimo-v2.5',
       tokensIn: 100,
       tokensOut: 0,
@@ -95,7 +95,9 @@ describe('ai-stats', () => {
       injection: false,
     });
 
-    await updateAiEventTokensOut(77);
+    expect(id).toEqual(expect.any(String));
+
+    await updateAiEventTokensOut(id, 77);
 
     const recent = await getRecentAiEvents();
     expect(recent).toHaveLength(1);
@@ -103,10 +105,51 @@ describe('ai-stats', () => {
     expect(recent[0].tokensIn).toBe(100);
   });
 
-  it('updateAiEventTokensOut is a no-op when no events exist', async () => {
+  it('updateAiEventTokensOut patches by id even when the event is not the latest', async () => {
+    const { recordAiEvent, updateAiEventTokensOut, getRecentAiEvents } =
+      await import('@/lib/ai-stats');
+
+    const firstId = await recordAiEvent({
+      model: 'mimo-v2.5',
+      tokensIn: 100,
+      tokensOut: 0,
+      tier: 'none',
+      blocked: false,
+      injection: false,
+    });
+    await recordAiEvent({
+      model: 'mimo-v2.5',
+      tokensIn: 200,
+      tokensOut: 0,
+      tier: 'none',
+      blocked: false,
+      injection: false,
+    });
+
+    await updateAiEventTokensOut(firstId, 77);
+
+    const recent = await getRecentAiEvents();
+    expect(recent[0].tokensOut).toBe(0);
+    expect(recent[1].tokensOut).toBe(77);
+  });
+
+  it('updateAiEventTokensOut is a no-op for unknown ids and empty lists', async () => {
     const { updateAiEventTokensOut } = await import('@/lib/ai-stats');
 
-    await expect(updateAiEventTokensOut(42)).resolves.toBeUndefined();
+    await expect(updateAiEventTokensOut('missing-id', 42)).resolves.toBeUndefined();
+  });
+
+  it('updateAiEventTokensOut is a no-op for events recorded without an id', async () => {
+    const { updateAiEventTokensOut, getRecentAiEvents } = await import('@/lib/ai-stats');
+
+    await storeMock.set('admin:ai:events', [
+      { id: undefined, t: Date.now(), model: 'mimo-v2.5', tokensIn: 10, tokensOut: 0, tier: 'none', blocked: false, injection: false },
+    ]);
+
+    await updateAiEventTokensOut('any-id', 42);
+
+    const recent = await getRecentAiEvents();
+    expect(recent[0].tokensOut).toBe(0);
   });
 
   it('getAiDaySeries returns empty days for missing data', async () => {
@@ -161,5 +204,50 @@ describe('ai-stats', () => {
     expect(overview.cases).toEqual([
       expect.objectContaining({ key: 'ghost', kind: undefined, severity: 'low', score: 0 }),
     ]);
+  });
+
+  it('getAbuseOverview returns cases most recently updated first', async () => {
+    const { getAbuseOverview } = await import('@/lib/ai-stats');
+
+    await storeMock.set('abuse:case:old', {
+      key: 'old',
+      score: 0.5,
+      severity: 'medium',
+      updatedAt: 1_700_000_000_000,
+      signals: [{ kind: 'rate', detail: 'old', at: 1_700_000_000_000 }],
+    });
+    await storeMock.set('abuse:case:fresh', {
+      key: 'fresh',
+      score: 0.9,
+      severity: 'high',
+      updatedAt: 1_700_000_100_000,
+      signals: [{ kind: 'injection', detail: 'new', at: 1_700_000_100_000 }],
+    });
+
+    const overview = await getAbuseOverview();
+    expect(overview.cases.map((c) => c.key)).toEqual(['fresh', 'old']);
+  });
+
+  it('getAbuseOverview limits cases and quarantines to the limit', async () => {
+    const { getAbuseOverview } = await import('@/lib/ai-stats');
+
+    for (let i = 0; i < 3; i++) {
+      await storeMock.set(`abuse:case:actor-${i}`, {
+        key: `actor-${i}`,
+        score: 0.1,
+        severity: 'low',
+        updatedAt: 1_700_000_000_000 + i,
+        signals: [],
+      });
+      await storeMock.set(`abuse:quarantine:actor-${i}`, {
+        tier: 'throttle',
+        reason: 'r',
+        expiresAt: 0,
+      });
+    }
+
+    const overview = await getAbuseOverview(2);
+    expect(overview.cases.map((c) => c.key)).toEqual(['actor-2', 'actor-1']);
+    expect(overview.quarantines.map((q) => q.key)).toEqual(['actor-1', 'actor-2']);
   });
 });

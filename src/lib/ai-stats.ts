@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { store } from '@/lib/abuse/store';
 
 /**
@@ -13,6 +14,7 @@ export const AI_EVENTS_TTL = 14 * 24 * 60 * 60;
 export const MAX_AI_EVENTS = 500;
 
 export interface AiEvent {
+  id: string;
   t: number;
   model: string;
   tokensIn: number;
@@ -51,8 +53,8 @@ function dayKey(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Records one chat request (estimated input tokens; output corrected on completion). */
-export async function recordAiEvent(ev: Omit<AiEvent, 't'>): Promise<void> {
+/** Records one chat request (estimated input tokens; output corrected on completion). Returns the event id. */
+export async function recordAiEvent(ev: Omit<AiEvent, 't' | 'id'>): Promise<string> {
   const day = dayKey();
   const statsKey = `admin:ai:stats:${day}`;
   const stats = (await store.get<Record<string, number>>(statsKey)) ?? {};
@@ -63,9 +65,11 @@ export async function recordAiEvent(ev: Omit<AiEvent, 't'>): Promise<void> {
   if (ev.injection) stats.injection = (stats.injection ?? 0) + 1;
   await store.set(statsKey, stats, { ex: AI_STATS_TTL });
 
+  const id = randomUUID();
   const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
-  events.push({ ...ev, t: Date.now() });
+  events.push({ ...ev, id, t: Date.now() });
   await store.set('admin:ai:events', events.slice(-MAX_AI_EVENTS), { ex: AI_EVENTS_TTL });
+  return id;
 }
 
 /** Adds actual output tokens once the stream completes (kept separate from estimates). */
@@ -77,19 +81,21 @@ export async function addAiTokensOut(tokens: number): Promise<void> {
 }
 
 /**
- * Patches the most recent event in the bounded list with the actual output
- * tokens once the stream completes (events are recorded with `tokensOut: 0`
- * before the response is generated).
+ * Patches the event with the given id with the actual output tokens once the
+ * stream completes (events are recorded with `tokensOut: 0` before the
+ * response is generated). Patching is per-request, so concurrent streams
+ * never write their tokens onto a sibling request's row.
  *
- * Known limitation: under concurrent requests the last event may belong to a
- * different request; the 30 req/min rate limit makes this rare and the worst
- * case is a slightly off per-row value (daily counters stay exact).
+ * No-op when the id is not found (list evicted, or the event was recorded
+ * before events carried ids — those rows keep `tokensOut: 0` until the
+ * 14-day list rolls over). Daily counters are corrected independently via
+ * `addAiTokensOut`.
  */
-export async function updateAiEventTokensOut(tokens: number): Promise<void> {
+export async function updateAiEventTokensOut(id: string, tokens: number): Promise<void> {
   const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
-  const last = events[events.length - 1];
-  if (!last) return;
-  events[events.length - 1] = { ...last, tokensOut: tokens };
+  const index = events.findIndex((ev) => ev.id === id);
+  if (index === -1) return;
+  events[index] = { ...events[index], tokensOut: tokens };
   await store.set('admin:ai:events', events, { ex: AI_EVENTS_TTL });
 }
 
@@ -147,7 +153,7 @@ export async function getAbuseOverview(limit = 50): Promise<{
   const quarantineKeys = await store.keys('abuse:quarantine:*');
 
   const cases: AbuseCaseSummary[] = [];
-  for (const key of caseKeys.slice(-limit)) {
+  for (const key of caseKeys) {
     const c = await store.get<{
       key?: string;
       score?: number;
@@ -166,9 +172,12 @@ export async function getAbuseOverview(limit = 50): Promise<{
       updatedAt: c.updatedAt ?? lastSignal?.at,
     });
   }
+  // `store.keys()` returns SCAN order — surface the most recently updated
+  // cases first, then keep the top `limit`.
+  cases.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0) || a.key.localeCompare(b.key));
 
   const quarantines: QuarantineSummary[] = [];
-  for (const key of quarantineKeys) {
+  for (const key of quarantineKeys.slice(-limit)) {
     const q = await store.get<{
       tier?: string;
       reason?: string;
@@ -183,5 +192,5 @@ export async function getAbuseOverview(limit = 50): Promise<{
     });
   }
 
-  return { cases, quarantines };
+  return { cases: cases.slice(0, limit), quarantines };
 }

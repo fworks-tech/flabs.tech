@@ -351,7 +351,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Record request for the admin AI dashboard (output tokens corrected below).
-  void recordAiEvent({
+  const eventPromise = recordAiEvent({
     model: MODEL_ID,
     tokensIn: estimatedTokens,
     tokensOut: 0,
@@ -387,11 +387,12 @@ export async function POST(req: NextRequest) {
     // `totalTokens` includes input tokens (already counted via `tokensIn`),
     // so only output tokens belong in the output counter.
     void Promise.resolve(result.usage)
-      .then((usage) => {
+      .then(async (usage) => {
         if (usage?.totalTokens) recordActualUsage(key, usage.totalTokens);
         if (usage?.outputTokens) {
+          const eventId = await eventPromise;
           void addAiTokensOut(usage.outputTokens);
-          void updateAiEventTokensOut(usage.outputTokens);
+          void updateAiEventTokensOut(eventId, usage.outputTokens);
         }
       })
       .catch(() => undefined);
