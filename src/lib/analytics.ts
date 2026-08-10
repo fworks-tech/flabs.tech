@@ -16,39 +16,40 @@
  * Events are collected in the Vercel Analytics dashboard and in PostHog.
  */
 
-import { track } from "@vercel/analytics";
-import posthog from "posthog-js";
-import { getConsent, track as trackSelfHosted } from "@/lib/tracking";
+import { track } from '@vercel/analytics';
+import posthog from 'posthog-js';
+import { getConsent, track as trackSelfHosted } from '@/lib/tracking';
 
 export type EventName =
-  | "cta_click"
-  | "nav_click"
-  | "project_view"
-  | "post_click"
-  | "social_link"
-  | "scroll_depth"
-  | "ai_assistant_open"
-  | "ai_assistant_close"
-  | "ai_assistant_send"
-  | "ai_assistant_error"
-  | "ai_assistant_generation_stopped"
-  | "protected_route_access_granted"
-  | "quiz_start"
-  | "quiz_answer"
-  | "quiz_complete"
-  | "quiz_score_saved"
-  | "quiz_feedback_submit"
-  | "quiz_rating_submit"
-  | "quiz_referral_cta_shown"
-  | "quiz_referral_click"
-  | "quiz_share";
+  | 'cta_click'
+  | 'nav_click'
+  | 'project_view'
+  | 'post_click'
+  | 'social_link'
+  | 'scroll_depth'
+  | 'ai_assistant_open'
+  | 'ai_assistant_close'
+  | 'ai_assistant_send'
+  | 'ai_assistant_error'
+  | 'ai_assistant_generation_stopped'
+  | 'protected_route_access_granted'
+  | 'quiz_start'
+  | 'quiz_answer'
+  | 'quiz_complete'
+  | 'quiz_daily_answer'
+  | 'quiz_score_saved'
+  | 'quiz_feedback_submit'
+  | 'quiz_rating_submit'
+  | 'quiz_referral_cta_shown'
+  | 'quiz_referral_click'
+  | 'quiz_share';
 
 type EventProperties = Record<string, string | number | boolean>;
 
 export function trackEvent(name: EventName, properties?: EventProperties) {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   track(name, properties);
-  if (process.env.NEXT_PUBLIC_POSTHOG_KEY && getConsent() === "accepted") {
+  if (process.env.NEXT_PUBLIC_POSTHOG_KEY && getConsent() === 'accepted') {
     posthog.capture(name, properties ?? {});
   }
   trackSelfHosted(name);

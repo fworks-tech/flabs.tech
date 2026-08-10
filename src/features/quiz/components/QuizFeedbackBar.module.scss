@@ -54,6 +54,17 @@
   animation: fadeIn 0.3s ease-out 0.2s backwards;
 }
 
+.code {
+  margin: 0.75rem 0 0;
+  padding: 1rem;
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-dark-8);
+  border: 1px solid var(--mantine-color-dark-5);
+  font-size: 0.875rem;
+  overflow-x: auto;
+  animation: fadeIn 0.3s ease-out 0.35s backwards;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
