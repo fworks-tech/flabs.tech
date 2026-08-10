@@ -1,4 +1,4 @@
-import { store } from "@/lib/abuse/store";
+import { store } from '@/lib/abuse/store';
 
 /**
  * Server-side storage for the self-hosted, consent-first UX analytics.
@@ -19,31 +19,32 @@ export const MAX_PAGES = 100;
 
 /** Event types accepted by the ingest endpoint. */
 export const EVENT_TYPES = new Set([
-  "session_start",
-  "page_view",
-  "scroll_depth",
-  "nav_click",
-  "external_link",
-  "cta_click",
-  "project_view",
-  "post_click",
-  "social_link",
-  "share_click",
-  "ai_assistant_open",
-  "ai_assistant_close",
-  "ai_assistant_send",
-  "ai_assistant_error",
-  "consent_accepted",
-  "consent_declined",
-  "quiz_start",
-  "quiz_answer",
-  "quiz_complete",
-  "quiz_score_saved",
-  "quiz_feedback_submit",
-  "quiz_rating_submit",
-  "quiz_referral_cta_shown",
-  "quiz_referral_click",
-  "quiz_share",
+  'session_start',
+  'page_view',
+  'scroll_depth',
+  'nav_click',
+  'external_link',
+  'cta_click',
+  'project_view',
+  'post_click',
+  'social_link',
+  'share_click',
+  'ai_assistant_open',
+  'ai_assistant_close',
+  'ai_assistant_send',
+  'ai_assistant_error',
+  'consent_accepted',
+  'consent_declined',
+  'quiz_start',
+  'quiz_answer',
+  'quiz_complete',
+  'quiz_daily_answer',
+  'quiz_score_saved',
+  'quiz_feedback_submit',
+  'quiz_rating_submit',
+  'quiz_referral_cta_shown',
+  'quiz_referral_click',
+  'quiz_share',
 ]);
 export interface TrackedEvent {
   t: number;
@@ -87,29 +88,29 @@ export async function recordEvent(ev: TrackedEvent): Promise<void> {
   if (ev.d) await bumpCounter(countersKey, `device:${ev.d}`, ttl);
   if (ev.b) await bumpCounter(countersKey, `browser:${ev.b}`, ttl);
 
-  if (ev.ty === "page_view" && ev.p) {
+  if (ev.ty === 'page_view' && ev.p) {
     await bumpPage(`analytics:pages:${day}`, ev.p, ttl);
   }
 
-  if (ev.ty === "session_start" && ev.uid) {
+  if (ev.ty === 'session_start' && ev.uid) {
     await store.pfadd(`analytics:uv:${day}`, ev.uid);
     const seenKey = `analytics:seen:${ev.uid}`;
     const seen = await store.get<number>(seenKey);
     if (seen) {
-      await bumpCounter(countersKey, "returning_visitors", ttl);
+      await bumpCounter(countersKey, 'returning_visitors', ttl);
     } else {
-      await bumpCounter(countersKey, "new_visitors", ttl);
+      await bumpCounter(countersKey, 'new_visitors', ttl);
       await store.set(seenKey, 1, { ex: SEEN_TTL });
     }
   }
 
-  const events = (await store.get<TrackedEvent[]>("analytics:events")) ?? [];
+  const events = (await store.get<TrackedEvent[]>('analytics:events')) ?? [];
   events.push(ev);
-  await store.set("analytics:events", events.slice(-MAX_RECENT_EVENTS), { ex: EVENTS_TTL });
+  await store.set('analytics:events', events.slice(-MAX_RECENT_EVENTS), { ex: EVENTS_TTL });
 }
 
 export async function getRecentEvents(limit = 50): Promise<TrackedEvent[]> {
-  const events = (await store.get<TrackedEvent[]>("analytics:events")) ?? [];
+  const events = (await store.get<TrackedEvent[]>('analytics:events')) ?? [];
   return events.slice(-limit).reverse();
 }
 
@@ -196,11 +197,11 @@ export async function getTotals(days: number): Promise<{
       (counters.external_link ?? 0) +
       (counters.cta_click ?? 0) +
       (counters.social_link ?? 0);
-    for (const key of ["mobile", "tablet", "desktop"]) {
+    for (const key of ['mobile', 'tablet', 'desktop']) {
       const n = counters[`device:${key}`] ?? 0;
       if (n > 0) totals.devices[key] = (totals.devices[key] ?? 0) + n;
     }
-    for (const key of ["chrome", "firefox", "safari", "edge", "other"]) {
+    for (const key of ['chrome', 'firefox', 'safari', 'edge', 'other']) {
       const n = counters[`browser:${key}`] ?? 0;
       if (n > 0) totals.browsers[key] = (totals.browsers[key] ?? 0) + n;
     }
