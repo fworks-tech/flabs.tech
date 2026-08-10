@@ -1,6 +1,6 @@
-"use client";
-import { useMousePosition } from "@/hooks/useMousePosition";
-import React, { useRef, useEffect, useCallback } from "react";
+'use client';
+import { useMousePosition } from '@/hooks/useMousePosition';
+import React, { useRef, useEffect, useCallback } from 'react';
 
 interface Circle {
   x: number;
@@ -36,7 +36,7 @@ interface ParticlesProps {
 }
 
 export default function Particles({
-  className = "",
+  className = '',
   quantity = 60,
   staticity = 50,
   ease = 50,
@@ -50,7 +50,7 @@ export default function Particles({
   const mousePosition = useMousePosition();
   const mouse = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const canvasSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
-  const dpr = typeof window !== "undefined" ? window.devicePixelRatio : 1;
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
   const rafId = useRef<number>(0);
   const comet = useRef<Comet | null>(null);
   const cometTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -133,11 +133,11 @@ export default function Particles({
     const gradient = ctx.createLinearGradient(c.x, c.y, tailX, tailY);
     gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 * alpha})`);
     gradient.addColorStop(0.25, `rgba(190, 215, 255, ${0.4 * alpha})`);
-    gradient.addColorStop(1, "rgba(190, 215, 255, 0)");
+    gradient.addColorStop(1, 'rgba(190, 215, 255, 0)');
 
     ctx.strokeStyle = gradient;
     ctx.lineWidth = 1.6;
-    ctx.lineCap = "round";
+    ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(c.x, c.y);
     ctx.lineTo(tailX, tailY);
@@ -181,7 +181,7 @@ export default function Particles({
   const initCanvas = useCallback(() => {
     resizeCanvas();
     if (canvasRef.current) {
-      context.current = canvasRef.current.getContext("2d");
+      context.current = canvasRef.current.getContext('2d');
     }
     for (let i = 0; i < quantity; i++) {
       const circle = circleParams();
@@ -203,9 +203,48 @@ export default function Particles({
   const animate = useCallback(
     function animateFrame(now: number) {
       clearContext();
-      const delta = lastFrame.current > 0 ? now - lastFrame.current : 16.7;
+      // Clamp the delta: rAF pauses when the tab is backgrounded, so the next
+      // frame would otherwise advance the comet past its lifetime in one jump.
+      const delta = Math.min(lastFrame.current > 0 ? now - lastFrame.current : 16.7, 100);
       lastFrame.current = now;
 
+      circles.current.forEach((circle, i) => {
+        const edge = [
+          circle.x + circle.translateX - circle.size,
+          canvasSize.current.w - circle.x - circle.translateX - circle.size,
+          circle.y + circle.translateY - circle.size,
+          canvasSize.current.h - circle.y - circle.translateY - circle.size,
+        ];
+        const closestEdge = edge.reduce((a, b) => Math.min(a, b));
+        const remapClosestEdge = Number.parseFloat(remapValue(closestEdge, 0, 20, 0, 1).toFixed(2));
+        if (remapClosestEdge > 1) {
+          circle.alpha += 0.02;
+          if (circle.alpha > circle.targetAlpha) circle.alpha = circle.targetAlpha;
+        } else {
+          circle.alpha = circle.targetAlpha * remapClosestEdge;
+        }
+        circle.x += circle.dx;
+        circle.y += circle.dy;
+        circle.translateX +=
+          (mouse.current.x / (staticity / circle.magnetism) - circle.translateX) / ease;
+        circle.translateY +=
+          (mouse.current.y / (staticity / circle.magnetism) - circle.translateY) / ease;
+
+        if (
+          circle.x < -circle.size ||
+          circle.x > canvasSize.current.w + circle.size ||
+          circle.y < -circle.size ||
+          circle.y > canvasSize.current.h + circle.size
+        ) {
+          circles.current.splice(i, 1);
+          const newCircle = circleParams();
+          drawCircle(newCircle);
+        } else {
+          drawCircle(circle, true);
+        }
+      });
+
+      // Comet paints last so it flies over the starfield.
       const activeComet = comet.current;
       if (activeComet) {
         activeComet.age += delta;
@@ -218,55 +257,22 @@ export default function Particles({
         }
       }
 
-      circles.current.forEach((circle, i) => {
-      const edge = [
-        circle.x + circle.translateX - circle.size,
-        canvasSize.current.w - circle.x - circle.translateX - circle.size,
-        circle.y + circle.translateY - circle.size,
-        canvasSize.current.h - circle.y - circle.translateY - circle.size,
-      ];
-      const closestEdge = edge.reduce((a, b) => Math.min(a, b));
-      const remapClosestEdge = Number.parseFloat(remapValue(closestEdge, 0, 20, 0, 1).toFixed(2));
-      if (remapClosestEdge > 1) {
-        circle.alpha += 0.02;
-        if (circle.alpha > circle.targetAlpha) circle.alpha = circle.targetAlpha;
-      } else {
-        circle.alpha = circle.targetAlpha * remapClosestEdge;
-      }
-      circle.x += circle.dx;
-      circle.y += circle.dy;
-      circle.translateX +=
-        (mouse.current.x / (staticity / circle.magnetism) - circle.translateX) / ease;
-      circle.translateY +=
-        (mouse.current.y / (staticity / circle.magnetism) - circle.translateY) / ease;
-
-      if (
-        circle.x < -circle.size ||
-        circle.x > canvasSize.current.w + circle.size ||
-        circle.y < -circle.size ||
-        circle.y > canvasSize.current.h + circle.size
-      ) {
-        circles.current.splice(i, 1);
-        const newCircle = circleParams();
-        drawCircle(newCircle);
-      } else {
-        drawCircle(circle, true);
-      }
-    });
-    rafId.current = window.requestAnimationFrame(animateFrame);
-  }, [clearContext, staticity, ease, drawCircle, drawComet]);
+      rafId.current = window.requestAnimationFrame(animateFrame);
+    },
+    [clearContext, staticity, ease, drawCircle, drawComet],
+  );
 
   useEffect(() => {
     if (canvasRef.current) {
-      context.current = canvasRef.current.getContext("2d");
+      context.current = canvasRef.current.getContext('2d');
     }
     initCanvas();
     lastFrame.current = 0;
     rafId.current = window.requestAnimationFrame(animate);
-    window.addEventListener("resize", initCanvas);
+    window.addEventListener('resize', initCanvas);
     return () => {
       window.cancelAnimationFrame(rafId.current);
-      window.removeEventListener("resize", initCanvas);
+      window.removeEventListener('resize', initCanvas);
     };
   }, [initCanvas, animate, refresh]);
 
@@ -280,21 +286,36 @@ export default function Particles({
   }, [mousePosition]);
 
   // Occasional surprise comet: flies across on its own schedule, regardless
-  // of the mouse. Skipped when the user prefers reduced motion.
+  // of the mouse. Skipped while the user prefers reduced motion — and the
+  // setting is watched live, so a mid-session toggle takes effect immediately.
   useEffect(() => {
     if (!comets) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const schedule = (): void => {
-      cometTimer.current = setTimeout(() => {
-        spawnComet();
-        schedule();
-      }, 6000 + Math.random() * 14000);
+      cometTimer.current = setTimeout(
+        () => {
+          spawnComet();
+          schedule();
+        },
+        6000 + Math.random() * 14000,
+      );
     };
-    schedule();
 
+    const sync = (): void => {
+      if (cometTimer.current) clearTimeout(cometTimer.current);
+      if (media.matches) {
+        comet.current = null;
+        return;
+      }
+      schedule();
+    };
+
+    sync();
+    media.addEventListener('change', sync);
     return () => {
       if (cometTimer.current) clearTimeout(cometTimer.current);
+      media.removeEventListener('change', sync);
     };
   }, [comets, spawnComet]);
 
@@ -302,15 +323,10 @@ export default function Particles({
     <div
       ref={canvasContainerRef}
       aria-hidden="true"
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: '100%', height: '100%' }}
       className={className}
     >
-      <canvas 
-        ref={canvasRef}
-        aria-hidden="true"
-        role="presentation"
-        tabIndex={-1}
-      />
+      <canvas ref={canvasRef} aria-hidden="true" role="presentation" tabIndex={-1} />
     </div>
   );
 }
