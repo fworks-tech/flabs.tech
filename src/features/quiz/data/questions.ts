@@ -281,8 +281,10 @@ Object.keys(obj).length; // 1 — O(n) scan of own keys`,
     correctIndex: 0,
     explanation:
       'V8 arrays are capped at 2^32 - 2 in theory but practically ~2^29 - 1 elements before allocation fails.',
-    explanationCode: `// Spec limit: 2^32 - 2. In practice V8 fails near 2^29 - 1 (~536M)
-new Array(2 ** 29); // RangeError: Invalid array length in real engines`,
+    explanationCode: `// Spec cap: 2^32 - 2. In practice ~2^29 - 1 (~536M) is the
+// ceiling before element allocation runs out of memory.
+const a = new Array(2 ** 29); // OK — a holey array of length 536M
+a[0] = 1; // stored elements are where memory is actually consumed`,
   },
   {
     id: 'tdz',
@@ -829,10 +831,11 @@ const map = new Map([[3,'c'],[1,'a'],[2,'b']]);
     answers: ['"__proto__"', '"constructor"', '"toString"', '"length"'],
     correctIndex: 0,
     explanation:
-      'Assigning "__proto__" mutates the object\'s prototype instead of creating a normal key — a prototype-pollution footgun that Map avoids.',
+      'Assigning "__proto__" replaces the object\'s prototype instead of creating a normal key — the lookup silently gains inherited keys and loses stored data; Map is immune.',
     explanationCode: `const lookup = {};
 lookup['__proto__'] = { hacked: true };
-({}).hacked; // true — the shared prototype was polluted!
+lookup.hacked;       // true — the prototype was REPLACED (inherited key!)
+Object.keys(lookup); // [] — nothing stored as an own key
 
 const map = new Map();
 map.set('__proto__', { hacked: true }); // just a normal entry`,
@@ -993,9 +996,18 @@ dog.constructor.prototype === dog.__proto__; // true — same object`,
     correctIndex: 0,
     explanation:
       'Setting __proto__ / constructor.prototype on a parsed object poisons the shared prototype, so EVERY object inherits the injected property — use Maps for user-controlled keys.',
-    explanationCode: `const userInput = JSON.parse('{"__proto__": {"isAdmin": true}}');
-Object.assign({}, userInput); // pollutes Object.prototype
-({}).isAdmin; // true — every object now inherits it!`,
+    explanationCode: `// Naive recursive merge — the classic pollution vector:
+function merge(target, source) {
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object') {
+      merge(target[key], source[key]); // target['__proto__'] IS the shared prototype
+    } else {
+      target[key] = source[key];
+    }
+  }
+}
+merge({}, JSON.parse('{"__proto__": {"isAdmin": true}}'));
+({}).isAdmin; // true — Object.prototype now carries isAdmin`,
   },
   {
     id: 'object-createnull',
