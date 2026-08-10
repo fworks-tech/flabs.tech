@@ -24,7 +24,7 @@ import {
   type SignalInput,
 } from '@/lib/abuse';
 import { logger } from '@/lib/logger';
-import { addAiTokensOut, recordAiEvent } from '@/lib/ai-stats';
+import { addAiTokensOut, recordAiEvent, updateAiEventTokensOut } from '@/lib/ai-stats';
 import { type NextRequest } from 'next/server';
 
 const zen = createOpenAICompatible({
@@ -66,9 +66,7 @@ function buildSystemPrompt(): string {
     .map((p) => `- ${p.metadata.title}: ${p.metadata.summary}`)
     .join('\n');
 
-  const blogList = blogs
-    .map((b) => `- ${b.metadata.title} (${b.metadata.publishedAt})`)
-    .join('\n');
+  const blogList = blogs.map((b) => `- ${b.metadata.title} (${b.metadata.publishedAt})`).join('\n');
 
   const experienceList = workExperience.experiences
     .map(
@@ -386,10 +384,15 @@ export async function POST(req: NextRequest) {
     );
 
     // Correct the cost estimate with actual usage once the stream completes.
+    // `totalTokens` includes input tokens (already counted via `tokensIn`),
+    // so only output tokens belong in the output counter.
     void Promise.resolve(result.usage)
       .then((usage) => {
         if (usage?.totalTokens) recordActualUsage(key, usage.totalTokens);
-        if (usage?.totalTokens) void addAiTokensOut(usage.totalTokens);
+        if (usage?.outputTokens) {
+          void addAiTokensOut(usage.outputTokens);
+          void updateAiEventTokensOut(usage.outputTokens);
+        }
       })
       .catch(() => undefined);
 

@@ -1,11 +1,12 @@
-import { Badge, Group, Stack, Text, Title } from "@mantine/core";
-import { CustomMDX } from "@/components";
-import { formatDate } from "@/lib/formatDate";
-import { isPostVisible } from "@/lib/draft";
-import { getPosts } from "@/lib/mdx";
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import { BackToDraftsLink } from "../DraftLinks";
+import { Badge, Group, Stack, Text, Title } from '@mantine/core';
+import { CustomMDX } from '@/components';
+import { formatDate } from '@/lib/formatDate';
+import { isPostVisible } from '@/lib/draft';
+import { getPosts } from '@/lib/mdx';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { BackToDraftsLink } from '../DraftLinks';
+import { LastUpdated } from '../../LastUpdated';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -17,9 +18,9 @@ export default async function AdminDraftPreview({
   params: Promise<{ slug: string | string[] }>;
 }) {
   const routeParams = await params;
-  const slug = Array.isArray(routeParams.slug) ? routeParams.slug.join("/") : routeParams.slug;
+  const slug = Array.isArray(routeParams.slug) ? routeParams.slug.join('/') : routeParams.slug;
 
-  const posts = getPosts(["src", "content", "blog"]);
+  const posts = getPosts(['src', 'content', 'blog']);
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
@@ -42,9 +43,10 @@ export default async function AdminDraftPreview({
 
       <Stack align="center" gap="8">
         <Text size="xs" c="dimmed">
-          {post.metadata.publishedAt ? formatDate(post.metadata.publishedAt) : "Not published yet"}
-          {post.metadata.tag ? ` · ${post.metadata.tag}` : ""}
+          {post.metadata.publishedAt ? formatDate(post.metadata.publishedAt) : 'Not published yet'}
+          {post.metadata.tag ? ` · ${post.metadata.tag}` : ''}
         </Text>
+        <LastUpdated />
         <Title order={1} ta="center">
           {post.metadata.title}
         </Title>

@@ -1,4 +1,4 @@
-import { store } from "@/lib/abuse/store";
+import { store } from '@/lib/abuse/store';
 
 /**
  * Server-side storage for the AI assistant dashboard.
@@ -35,7 +35,16 @@ export interface AbuseCaseSummary {
   key: string;
   kind?: string;
   detail?: string;
-  at?: number;
+  severity: string;
+  score: number;
+  updatedAt?: number;
+}
+
+export interface QuarantineSummary {
+  key: string;
+  tier: string;
+  reason: string;
+  expiresAt: number;
 }
 
 function dayKey(date: Date = new Date()): string {
@@ -43,7 +52,7 @@ function dayKey(date: Date = new Date()): string {
 }
 
 /** Records one chat request (estimated input tokens; output corrected on completion). */
-export async function recordAiEvent(ev: Omit<AiEvent, "t">): Promise<void> {
+export async function recordAiEvent(ev: Omit<AiEvent, 't'>): Promise<void> {
   const day = dayKey();
   const statsKey = `admin:ai:stats:${day}`;
   const stats = (await store.get<Record<string, number>>(statsKey)) ?? {};
@@ -54,9 +63,9 @@ export async function recordAiEvent(ev: Omit<AiEvent, "t">): Promise<void> {
   if (ev.injection) stats.injection = (stats.injection ?? 0) + 1;
   await store.set(statsKey, stats, { ex: AI_STATS_TTL });
 
-  const events = (await store.get<AiEvent[]>("admin:ai:events")) ?? [];
+  const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
   events.push({ ...ev, t: Date.now() });
-  await store.set("admin:ai:events", events.slice(-MAX_AI_EVENTS), { ex: AI_EVENTS_TTL });
+  await store.set('admin:ai:events', events.slice(-MAX_AI_EVENTS), { ex: AI_EVENTS_TTL });
 }
 
 /** Adds actual output tokens once the stream completes (kept separate from estimates). */
@@ -65,6 +74,23 @@ export async function addAiTokensOut(tokens: number): Promise<void> {
   const stats = (await store.get<Record<string, number>>(statsKey)) ?? {};
   stats.tokensOut = (stats.tokensOut ?? 0) + tokens;
   await store.set(statsKey, stats, { ex: AI_STATS_TTL });
+}
+
+/**
+ * Patches the most recent event in the bounded list with the actual output
+ * tokens once the stream completes (events are recorded with `tokensOut: 0`
+ * before the response is generated).
+ *
+ * Known limitation: under concurrent requests the last event may belong to a
+ * different request; the 30 req/min rate limit makes this rare and the worst
+ * case is a slightly off per-row value (daily counters stay exact).
+ */
+export async function updateAiEventTokensOut(tokens: number): Promise<void> {
+  const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
+  const last = events[events.length - 1];
+  if (!last) return;
+  events[events.length - 1] = { ...last, tokensOut: tokens };
+  await store.set('admin:ai:events', events, { ex: AI_EVENTS_TTL });
 }
 
 export async function getAiDaySeries(days: number): Promise<AiDayStats[]> {
@@ -108,31 +134,54 @@ export async function getAiTotals(days: number): Promise<{
 }
 
 export async function getRecentAiEvents(limit = 30): Promise<AiEvent[]> {
-  const events = (await store.get<AiEvent[]>("admin:ai:events")) ?? [];
+  const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
   return events.slice(-limit).reverse();
 }
 
 /** Abuse-pipeline state for the dashboard (keys are already masked by the pipeline). */
 export async function getAbuseOverview(limit = 50): Promise<{
   cases: AbuseCaseSummary[];
-  quarantines: string[];
+  quarantines: QuarantineSummary[];
 }> {
-  const caseKeys = await store.keys("abuse:case:*");
-  const quarantineKeys = await store.keys("abuse:quarantine:*");
+  const caseKeys = await store.keys('abuse:case:*');
+  const quarantineKeys = await store.keys('abuse:quarantine:*');
 
   const cases: AbuseCaseSummary[] = [];
   for (const key of caseKeys.slice(-limit)) {
-    const c = await store.get<{ kind?: string; detail?: string; at?: number }>(key);
+    const c = await store.get<{
+      key?: string;
+      score?: number;
+      severity?: string;
+      updatedAt?: number;
+      signals?: { kind?: string; detail?: string; at?: number }[];
+    }>(key);
+    if (!c) continue;
+    const lastSignal = c.signals?.[c.signals.length - 1];
     cases.push({
-      key: key.replace("abuse:case:", ""),
-      kind: c?.kind,
-      detail: c?.detail,
-      at: c?.at,
+      key: key.replace('abuse:case:', ''),
+      kind: lastSignal?.kind,
+      detail: lastSignal?.detail,
+      severity: c.severity ?? 'low',
+      score: c.score ?? 0,
+      updatedAt: c.updatedAt ?? lastSignal?.at,
     });
   }
 
-  return {
-    cases,
-    quarantines: quarantineKeys.map((key) => key.replace("abuse:quarantine:", "")),
-  };
+  const quarantines: QuarantineSummary[] = [];
+  for (const key of quarantineKeys) {
+    const q = await store.get<{
+      tier?: string;
+      reason?: string;
+      expiresAt?: number;
+    }>(key);
+    if (!q) continue;
+    quarantines.push({
+      key: key.replace('abuse:quarantine:', ''),
+      tier: q.tier ?? 'unknown',
+      reason: q.reason ?? '',
+      expiresAt: q.expiresAt ?? 0,
+    });
+  }
+
+  return { cases, quarantines };
 }
