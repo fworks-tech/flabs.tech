@@ -108,7 +108,6 @@ export default async function RootLayout({
             <ClientParticles quantity={120} staticity={30} ease={40} />
           </div>
 
-          <div style={{ height: "16px" }} />
           <SkipLink />
           <Header />
           <main 

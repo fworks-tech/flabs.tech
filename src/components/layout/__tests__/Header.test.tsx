@@ -28,9 +28,15 @@ describe("Header", () => {
     expect(links.length).toBeGreaterThanOrEqual(5);
   });
 
-  it("renders theme toggle buttons", () => {
+  it("renders theme toggle button", () => {
     render(<Header />, { wrapper: Wrapper });
     const toggles = screen.getAllByRole("button", { name: /switch to/i });
-    expect(toggles).toHaveLength(2);
+    expect(toggles).toHaveLength(1);
+  });
+
+  it("renders hamburger menu trigger on mobile", () => {
+    render(<Header />, { wrapper: Wrapper });
+    const hamburger = screen.getByRole("button", { name: /open navigation menu/i });
+    expect(hamburger).toBeInTheDocument();
   });
 });

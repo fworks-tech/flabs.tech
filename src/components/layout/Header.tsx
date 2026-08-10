@@ -1,40 +1,42 @@
-"use client";
+'use client';
 
-import { ActionIcon, Button, Group } from "@mantine/core";
+import { ActionIcon, Button, Divider, Group, Popover, Stack, Text } from '@mantine/core';
 import {
   IconBook,
   IconCode,
   IconGridDots,
   IconHome,
+  IconMenu2,
   IconPuzzle,
   IconUser,
-} from "@tabler/icons-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+  IconX,
+} from '@tabler/icons-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { display, routes } from "@/config";
-import { about, blog, person, projects, work } from "@/content";
-import { trackEvent } from "@/lib/analytics";
-import styles from "./Header.module.scss";
-import { ThemeToggle } from "./ThemeToggle";
+import { display, routes } from '@/config';
+import { about, blog, person, projects, work } from '@/content';
+import { trackEvent } from '@/lib/analytics';
+import styles from './Header.module.scss';
+import { ThemeToggle } from './ThemeToggle';
 
 type TimeDisplayProps = {
   timeZone: string;
   locale?: string;
 };
 
-const TimeDisplay: React.FC<TimeDisplayProps> = ({ timeZone, locale = "en-GB" }) => {
-  const [currentTime, setCurrentTime] = useState("");
+const TimeDisplay: React.FC<TimeDisplayProps> = ({ timeZone, locale = 'en-GB' }) => {
+  const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       const options: Intl.DateTimeFormatOptions = {
         timeZone,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
         hour12: false,
       };
       const timeString = new Intl.DateTimeFormat(locale, options).format(now);
@@ -70,19 +72,32 @@ type NavItem = {
 };
 
 export const Header = () => {
-  const pathname = usePathname() ?? "";
+  const pathname = usePathname() ?? '';
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    { path: "/", label: "Home", icon: "home", selected: pathname === "/" },
-    { path: "/work", label: work.label, icon: "grid", selected: pathname.startsWith("/work") },
-    { path: "/projects", label: projects.label, icon: "code", selected: pathname.startsWith("/projects") },
-    { path: "/blog", label: blog.label, icon: "book", selected: pathname.startsWith("/blog") },
-    { path: "/about", label: about.label, icon: "person", selected: pathname === "/about" },
-    { path: "/quiz", label: "Try Yourself!", icon: "puzzle", selected: pathname.startsWith("/quiz"), highlight: true },
+    { path: '/', label: 'Home', icon: 'home', selected: pathname === '/' },
+    { path: '/work', label: work.label, icon: 'grid', selected: pathname.startsWith('/work') },
+    {
+      path: '/projects',
+      label: projects.label,
+      icon: 'code',
+      selected: pathname.startsWith('/projects'),
+    },
+    { path: '/blog', label: blog.label, icon: 'book', selected: pathname.startsWith('/blog') },
+    { path: '/about', label: about.label, icon: 'person', selected: pathname === '/about' },
+    {
+      path: '/quiz',
+      label: 'Try Yourself!',
+      icon: 'puzzle',
+      selected: pathname.startsWith('/quiz'),
+      highlight: true,
+    },
   ].filter((item) => routes[item.path as keyof typeof routes]);
 
   return (
     <>
+      {/* Desktop: sticky header with nav + theme toggle */}
       <Group
         className={styles.position}
         component="header"
@@ -96,13 +111,16 @@ export const Header = () => {
         <nav aria-label="Main navigation" style={{ flex: 1 }}>
           <Group justify="center" gap="4" align="center" wrap="nowrap">
             {navItems.map((item) => (
-              <div key={item.path} className={`${styles.navItem} ${item.highlight ? styles.highlight : ""}`}>
+              <div
+                key={item.path}
+                className={`${styles.navItem} ${item.highlight ? styles.highlight : ''}`}
+              >
                 <Button
                   component={Link}
                   href={item.path}
-                  variant={item.selected ? "light" : "subtle"}
+                  variant={item.selected ? 'light' : 'subtle'}
                   visibleFrom="sm"
-                  onClick={() => trackEvent("nav_click", { page: item.path })}
+                  onClick={() => trackEvent('nav_click', { page: item.path })}
                   className={item.highlight ? styles.tryYourself : undefined}
                 >
                   {item.label}
@@ -110,10 +128,10 @@ export const Header = () => {
                 <ActionIcon
                   component={Link}
                   href={item.path}
-                  variant={item.selected ? "light" : "subtle"}
+                  variant={item.selected ? 'light' : 'subtle'}
                   size="md"
                   hiddenFrom="sm"
-                  onClick={() => trackEvent("nav_click", { page: item.path })}
+                  onClick={() => trackEvent('nav_click', { page: item.path })}
                 >
                   {iconMap[item.icon] || null}
                 </ActionIcon>
@@ -132,9 +150,62 @@ export const Header = () => {
         </Group>
       </Group>
 
+      {/* Mobile: hamburger menu replaces floating pill + floating ThemeToggle */}
       {display.themeSwitcher && (
-        <div className={styles.mobileThemeToggle}>
-          <ThemeToggle />
+        <div className={styles.mobileMenuTrigger}>
+          <Popover
+            opened={menuOpen}
+            onChange={setMenuOpen}
+            position="bottom-end"
+            shadow="md"
+            radius="lg"
+            width={220}
+            withinPortal
+          >
+            <Popover.Target>
+              <ActionIcon
+                variant="default"
+                size="lg"
+                aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-haspopup="menu"
+                onClick={() => setMenuOpen((o) => !o)}
+                className={styles.hamburgerButton}
+              >
+                {menuOpen ? <IconX size={18} /> : <IconMenu2 size={18} />}
+              </ActionIcon>
+            </Popover.Target>
+
+            <Popover.Dropdown className={styles.mobileMenuDropdown}>
+              <nav aria-label="Mobile navigation">
+                <Stack gap="4">
+                  {navItems.map((item) => (
+                    <Button
+                      key={item.path}
+                      component={Link}
+                      href={item.path}
+                      variant={item.selected ? 'light' : 'subtle'}
+                      justify="flex-start"
+                      leftSection={iconMap[item.icon] || null}
+                      onClick={() => {
+                        trackEvent('nav_click', { page: item.path });
+                        setMenuOpen(false);
+                      }}
+                      className={item.highlight ? styles.tryYourself : undefined}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </Stack>
+              </nav>
+              <Divider my="sm" />
+              <Group justify="space-between" px="xs">
+                <Text size="sm" c="dimmed">
+                  Theme
+                </Text>
+                <ThemeToggle />
+              </Group>
+            </Popover.Dropdown>
+          </Popover>
         </div>
       )}
     </>
