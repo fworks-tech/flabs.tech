@@ -1,0 +1,107 @@
+---
+title: "The Agenthood news digest now writes itself"
+publishedAt: "2026-08-11"
+summary: "A scheduled AI agent drafts the Agenthood news digest from GitHub releases, validates it against a strict contract, and opens a PR for human review. Here's how it works and what our own review caught."
+tag: "AI"
+shareText: |
+  The Agenthood news digest no longer needs a human to draft it.
+
+  A daily agent:
+  - Fetches new GitHub releases
+  - Drafts the digest in the house style
+  - Validates it against a strict contract
+  - Opens a PR — a human reviews and merges
+
+  First digest live: v3.13.0–v3.13.6
+---
+
+Every Agenthood release used to end with the same chore: read the changelog, summarize what actually changed, and write the news post by hand. It was accurate, but it did not scale — and it is exactly the kind of task an agent should own.
+
+Yesterday we shipped the **daily news digest agent** ([PR #64](https://github.com/fworks-tech/agenthood-site/pull/64)). A scheduled GitHub Action fetches new releases, asks an LLM to draft the digest in the house style, validates it against a strict contract, and opens a pull request for review. The first digest is live: [Agenthood Release Digest: v3.13.0–v3.13.6](https://agenthood.flabs.tech/news/whats-new-2026-08-11/).
+
+Here is how it works, where the trust boundaries are, and what our own Reviewer member caught in review.
+
+---
+
+## The workflow
+
+The whole pipeline is two files:
+
+- **[`scripts/generate-news-digest.mjs`](https://github.com/fworks-tech/agenthood-site/blob/main/scripts/generate-news-digest.mjs)** — the authoring logic
+- **[`.github/workflows/news-digest.yml`](https://github.com/fworks-tech/agenthood-site/blob/main/.github/workflows/news-digest.yml)** — the schedule and the PR gate
+
+It runs daily at **06:00 UTC** (plus manual `workflow_dispatch`):
+
+1. **Compute the window** — fetch releases from the [Agenthood repo](https://github.com/fworks-tech/agenthood/releases) published after the newest date in `content/news/manifest.json`. Nothing new → `NOOP`, no PR.
+2. **Draft** — one LLM call to OpenCode Go (`deepseek-v4-flash`, temperature 0.3, 8,192 max tokens) with the releases formatted as a prompt.
+3. **Validate** — the draft must pass the same contract `build-news-manifest.mjs` enforces. On failure, retry once with the rejection reasons fed back to the model.
+4. **Write** — save `content/news/whats-new-<date>.md` and regenerate the manifest.
+5. **Open a PR** — branch `news-digest/<date>`, `automation` label, always for human review.
+
+The script speaks a tiny machine protocol — `WROTE <path>` or `NOOP <reason>` — so the workflow and tests can assert the outcome without parsing articles. It is idempotent by slug: a re-run on the same day is a no-op.
+
+The one rule that matters most: **the agent never pushes to main.** The best it can do is open a PR with a label.
+
+---
+
+## The validation contract
+
+The LLM output is untrusted input. Before a single byte reaches the site, the draft must satisfy a strict contract:
+
+| Rule | Why it exists |
+|------|---------------|
+| `title` must equal the first `# ` heading | The article can't advertise one thing and say another |
+| `date` must be exactly the post date | No backdated or future-dated posts |
+| `author` and `summary` must be non-empty | No broken front matter |
+| `summary` ≤ 160 characters | Card truncation on the [news page](https://agenthood.flabs.tech/news) |
+| YAML escaping for `title`, `author`, `summary` | A quote or newline can't corrupt the front matter |
+
+If validation fails, the script retries **once**, feeding the model the exact rejection reasons — `"Your draft was rejected for: front matter 'title' does not match the '# ' heading. Please fix these issues…"` — and fails loudly if the second attempt is also invalid.
+
+Release bodies are also treated as untrusted: they flow straight into the prompt, so a crafted changelog could try to steer the model. Mitigated by the strict validation, the "do not invent" tone rule, and the human PR gate.
+
+---
+
+## The tone spec
+
+The system prompt encodes the newsroom style as a spec, not a vibe:
+
+> Warm, professional, and precise. First-person plural ("We've shipped…"). Confident but measured — no emoji, no exclamation marks, no "game-changing" marketing. Explain what changed and why it matters; prefer concrete details (limits, timeouts, files) over vague praise. Stay accurate to the changelog. Do NOT invent features, fixes, links, or press quotes.
+
+Same ethos as this blog. The first digest reads like a human wrote it — grouped by theme, tables for the release overview, no hype.
+
+---
+
+## What The Reviewer caught
+
+The automation itself went through the same [review pipeline](https://github.com/fworks-tech/agenthood-site/pull/64#pullrequestreview-4902595406) Agenthood enforces on every PR. Four findings, all legitimate:
+
+| Finding | The risk | The fix |
+|---------|----------|---------|
+| Release list not paginated | If the gap since the last post grew past 100 releases, newer ones were silently dropped | Pagination loop (≤ 10 pages × 100) that stops at the cutoff |
+| Consecutive runs with an unmerged digest PR | Overlapping PRs covering the same window | Skip when **any** `news-digest/*` PR is open, not just today's |
+| Transient 5xx bypassed the retry | A single 503 killed the daily run | Retry 5xx with exponential backoff (1s → 2s → 4s) |
+| `author` not escaped in front matter | A newline or quote could corrupt the YAML | Escape it exactly like title and summary |
+
+That last one is the pattern we like to point at: the review pipeline caught a real injection-shaped bug in the automation *that was automating part of the review process itself*. The Society polices its own tools.
+
+---
+
+## By the numbers
+
+| Metric | Value |
+|--------|-------|
+| Digest tests | 17 (80 total in the repo) |
+| LLM attempts per run | 2 max (one retry with feedback) |
+| HTTP retries on 5xx | 3, exponential backoff |
+| Releases fetched | Up to 10 pages × 100 |
+| Summary cap | 160 characters |
+| Time to first digest | Same day the agent merged |
+
+---
+
+## What's next
+
+The digest agent covers the [news page](https://agenthood.flabs.tech/news). The natural next step is letting The Herald draft release notes and The Mailman handle cross-posting — the delivery side of the same pipeline.
+
+The news does not write itself. The agent drafts it, the contract gates it, and a human signs it. That is how you automate a newsroom without trusting the autopilot.
