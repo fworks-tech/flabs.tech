@@ -17,7 +17,7 @@ shareText: |
 
 Every Agenthood release used to end with the same chore: read the changelog, summarize what actually changed, and write the news post by hand. It was accurate, but it did not scale — and it is exactly the kind of task an agent should own.
 
-Yesterday we shipped the **daily news digest agent** ([PR #64](https://github.com/fworks-tech/agenthood-site/pull/64)). A scheduled GitHub Action fetches new releases, asks an LLM to draft the digest in the house style, validates it against a strict contract, and opens a pull request for review. The first digest is live: [Agenthood Release Digest: v3.13.0–v3.13.6](https://agenthood.flabs.tech/news/whats-new-2026-08-11/).
+Today we shipped the **daily news digest agent** ([PR #64](https://github.com/fworks-tech/agenthood-site/pull/64)). A scheduled GitHub Action fetches new releases, asks an LLM to draft the digest in the house style, validates it against a strict contract, and opens a pull request for review. The first digest is live: [Agenthood Release Digest: v3.13.0–v3.13.6](https://agenthood.flabs.tech/news/whats-new-2026-08-11/).
 
 Here is how it works, where the trust boundaries are, and what our own Reviewer member caught in review.
 
@@ -25,7 +25,7 @@ Here is how it works, where the trust boundaries are, and what our own Reviewer 
 
 ## The workflow
 
-The whole pipeline is two files:
+The pipeline is two new files:
 
 - **[`scripts/generate-news-digest.mjs`](https://github.com/fworks-tech/agenthood-site/blob/main/scripts/generate-news-digest.mjs)** — the authoring logic
 - **[`.github/workflows/news-digest.yml`](https://github.com/fworks-tech/agenthood-site/blob/main/.github/workflows/news-digest.yml)** — the schedule and the PR gate
