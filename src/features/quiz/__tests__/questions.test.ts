@@ -18,8 +18,8 @@ const CATEGORIES: QuestionCategory[] = [
 ];
 
 describe('DevSprint question bank', () => {
-  it('contains 75 questions', () => {
-    expect(QUESTIONS).toHaveLength(75);
+  it('contains 76 questions', () => {
+    expect(QUESTIONS).toHaveLength(76);
   });
 
   it('has unique ids', () => {

@@ -269,24 +269,6 @@ Object.keys(obj).length; // 1 — O(n) scan of own keys`,
 // localStorage / sessionStorage are never sent with requests.`,
   },
   {
-    id: 'v8-array-max',
-    category: 'gotchas',
-    prompt: 'What is the practical maximum length of an array in V8 (Chrome/Node)?',
-    answers: [
-      '~2^29 - 1 (≈536M elements)',
-      '~2^32 - 1 (≈4.3B elements)',
-      '~1 million elements',
-      'Unlimited',
-    ],
-    correctIndex: 0,
-    explanation:
-      'V8 arrays are capped at 2^32 - 2 in theory but practically ~2^29 - 1 elements before allocation fails.',
-    explanationCode: `// Spec cap: 2^32 - 2. In practice ~2^29 - 1 (~536M) is the
-// ceiling before element allocation runs out of memory.
-const a = new Array(2 ** 29); // OK — a holey array of length 536M
-a[0] = 1; // stored elements are where memory is actually consumed`,
-  },
-  {
     id: 'tdz',
     category: 'gotchas',
     prompt: 'What is the temporal dead zone (TDZ)?',
@@ -530,24 +512,6 @@ load().catch(console.error);
 // a rejected promise that must be caught with try/catch or .catch`,
   },
   {
-    id: 'event-loop-microtask',
-    category: 'core',
-    prompt: 'Which has higher priority in the event loop: microtasks or macrotasks?',
-    answers: [
-      'Microtasks (Promise callbacks)',
-      'Macrotasks (setTimeout callbacks)',
-      'They run in parallel',
-      'It depends on the browser',
-    ],
-    correctIndex: 0,
-    explanation:
-      'Microtasks (Promise.then, queueMicrotask) run after each macrotask completes, before the next macrotask.',
-    explanationCode: `setTimeout(() => console.log('macrotask'), 0);
-Promise.resolve().then(() => console.log('microtask'));
-// microtask prints FIRST — the microtask queue drains
-// after every macrotask, before the next one starts`,
-  },
-  {
     id: 'prototype-chain',
     category: 'core',
     prompt: 'What is the prototype chain?',
@@ -635,24 +599,6 @@ function sum(...nums) { // rest — collects into a real array
       'Destructuring defaults kick in when the value is undefined — since {} has no `a`, it defaults to 5.',
     explanationCode: `const { a = 5 } = {};      // a = 5 — default applies
 const { a = 5 } = { a: 0 };  // a = 0 — NOT undefined, default skipped`,
-  },
-  {
-    id: 'template-literal',
-    category: 'functions',
-    prompt: "What's the difference between 'hello' and `hello` in JavaScript?",
-    answers: [
-      'Backticks support multi-line and ${} interpolation',
-      'No difference',
-      'Backticks are for regex',
-      'Single quotes are deprecated',
-    ],
-    correctIndex: 0,
-    explanation:
-      'Template literals (backticks) support multi-line strings and expression interpolation via ${expression}.',
-    explanationCode: `const name = 'João';
-\`Hello \${name},
-  this is multi-line\`; // interpolation + line breaks
-'Hello ' + name + ',\\n  this is multi-line'; // the old way`,
   },
   {
     id: 'optional-chaining',
@@ -752,24 +698,6 @@ let user = { id: 1 };
 cache.set(user, 'expensive result');
 user = null; // cache entry becomes GC-eligible — no leak
 // Trade-offs: object keys only, not iterable, no .size`,
-  },
-  {
-    id: 'iife',
-    category: 'functions',
-    prompt: 'What is an IIFE?',
-    answers: [
-      'Immediately Invoked Function Expression',
-      'Interface Inheritance from Functions',
-      'Inline Function Execution',
-      'Internal Iterator for Functional Evaluation',
-    ],
-    correctIndex: 0,
-    explanation:
-      "An IIFE runs as soon as it's defined — useful for creating isolated scopes without polluting the global namespace.",
-    explanationCode: `(function () {
-  const secret = 'isolated'; // invisible outside
-})();
-// Runs immediately; keeps the global namespace clean`,
   },
   {
     id: 'closure-private',
@@ -884,26 +812,6 @@ const b = { id: 1 };
 const s = new Set([a, b]);
 s.size; // 2 — identity-based, not structural
 // To dedupe by value you need a key function + Map`,
-  },
-  {
-    id: 'weakset',
-    category: 'data-structures',
-    prompt: 'What is the best use of a WeakSet?',
-    answers: [
-      'Tagging objects without preventing garbage collection',
-      'Storing primitive values',
-      'Ordered iteration of keys',
-      'Frequent lookups by string key',
-    ],
-    correctIndex: 0,
-    explanation:
-      "WeakSet tags objects as 'seen' while letting them be collected — entries vanish when the object dies. No iteration, no size.",
-    explanationCode: `const seen = new WeakSet();
-function process(el) {
-  if (seen.has(el)) return; // skip already-processed elements
-  seen.add(el);
-  // el can still be garbage collected when dropped elsewhere
-}`,
   },
   {
     id: 'sparse-array',
@@ -1378,5 +1286,108 @@ Promise.any([fetch('/mirror1'), fetch('/mirror2')]);`,
 const shallow = { ...original };          // nested is SHARED — leaks back
 const jsonCopy = JSON.parse(JSON.stringify(original)); // Date → string!
 const deep = structuredClone(original);   // nested cloned, Date preserved`,
+  },
+  {
+    id: 'ds-array-vs-ll-access',
+    category: 'data-structures',
+    prompt: 'Which statement is true about random access and middle insertion?',
+    answers: [
+      'Array: O(1) access, O(n) middle insert — Linked list: O(n) access, O(1) middle insert with a node pointer',
+      'Array: O(n) access, O(1) middle insert — Linked list: O(1) access, O(n) middle insert',
+      'Both are O(1) for access and O(n) for middle insertion',
+      'Both are O(n) for access and O(1) for middle insertion',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Arrays index by offset (O(1) access) but shift elements on insert (O(n)); linked lists traverse for access (O(n)) but rewire pointers in O(1) when you already hold the node.',
+    explanationCode: `// Array: access O(1), insertion O(n) — shifts everything after i
+arr.splice(i, 0, x);        // O(n)
+
+// Linked list: access O(n), insertion O(1) with the node
+const newNode = { val: x, next: node.next };
+node.next = newNode;        // O(1) — just rewiring`,
+  },
+  {
+    id: 'ds-hash-collision',
+    category: 'data-structures',
+    prompt: 'How do hash tables typically resolve collisions?',
+    answers: [
+      'Chaining (linked list per bucket) or open addressing (probing for a free slot)',
+      'By rehashing every key into a larger array',
+      'By storing all keys in a sorted array',
+      'By allowing only unique hash values',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Chaining stores colliding keys in a bucket list (Java 8 promotes long chains to trees); open addressing probes linearly/quadratically or with double hashing for the next free slot.',
+    explanationCode: `// Chaining: bucket holds a linked list (or tree once chains grow long)
+// Open addressing: probe i+1 (linear), i+c·k² (quadratic), or
+// rehash with a second hash function until a free slot is found.
+// Both degrade to O(n) worst case; rehash when the load factor rises.`,
+  },
+  {
+    id: 'ds-stack-queue-apps',
+    category: 'data-structures',
+    prompt: 'Which pair of applications correctly maps to Stack and Queue?',
+    answers: [
+      'Undo history → Stack (LIFO); print job queue → Queue (FIFO)',
+      'Undo history → Queue; print jobs → Stack',
+      'Both use LIFO',
+      'Both use FIFO',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Undo pops the most recent action (LIFO → Stack); print jobs finish in arrival order (FIFO → Queue). BFS uses a Queue; DFS uses a Stack.',
+    explanationCode: `// Stack (LIFO): undo history, DFS, expression evaluation
+// Queue (FIFO): print jobs, task scheduling, BFS
+// BFS finds shortest paths in unweighted graphs; DFS goes deep first`,
+  },
+  {
+    id: 'ds-bst-vs-hashmap',
+    category: 'data-structures',
+    prompt: 'When is a balanced BST preferred over a hash table?',
+    answers: [
+      'When you need sorted iteration, predecessor/successor, or range queries',
+      'When you need average O(1) lookup',
+      'When keys must never collide',
+      'When memory usage must be minimal',
+    ],
+    correctIndex: 0,
+    explanation:
+      'A BST keeps keys ordered — sorted in-order traversal, range scans, and floor/ceiling in O(log n). Hash tables win on average-case speed but lose all ordering.',
+    explanationCode: `// BST wins: sorted iteration, kth smallest, range [a..b], floor/ceil
+// Hash table wins: average O(1) get/set when order is irrelevant.
+// Balanced BST also guarantees O(log n) worst case — hashing has O(n).`,
+  },
+  {
+    id: 'ds-lru-cache',
+    category: 'data-structures',
+    prompt: 'Which data structure combination implements an O(1) LRU cache?',
+    answers: [
+      'Hash map (key → node) + doubly linked list ordered by recency',
+      'Single linked list + array',
+      'Two stacks',
+      'Binary search tree only',
+    ],
+    correctIndex: 0,
+    explanation:
+      'The map gives O(1) lookup by key; the doubly linked list lets you move a hit to the head and evict the tail (LRU) — both O(1), which a singly linked list cannot do for arbitrary middle nodes.',
+    explanationCode: `// get(key): move node to head    → O(1)
+// put(key): evict tail when full → O(1)
+// Doubly linked list → O(1) removal of ANY node (singly can't —
+// a singly list has no predecessor pointer to splice the node out).`,
+  },
+  {
+    id: 'alg-stable-sort',
+    category: 'algorithms',
+    prompt: 'Which of these sorting algorithms is STABLE (preserves relative order of equal elements)?',
+    answers: ['Merge sort', 'Quicksort', 'Heapsort', 'None of them'],
+    correctIndex: 0,
+    explanation:
+      'Merge sort preserves the relative order of equal keys. Quicksort and heapsort (classic in-place versions) do not — important for multi-key sorts (e.g., sort by date, then name).',
+    explanationCode: `// Stable: merge sort, insertion sort, bubble sort
+// Not stable: quicksort, heapsort (classic in-place versions)
+// Multi-key sort: sort by date first, then name — a stable sort
+// keeps the date order for equal names.`,
   },
 ];
