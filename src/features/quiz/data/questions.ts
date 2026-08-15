@@ -160,6 +160,17 @@ let b = 2;`,
 0 === false; // false — number is never equal to boolean`,
   },
   {
+    id: 'strict-eq-zero',
+    category: 'core',
+    prompt: 'What does `0 === false` evaluate to?',
+    answers: ['false', 'true', 'TypeError', 'undefined'],
+    correctIndex: 0,
+    explanation:
+      'Strict equality does no coercion and `number` never equals `boolean`, so it returns false.',
+    explanationCode: `0 === false; // false — different types, no coercion
+0 == false;  // true — loose equality coerces both to 0`,
+  },
+  {
     id: 'arrow-this',
     category: 'core',
     prompt: 'How does `this` behave inside an arrow function?',
@@ -211,6 +222,20 @@ map.set('1', 'b');
 map.size; // 2 — 1 and '1' are distinct keys`,
   },
   {
+    id: 'map-size',
+    category: 'data-structures',
+    prompt: 'Map vs Object — which has an O(1) `.size`?',
+    answers: ['Map', 'Object', 'Both', 'Neither'],
+    correctIndex: 0,
+    explanation:
+      'Map tracks its own size internally; Object requires `Object.keys(obj).length`, which is O(n).',
+    explanationCode: `const map = new Map([['a', 1]]);
+map.size; // 1 — O(1) internal counter
+
+const obj = { a: 1 };
+Object.keys(obj).length; // 1 — O(n) scan of own keys`,
+  },
+  {
     id: 'localstorage-persist',
     category: 'data-structures',
     prompt: 'Which storage persists after the tab closes AND is NOT sent with HTTP requests?',
@@ -220,6 +245,16 @@ map.size; // 2 — 1 and '1' are distinct keys`,
       'localStorage survives tab/browser restarts and stays client-side, unlike cookies which are sent with every request.',
     explanationCode: `localStorage.setItem('theme', 'dark'); // survives restart
 // localStorage is never attached to HTTP requests — cookies are`,
+  },
+  {
+    id: 'sessionstorage-scope',
+    category: 'data-structures',
+    prompt: 'Which storage is cleared when the tab closes?',
+    answers: ['sessionStorage', 'localStorage', 'Cookies', 'Cache Storage'],
+    correctIndex: 0,
+    explanation: 'sessionStorage is scoped to the tab session and is wiped when the tab closes.',
+    explanationCode: `sessionStorage.setItem('k', 'v'); // alive while THIS tab is open
+// Close the tab → wiped. A new tab starts with empty sessionStorage.`,
   },
   {
     id: 'cookie-transport',
@@ -663,6 +698,26 @@ let user = { id: 1 };
 cache.set(user, 'expensive result');
 user = null; // cache entry becomes GC-eligible — no leak
 // Trade-offs: object keys only, not iterable, no .size`,
+  },
+  {
+    id: 'closure-private',
+    category: 'functions',
+    prompt: 'How can closures create private variables?',
+    answers: [
+      'Encapsulate state in a function scope and expose getters/setters',
+      'Use the private keyword',
+      'Store in __private property',
+      'Closures cannot be private',
+    ],
+    correctIndex: 0,
+    explanation:
+      'A closure retains access to its enclosing scope — variables declared there are inaccessible from outside the function.',
+    explanationCode: `function createCounter() {
+  let count = 0; // private — only reachable via returned closures
+  return { inc: () => ++count, get: () => count };
+}
+const c = createCounter();
+c.count; // undefined — encapsulated`,
   },
   {
     id: 'promise-chain',
@@ -1123,6 +1178,24 @@ JSON.stringify(new Map([['a', 1]])); // '{}' — empty!
 
 // To serialize a Map:
 JSON.stringify(Object.fromEntries(map)); // or Array.from(map)`,
+  },
+  {
+    id: 'var-block-leak',
+    category: 'core',
+    prompt: 'What is the console output of this snippet?',
+    code: `if (true) {
+  var x = 1;
+}
+console.log(x);`,
+    answers: ['1', 'ReferenceError: x is not defined', 'undefined', 'TypeError'],
+    correctIndex: 0,
+    explanation:
+      'var ignores blocks — it is function-scoped, so x leaks out of the if block; let/const would stay confined.',
+    explanationCode: `if (true) { var x = 1; }
+console.log(x); // 1 — var leaks out of the block
+
+if (true) { let y = 1; }
+console.log(y); // ReferenceError — let is block-scoped`,
   },
   {
     id: 'function-hoisting',
