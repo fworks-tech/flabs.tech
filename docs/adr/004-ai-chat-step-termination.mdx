@@ -1,0 +1,60 @@
+# ADR-004: AI chat step-termination strategy
+
+**Date:** 2026-08-17
+**Status:** Accepted
+
+## Context
+
+The AI chat endpoint (`/api/chat`) enables tool calling against the OpenCode Zen model (`mimo-v2.5`) with three tools: `searchContent`, `fetchUrlContent`, and `fetchGitHubRepo`. The AI SDK's `streamText` executes a tool-calling loop in "steps": each step is one model generation, and a step that calls a tool leads to a follow-up step that consumes the tool results.
+
+The initial implementation used the SDK default `stopWhen: isStepCount(1)`, which ends the stream immediately after the first tool round — so the final text answer after a tool call was never generated. This was patched twice: raised to `isStepCount(3)`, then to `isStepCount(6)`.
+
+A production conversation exposed the remaining failure mode: when asked to dig into a topic, the model chained several tool calls (search → fetch → repo → …). Six steps is a *total* budget — every tool round consumes one step — so the model burned all six on tool rounds and the stream stopped before it generated any text. The client displayed the resulting empty assistant "response" as a blank bubble: `getMessageText` in `AiAssistant.tsx` only extracts text parts, and an assistant message containing only `tool-invocation` parts yields an empty string.
+
+A fixed step-count ceiling can never guarantee a final text step, because the ceiling does not distinguish a tool round from an answer round.
+
+## Decision
+
+**Replace `isStepCount(6)` with a purpose-built `stopWhen` predicate that stops on the first text-only step, capped by a hard step budget.**
+
+In `src/app/api/chat/route.ts`:
+
+- `MAX_CHAT_STEPS = 10` — a runaway tool chain must still terminate, even if the model never produces a text-only step; the abuse cost pipeline bounds the spend on top of this.
+- `createChatStopCondition(maxSteps)` returns a predicate that stops when (a) the most recent completed step made no tool calls (`toolCalls.length === 0`) — that step carries the final answer — or (b) the step count reaches the cap.
+- `streamText` is called with `stopWhen: createChatStopCondition()`.
+
+Because a step that makes no tool calls only occurs once the model is done, the loop always terminates on a real answer step under normal conditions, and the cap only acts as a safety net. `maxOutputTokens: 1000` is unchanged; the final answer step has the whole 1000-token budget to itself, which is ample for a short portfolio-assistant summary.
+
+As defense in depth, the client (`AiAssistant.tsx`) now renders a muted fallback line — "I couldn't produce a summary from what I found. Could you rephrase your question?" — in place of a blank bubble when a *finished* assistant message has no text. In-progress empty messages still show the typing indicator.
+
+## Alternatives considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|-------------|
+| `isStepCount(6)` (status quo) | Simple, bounded cost | Total step budget; a multi-round tool chain can still consume every step and end empty | Does not guarantee a final answer step — the exact bug observed |
+| `isStepCount(10)` alone | Simple | Same class of bug at a higher threshold; tool-heavy chains still risk empty responses | Fixes the symptom, not the termination logic |
+| `isLoopFinished()` | Never stops early; relies on natural loop termination | "Never returns true" — a model that keeps calling tools loops unboundedly until the platform timeout kills the request | No cost bound; would waste serverless time and tokens on runaway chains |
+
+## Consequences
+
+### What becomes easier
+
+- Tool-using answers are reliably generated: the loop ends on the answer step, not on a budget.
+- The stop logic is a pure, exported, unit-testable function (`createChatStopCondition`), covered across its branches (text-only stop, tool-loop continue, cap reached, custom cap).
+- The client no longer presents a blank bubble; a finished empty response degrades to an actionable hint instead of a silent gap.
+
+### What becomes harder
+
+- The cap is a magic constant that must stay consistent with the abuse cost pipeline — raising it raises the worst-case per-request cost ceiling.
+- A final answer can still be empty if the model exhausts `maxOutputTokens` argument/JSON but produces no text, or if a tool round ends the stream via the cap; the client fallback covers these residual cases.
+
+### What we gain
+
+- Guaranteed final answer step for the stated behavior (whenever the model eventually produces text), bounded worst-case loop length, and a removed class of silent-empty responses.
+
+## References
+
+- `src/app/api/chat/route.ts` — `createChatStopCondition`, `MAX_CHAT_STEPS`, `streamText` call
+- `src/components/ai/AiAssistant.tsx` — `EMPTY_RESPONSE_FALLBACK`, empty-message rendering
+- `src/components/ai/__tests__/AiAssistant.test.tsx` and `src/app/api/chat/__tests__/route.test.ts` — coverage for this decision
+- AI SDK `streamText` options (`stopWhen`, `isStepCount`, `isLoopFinished`): `node_modules/ai/dist/index.d.ts`

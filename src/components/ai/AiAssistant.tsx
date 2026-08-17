@@ -19,6 +19,9 @@ import styles from './AiAssistant.module.scss';
 const MAX_SESSION_MESSAGES = 20;
 const MAX_INPUT_LENGTH = 500;
 
+const EMPTY_RESPONSE_FALLBACK =
+  "I couldn't produce a summary from what I found. Could you rephrase your question?";
+
 function getMessageText(msg: {
   role: string;
   parts: Array<{ type: string; text?: string }>;
@@ -254,7 +257,8 @@ export function AiAssistant() {
           {messages.map((msg, idx) => {
             const isLast = idx === messages.length - 1;
             const isAssistant = msg.role === 'assistant';
-            const isEmpty = !getMessageText(msg);
+            const text = getMessageText(msg);
+            const isEmpty = !text.trim();
             const showTyping = isAssistant && isLast && isEmpty && isLoading;
             return (
               <div
@@ -266,15 +270,17 @@ export function AiAssistant() {
                 <div className={styles.messageLabel}>{msg.role === 'user' ? 'You' : 'Assistant'}</div>
                 <div className={styles.messageContent}>
                   {msg.role === 'user' ? (
-                    getMessageText(msg)
+                    text
                   ) : showTyping ? (
                     <span className={styles.typingDots}>
                       <span />
                       <span />
                       <span />
                     </span>
+                  ) : isEmpty ? (
+                    <span className={styles.emptyResponse}>{EMPTY_RESPONSE_FALLBACK}</span>
                   ) : (
-                    <Markdown>{getMessageText(msg)}</Markdown>
+                    <Markdown>{text}</Markdown>
                   )}
                 </div>
               </div>
