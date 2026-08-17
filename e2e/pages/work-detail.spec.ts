@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const slugs = ["agenthood", "apollodroid", "flabs-tech", "verihire"];
+const slugs = ["agenthood", "flabs-tech", "verihire"];
 
 test.describe("work detail pages", () => {
   for (const slug of slugs) {

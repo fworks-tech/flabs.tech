@@ -1,0 +1,71 @@
+# ADR-005: GitHub-first project knowledge and project catalog curation
+
+**Date:** 2026-08-17
+**Status:** Accepted
+
+## Context
+
+The portfolio site and its AI assistant knew about projects through two disconnected sources:
+
+1. **MDX content** (`src/content/projects/*.mdx`) — powers `/projects/[slug]` detail pages, the sitemap, and the assistant's static project list (injected via `buildSystemPrompt`) and `searchContent` tool.
+2. **A curated GitHub allowlist** (`featuredRepos` in `src/config/projects.ts`) — powers the `/projects` listing and homepage grid via `fetchFeaturedRepos`, which merges GitHub API data with MDX when `mdxSlug` is set.
+
+Three defects surfaced:
+
+- The assistant's project knowledge was MDX-only, so real repositories without an MDX file (e.g. `arxiv-manager`) were invisible until the model happened to call the single-repo `fetchGitHubRepo` tool.
+- Several featured cards were broken links: `arxiv-manager`, `agenthood-site`, and `hasheyes` had no resolvable detail page (the latter pointed `mdxSlug` at the dead `chain-telescope` name).
+- The catalog was stale: `fashionista` and `apollodroid` remained reachable via MDX pages, the sitemap, and the assistant despite no longer being showcased, and `fworks-tech/chain-telescope` had been renamed to `hasheyes` on GitHub, leaving stale references (URLs, whitelist, blog links) throughout.
+
+Goal: curate the catalog to match reality, make every featured card resolve, and make the assistant look to GitHub first (live, full) with the static list as the curated, site-shown subset.
+
+## Decision
+
+### 1. Curate the catalog
+
+- Delete MDX for removed projects: `projects/fashionista.mdx`, `projects/apollodroid.mdx`, and `work/apollodroid.mdx` (ApolloDroid is removed from both project and work surfaces).
+- Rename `projects/chain-telescope.mdx` → `projects/hasheyes.mdx` and update its content to match the renamed repo (`github.com/fworks-tech/hasheyes`, live `hasheyes.flabs.tech`).
+- Add missing MDX for featured repos so every card resolves: `projects/arxiv-manager.mdx`, `projects/agenthood-site.mdx`, and point `flabs.tech` at its existing `flabs-tech.mdx`.
+- Update `featuredRepos` so every entry names its MDX slug; update the AI URL whitelist (`chain-telescope.streamlit.app` → `hasheyes.flabs.tech`); update the historical blog post's links only (slug/title preserved).
+- Add `detailSlug` to `ProjectData` (defaulting to the repo name, but pointing at the MDX slug when merged) and use it for card links and related-project exclusions. This fixes cards whose repo name differs from their MDX slug (e.g. repo `flabs.tech` → page `/projects/flabs-tech`).
+
+### 2. Make GitHub the assistant's primary project source
+
+- Add a `listGitHubRepos` tool in `src/lib/ai/tools.ts`: fetches the user's public repos (`GET /users/fworks-tech/repos?per_page=100&sort=updated`), filters out forks and a curation denylist, and returns compact summaries (name, description, homepage, language, topics, stars, last-update, URL) sorted by last update. Results are cached in memory for 5 minutes to stay within the unauthenticated GitHub API budget.
+- Denylist `EXCLUDED_REPOS = { fashionista, ApolloDroid, fworks-tech, blockchain-explorer, fworks.tech }` — removed projects, the profile README repo, and experimental repos not presented as showcase work. This keeps GitHub-first search in sync with the site's curation.
+- Update the system prompt: for project questions, prefer `listGitHubRepos`/`fetchGitHubRepo`; the static list is explicitly framed as the curated subset shown on the site.
+
+## Alternatives considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|-------------|
+| Inject the full GitHub repo list into the system prompt at build time | Always present; zero tool calls | Stale between builds; costs tokens on every request; still needs denylisting | Tool lookup is fresher and cost-bounded |
+| Only extend `searchContent` to query GitHub | One tool to maintain | Mixes blog search with repo discovery; conflates "search the static corpus" with "enumerate live repos" | A dedicated enumerate tool is clearer and more robust |
+| List every repo including forks and denylisted ones | Complete truth | Reintroduces removed projects and pollutes results with forks/experiments | Curation denylist keeps knowledge aligned with the site |
+| Keep `chain-telescope` MDX filename and just relabel | No git move | Leaves a dead-name URL and fixture forever | Rename yields a consistent `/projects/hasheyes` permalink |
+
+## Consequences
+
+### What becomes easier
+
+- Every featured card now resolves to a real detail page; related-project exclusions work even when a repo name differs from its MDX slug.
+- The assistant discovers any real, non-fork repo live — `arxiv-manager` and future repos are visible without editing MDX.
+- One denylist controls what the assistant treats as "Fabio's projects", kept in sync with site curation.
+
+### What becomes harder
+
+- The denylist and `featuredRepos` must be kept in sync manually when projects are added/removed.
+- `listGitHubRepos` adds a live API dependency per chat request (cached 5 min, 60 req/h unauthenticated budget); tool failure degrades to an error string the model must handle.
+- The unauthenticated GitHub API is rate-limited globally per instance; very high chat volumes could exhaust it briefly.
+
+### What we gain
+
+- A single, curated, fully-resolvable project catalog on the site, and assistant project knowledge that is live before it is static.
+
+## References
+
+- `src/config/projects.ts` — `featuredRepos`
+- `src/lib/github-repos.ts` — `detailSlug` merge; `src/types/projects.types.ts` — `ProjectData`
+- `src/lib/ai/tools.ts` — `listGitHubRepos`, `EXCLUDED_REPOS`, URL whitelist
+- `src/app/api/chat/route.ts` — `buildSystemPrompt` GitHub-first guidance
+- `src/content/projects/` — curated MDX (hasheyes, arxiv-manager, agenthood-site; deletions)
+- GitHub: `fworks-tech/hasheyes` (renamed from `chain-telescope`), homepage `https://hasheyes.flabs.tech`

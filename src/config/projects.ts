@@ -16,10 +16,10 @@ export type FeaturedRepo = {
  * the next build or ISR revalidation.
  */
 export const featuredRepos: FeaturedRepo[] = [
-  { owner: "fworks-tech", name: "arxiv-manager" },
-  { owner: "fworks-tech", name: "flabs.tech" },
+  { owner: "fworks-tech", name: "arxiv-manager", mdxSlug: "arxiv-manager" },
+  { owner: "fworks-tech", name: "flabs.tech", mdxSlug: "flabs-tech" },
   { owner: "fworks-tech", name: "agenthood", mdxSlug: "agenthood" },
-  { owner: "fworks-tech", name: "agenthood-site" },
-  { owner: "fworks-tech", name: "hasheyes", mdxSlug: "chain-telescope" },
+  { owner: "fworks-tech", name: "agenthood-site", mdxSlug: "agenthood-site" },
+  { owner: "fworks-tech", name: "hasheyes", mdxSlug: "hasheyes" },
   { owner: "fworks-tech", name: "logroute", mdxSlug: "logroute" },
 ];
