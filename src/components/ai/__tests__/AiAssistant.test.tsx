@@ -516,6 +516,47 @@ describe("AiAssistant", () => {
       await user.click(screen.getByLabelText("Open AI assistant"));
       expect(screen.getByText("Hello")).toBeInTheDocument();
     });
+
+    it("renders a fallback for a finished empty assistant response", async () => {
+      mockUseChat.mockReturnValue({
+        messages: [
+          {
+            id: "1",
+            role: "assistant" as const,
+            parts: [{ type: "tool-invocation" as const }],
+          },
+        ],
+        sendMessage,
+        status: "ready" as const,
+        error: null,
+        stop,
+      });
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      expect(screen.getByText(/couldn't produce a summary/i)).toBeInTheDocument();
+    });
+
+    it("shows typing dots (not the fallback) while an empty assistant response streams", async () => {
+      mockUseChat.mockReturnValue({
+        messages: [
+          {
+            id: "1",
+            role: "assistant" as const,
+            parts: [{ type: "tool-invocation" as const }],
+          },
+        ],
+        sendMessage,
+        status: "streaming" as const,
+        error: null,
+        stop,
+      });
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      expect(document.querySelector(".typingDots")).not.toBeNull();
+      expect(screen.queryByText(/couldn't produce a summary/i)).not.toBeInTheDocument();
+    });
   });
 
   describe("session limit", () => {

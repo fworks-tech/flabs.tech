@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { isStepCount, streamText } from 'ai';
+import { streamText } from 'ai';
 import { about, home, person, workExperience } from '@/content';
 import { sameAs } from '@/config';
 import { getPosts } from '@/lib/mdx';
@@ -148,6 +148,32 @@ function normalizeMessages(raw: any[]): Array<{ role: 'user' | 'assistant'; cont
 
 const MAX_MESSAGES_PER_REQUEST = 20;
 const MAX_INPUT_LENGTH = 500;
+
+/**
+ * Hard cap on tool-calling steps per request. A runaway tool chain must
+ * terminate even if the model never produces a text-only step; the abuse cost
+ * pipeline bounds the spend on top of this.
+ */
+export const MAX_CHAT_STEPS = 10;
+
+/**
+ * Build the `stopWhen` predicate for the chat stream.
+ *
+ * The loop must keep going while the model is calling tools (each step is a
+ * tool round) and must stop on the first completed step that made no tool
+ * calls — that step carries the final text answer. The SDK default
+ * `isStepCount(1)` ends the stream right after the first tool call, so the
+ * answer would never be generated; a fixed higher count (previously 6) still
+ * let the model burn every step on tool calls and end empty. This predicate
+ * guarantees a final answer step while the cap bounds runaway chains.
+ */
+export function createChatStopCondition(maxSteps = MAX_CHAT_STEPS) {
+  return ({ steps }: { steps: Array<{ toolCalls: unknown[] }> }): boolean => {
+    if (steps.length >= maxSteps) return true;
+    const last = steps[steps.length - 1];
+    return last !== undefined && last.toolCalls.length === 0;
+  };
+}
 
 function jsonResponse(
   status: number,
@@ -366,12 +392,10 @@ export async function POST(req: NextRequest) {
       messages: normalized,
       system: systemPrompt,
       tools: aiTools,
-      // Default stopWhen: isStepCount(1) ends the stream right after a tool
-      // call, so the final answer would never be generated. The loop exits
-      // naturally once a step makes no tool calls; cap at 6 steps so a
-      // runaway tool chain still terminates (and the abuse pipeline bounds
-      // the cost).
-      stopWhen: isStepCount(6),
+      // Stop on the first step without tool calls (the final answer), capped
+      // at MAX_CHAT_STEPS so a runaway tool chain still terminates; the abuse
+      // pipeline bounds the cost on top of that.
+      stopWhen: createChatStopCondition(),
       maxOutputTokens: 1000,
       temperature: 0.3,
     });

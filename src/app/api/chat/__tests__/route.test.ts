@@ -526,4 +526,69 @@ describe("POST /api/chat", () => {
       );
     });
   });
+
+  describe("createChatStopCondition", () => {
+    it("stops on the first text-only step (final answer)", async () => {
+      const { createChatStopCondition } = await import("../route");
+      const stopWhen = createChatStopCondition();
+
+      expect(
+        stopWhen({ steps: [{ toolCalls: [] }] }),
+      ).toBe(true);
+    });
+
+    it("keeps looping while steps are tool calls, below the cap", async () => {
+      const { createChatStopCondition } = await import("../route");
+      const stopWhen = createChatStopCondition();
+
+      expect(
+        stopWhen({ steps: [{ toolCalls: [{}] }, { toolCalls: [{}] }, { toolCalls: [{}] }] }),
+      ).toBe(false);
+    });
+
+    it("stops once the step cap is reached even when the model still calls tools", async () => {
+      const { createChatStopCondition, MAX_CHAT_STEPS } = await import("../route");
+      const stopWhen = createChatStopCondition();
+
+      const toolSteps = Array.from({ length: MAX_CHAT_STEPS }, () => ({
+        toolCalls: [{}],
+      }));
+      expect(stopWhen({ steps: toolSteps })).toBe(true);
+    });
+
+    it("does not stop at cap-1 tool-calling steps", async () => {
+      const { createChatStopCondition, MAX_CHAT_STEPS } = await import("../route");
+      const stopWhen = createChatStopCondition();
+
+      const toolSteps = Array.from({ length: MAX_CHAT_STEPS - 1 }, () => ({
+        toolCalls: [{}],
+      }));
+      expect(stopWhen({ steps: toolSteps })).toBe(false);
+    });
+
+    it("respects a custom step cap", async () => {
+      const { createChatStopCondition } = await import("../route");
+      const stopWhen = createChatStopCondition(3);
+
+      expect(
+        stopWhen({ steps: [{ toolCalls: [{}] }, { toolCalls: [{}] }, { toolCalls: [{}] }] }),
+      ).toBe(true);
+    });
+
+    it("passes a function-valued stopWhen to streamText", async () => {
+      mockStreamText.mockReturnValue({
+        toUIMessageStreamResponse: vi.fn().mockReturnValue(
+          new Response("ok", { status: 200 }),
+        ),
+      });
+
+      const { POST } = await import("../route");
+      const req = createRequest({
+        messages: [{ role: "user", parts: [{ type: "text", text: "hello" }] }],
+      });
+      await POST(req);
+
+      expect(typeof mockStreamText.mock.calls[0][0].stopWhen).toBe("function");
+    });
+  });
 });

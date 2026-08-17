@@ -338,6 +338,12 @@
   padding: 8px;
 }
 
+.emptyResponse {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--mantine-color-dark-2);
+}
+
 .form {
   display: flex;
   gap: 8px;
