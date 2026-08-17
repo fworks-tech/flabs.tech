@@ -22,7 +22,7 @@ export async function ProjectGrid({ range, exclude }: ProjectGridProps) {
   let allProjects = await fetchFeaturedRepos();
 
   if (exclude?.length) {
-    allProjects = allProjects.filter((p) => !exclude.includes(p.slug));
+    allProjects = allProjects.filter((p) => !exclude.includes(p.detailSlug));
   }
 
   const sorted = allProjects.sort(
@@ -38,7 +38,7 @@ export async function ProjectGrid({ range, exclude }: ProjectGridProps) {
         const hasImages = project.images.length > 0;
 
         // Validate external links to prevent XSS - only allow http/https
-        let href = `/projects/${project.slug}`;
+        let href = `/projects/${project.detailSlug}`;
         if (project.link) {
           try {
             const url = new URL(project.link);

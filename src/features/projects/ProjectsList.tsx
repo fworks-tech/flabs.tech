@@ -11,7 +11,7 @@ export async function ProjectsList({ range, exclude }: ProjectsListProps) {
   let allProjects = await fetchFeaturedRepos();
 
   if (exclude?.length) {
-    allProjects = allProjects.filter((p) => !exclude.includes(p.slug));
+    allProjects = allProjects.filter((p) => !exclude.includes(p.detailSlug));
   }
 
   const sorted = allProjects.sort(
@@ -26,7 +26,7 @@ export async function ProjectsList({ range, exclude }: ProjectsListProps) {
         <ProjectCard
           priority={index < 2}
           key={project.slug}
-          href={`/projects/${project.slug}`}
+          href={`/projects/${project.detailSlug}`}
           images={project.images}
           title={project.title}
           description={project.summary}

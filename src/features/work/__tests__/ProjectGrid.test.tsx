@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 const mockProjects = [
   {
     slug: "project-one",
+    detailSlug: "project-one",
     title: "Project One",
     updatedAt: "2024-03-15",
     tag: "React",
@@ -18,6 +19,7 @@ const mockProjects = [
   },
   {
     slug: "project-two",
+    detailSlug: "project-two",
     title: "Project Two",
     updatedAt: "2024-01-10",
     tag: undefined,
@@ -32,6 +34,7 @@ const mockProjects = [
   },
   {
     slug: "excluded",
+    detailSlug: "excluded",
     title: "Excluded Project",
     updatedAt: "2024-02-20",
     tag: "",

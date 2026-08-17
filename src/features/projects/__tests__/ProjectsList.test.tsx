@@ -1,7 +1,8 @@
 import { MantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
 import { type ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchFeaturedRepos } from "@/lib/github-repos";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: Record<string, unknown>) => (
@@ -25,6 +26,7 @@ vi.mock("@/config", () => ({
 const mockProjects = [
   {
     slug: "alpha",
+    detailSlug: "alpha",
     title: "Alpha Project",
     updatedAt: "2024-06-01",
     tag: "React",
@@ -38,6 +40,7 @@ const mockProjects = [
   },
   {
     slug: "beta",
+    detailSlug: "beta",
     title: "Beta Project",
     updatedAt: "2024-03-01",
     tag: "Vue",
@@ -51,6 +54,7 @@ const mockProjects = [
   },
   {
     slug: "gamma",
+    detailSlug: "gamma",
     title: "Gamma Project",
     updatedAt: "2024-01-01",
     tag: "",
@@ -75,6 +79,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 import { ProjectsList } from "../ProjectsList";
 
 describe("ProjectsList", () => {
+  beforeEach(() => {
+    vi.mocked(fetchFeaturedRepos).mockResolvedValue(mockProjects);
+  });
+
   it("renders project cards", async () => {
     render(await ProjectsList({}), { wrapper: Wrapper });
     expect(screen.getAllByText("Alpha Project").length).toBeGreaterThanOrEqual(1);
@@ -91,5 +99,28 @@ describe("ProjectsList", () => {
     expect(screen.getAllByText("Alpha Project").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Beta Project").length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText("Gamma Project")).not.toBeInTheDocument();
+  });
+
+  it("links the case-study card to the detail slug (repo name may differ)", async () => {
+    vi.mocked(fetchFeaturedRepos).mockResolvedValue([
+      {
+        slug: "flabs.tech",
+        detailSlug: "flabs-tech",
+        title: "Site Project",
+        updatedAt: "2024-06-01",
+        tag: "Frontend",
+        images: [],
+        team: [],
+        summary: "Site summary",
+        link: "https://github.com/fworks-tech/flabs.tech",
+        content: "Some body content",
+        githubUrl: "https://github.com/fworks-tech/flabs.tech",
+        publishedAt: "2024-06-01",
+      },
+    ]);
+    render(await ProjectsList({}), { wrapper: Wrapper });
+
+    const link = await screen.findByRole("link", { name: "Read case study" });
+    expect(link).toHaveAttribute("href", "/projects/flabs-tech");
   });
 });

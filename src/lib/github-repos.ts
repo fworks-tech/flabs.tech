@@ -89,6 +89,7 @@ export async function fetchFeaturedRepos(): Promise<ProjectData[]> {
 
       return {
         slug: repo.name,
+        detailSlug: repo.mdxSlug || repo.name,
         title: (meta?.title as string) || gh.name,
         summary: (meta?.summary as string) || gh.description || "",
         link: (meta?.link as string) || gh.homepage || gh.html_url,

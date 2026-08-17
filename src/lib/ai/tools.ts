@@ -11,8 +11,8 @@ import { logger } from "@/lib/logger";
 const AUTHORIZED_URLS: RegExp[] = [
   /^https?:\/\/github\.com\/fworks-tech\/.+/,
   /^https?:\/\/agenthood\.flabs\.tech(\/.*)?$/,
-  /^https?:\/\/logroute-app\.vercel\.app(\/.*)?$/,
-  /^https?:\/\/chain-telescope\.streamlit\.app(\/.*)?$/,
+/^https?:\/\/logroute-app\.vercel\.app(\/.*)?$/,
+    /^https?:\/\/hasheyes\.flabs\.tech(\/.*)?$/,
   /^https?:\/\/flabs\.tech(\/.*)?$/,
   /^https?:\/\/www\.npmjs\.com\/package\/agenthood/,
 ];
@@ -164,6 +164,93 @@ async function searchContent(query: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Tool 4 — listGitHubRepos
+// Lists Fabio's public GitHub repositories (non-fork), sourced live from the
+// GitHub API with a short in-memory cache. This is the primary source for
+// project questions: the static .mdx list is the curated subset shown on the
+// site, while this tool covers every real repo.
+// ---------------------------------------------------------------------------
+
+/**
+ * Repos hidden from the assistant's project knowledge even though they exist
+ * on GitHub. Kept in sync with the site's project curation: fashionista and
+ * ApolloDroid were removed from the portfolio, `fworks-tech` is the profile
+ * README, and `blockchain-explorer` / `fworks.tech` are experimental repos
+ * not presented as showcase work.
+ */
+export const EXCLUDED_REPOS = new Set([
+  "fashionista",
+  "ApolloDroid",
+  "fworks-tech",
+  "blockchain-explorer",
+  "fworks.tech",
+]);
+
+export type RepoSummary = {
+  name: string;
+  description: string | null;
+  homepage: string | null;
+  language: string | null;
+  topics: string[];
+  stars: number;
+  updatedAt: string;
+  url: string;
+};
+
+let repoCache: { at: number; repos: RepoSummary[] } | null = null;
+const REPO_CACHE_TTL_MS = 5 * 60_000;
+
+export async function listGitHubRepos(): Promise<{ repos: RepoSummary[] } | { error: string }> {
+  if (repoCache && Date.now() - repoCache.at < REPO_CACHE_TTL_MS) {
+    return { repos: repoCache.repos };
+  }
+
+  try {
+    const res = await fetch("https://api.github.com/users/fworks-tech/repos?per_page=100&sort=updated", {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) {
+      return { error: `GitHub returned ${res.status}` };
+    }
+    const data = (await res.json()) as Array<{
+      name: string;
+      description: string | null;
+      homepage: string | null;
+      language: string | null;
+      topics: string[];
+      stargazers_count: number;
+      pushed_at: string;
+      html_url: string;
+      fork: boolean;
+    }>;
+
+    const repos: RepoSummary[] = data
+      .filter((repo) => !repo.fork && !EXCLUDED_REPOS.has(repo.name))
+      .map((repo) => ({
+        name: repo.name,
+        description: repo.description ? repo.description.slice(0, 160) : null,
+        homepage: repo.homepage,
+        language: repo.language,
+        topics: (repo.topics ?? []).slice(0, 8),
+        stars: repo.stargazers_count,
+        updatedAt: repo.pushed_at,
+        url: repo.html_url,
+      }))
+      .sort((a, b) => {
+        const byDate = new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        return byDate !== 0 ? byDate : b.stars - a.stars;
+      });
+
+    repoCache = { at: Date.now(), repos };
+    return { repos };
+  } catch (error) {
+    logger.error(error, "AI tool listGitHubRepos failed");
+    return { error: "Failed to fetch GitHub repositories" };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Exported tool definitions — plug these into streamText({ tools })
 // ---------------------------------------------------------------------------
 export const aiTools = {
@@ -214,6 +301,20 @@ export const aiTools = {
     execute: async ({ query }) => {
       logger.info({ tool: "searchContent", query }, "AI tool call");
       return searchContent(query);
+    },
+  }),
+
+  listGitHubRepos: tool({
+    description:
+      "List all of Fabio's public GitHub repositories (non-fork, curated). " +
+      "Returns name, description, homepage, language, topics, stars, and " +
+      "last update, sorted by most recently updated. Prefer this tool when " +
+      "asked about his projects overall — the static portfolio list only " +
+      "covers the curated subset shown on the site.",
+    inputSchema: zodSchema(z.object({})),
+    execute: async () => {
+      logger.info({ tool: "listGitHubRepos" }, "AI tool call");
+      return listGitHubRepos();
     },
   }),
 };

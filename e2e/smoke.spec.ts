@@ -4,8 +4,8 @@ const staticRoutes = ["/", "/about", "/blog", "/work", "/projects"];
 
 const detailSlugs = {
   "/blog": ["graphql-federation-at-scale", "agenthood-the-academy"],
-  "/projects": ["agenthood", "apollodroid", "logroute", "flabs-tech", "verihire"],
-  "/work": ["agenthood", "apollodroid", "flabs-tech", "verihire"],
+  "/projects": ["agenthood", "hasheyes", "arxiv-manager", "agenthood-site", "logroute", "flabs-tech", "verihire"],
+  "/work": ["agenthood", "flabs-tech", "verihire"],
 };
 
 test.describe("smoke tests", () => {
