@@ -1,9 +1,10 @@
 /**
- * Client-side, consent-first UX tracking.
+ * Client-side, opt-out UX tracking.
  *
  * - Cookies: `_fa_uid` (anonymous visitor id, 1y), `_fa_sid` (session id, 30m),
  *   `_fa_consent` (accepted | declined, 1y).
- * - Nothing is sent until the visitor accepts the consent banner.
+ * - Anonymous tracking runs by default. Nothing is sent after the visitor
+ *   declines; `clearConsent()` re-enables it (brings the banner back).
  * - Events are buffered client-side and flushed with `sendBeacon` to
  *   `/api/analytics/event` (every 5s, at 10 buffered events, or on pagehide).
  * - No PII is collected: ids are random UUIDs, no IPs are stored.
@@ -45,6 +46,14 @@ export function setConsent(state: "accepted" | "declined"): void {
   }
 }
 
+/** Clears the consent decision (returns to the default opt-in state and re-opens the banner). */
+export function clearConsent(): void {
+  if (typeof window === "undefined") return;
+  const secure = window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0; samesite=lax${secure}`;
+  window.dispatchEvent(new CustomEvent("fa:consent", { detail: null }));
+}
+
 export function subscribeConsent(callback: () => void): () => void {
   if (typeof window === "undefined") return () => {};
   window.addEventListener("fa:consent", callback);
@@ -83,9 +92,14 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 export function track(
   type: string,
   props?: { path?: string; value?: number; referrer?: string },
+  opts?: { force?: boolean },
 ): void {
   if (typeof window === "undefined") return;
-  if (getConsent() !== "accepted") return;
+  const declined = getConsent() === "declined";
+  // `consent_declined` records the opt-out itself and must be emitted while
+  // the cookie is already set to declined — the only event allowed through
+  // while tracking is otherwise stopped.
+  if (declined && !(opts?.force && type === "consent_declined")) return;
 
   const { uid, sid } = ensureIds();
   const { device, browser } = detectEnvironment();
@@ -110,7 +124,7 @@ export function track(
 }
 
 export function startTrackingSession(): void {
-  if (getConsent() !== "accepted") return;
+  if (getConsent() === "declined") return;
   track("session_start", { referrer: getExternalReferrer() });
   track("page_view");
 }

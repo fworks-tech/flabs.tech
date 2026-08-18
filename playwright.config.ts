@@ -40,11 +40,11 @@ export default defineConfig({
       // Deterministic server-side data (projects page fetches GitHub server-side,
       // which Playwright's page.route cannot intercept).
       E2E_GITHUB_MOCK: "1",
-      // Stub PostHog credentials so the consent-gating e2e test can assert
-      // network behavior deterministically (CI has no .env.local). The key is
-      // a public client SDK key; PostHog simply rejects it server-side.
-      NEXT_PUBLIC_POSTHOG_KEY: "phc_test_key",
-      NEXT_PUBLIC_POSTHOG_HOST: "https://us.i.posthog.com",
+      // PostHog is disabled in e2e: tracking is opt-out by default, so a live
+      // key would initialize PostHog on every page and emit real network calls
+      // (and errors against an invalid stub key). Empties keep it a silent no-op.
+      NEXT_PUBLIC_POSTHOG_KEY: "",
+      NEXT_PUBLIC_POSTHOG_HOST: "",
       // Enable the admin fake-session backdoor (requires the
       // `e2e_fake_session` cookie, set by e2e/admin.spec.ts).
       E2E_FAKE_SESSION: "1",

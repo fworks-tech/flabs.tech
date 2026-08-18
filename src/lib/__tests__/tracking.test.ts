@@ -44,18 +44,26 @@ describe("tracking client", () => {
     expect(getCookie(SID_COOKIE)).toBe(ids.sid);
   });
 
-  it("track() sends nothing before consent", async () => {
+  it("tracks by default before any consent choice", async () => {
     const { track } = await import("@/lib/tracking");
 
+    for (let i = 0; i < 10; i++) track("page_view");
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("track() sends nothing after consent is declined", async () => {
+    const { setConsent, track } = await import("@/lib/tracking");
+
+    setConsent("declined");
     for (let i = 0; i < 12; i++) track("page_view");
 
     expect(sendBeaconMock).not.toHaveBeenCalled();
   });
 
   it("track() flushes via sendBeacon after 10 buffered events", async () => {
-    const { setConsent, track } = await import("@/lib/tracking");
+    const { track } = await import("@/lib/tracking");
 
-    setConsent("accepted");
     for (let i = 0; i < 10; i++) track("page_view");
 
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
@@ -63,6 +71,33 @@ describe("tracking client", () => {
       "/api/analytics/event",
       expect.any(Blob),
     );
+  });
+
+  it("clearConsent resets the decision and dispatches an event", async () => {
+    const { clearConsent, getConsent, setConsent } = await import("@/lib/tracking");
+    const listener = vi.fn();
+    window.addEventListener("fa:consent", listener);
+
+    setConsent("declined");
+    clearConsent();
+
+    expect(getConsent()).toBeNull();
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining({ detail: null }));
+  });
+
+  it("emits consent_declined even while consent is declined (force bypass)", async () => {
+    const { initTracking, setConsent, track } = await import("@/lib/tracking");
+
+    initTracking();
+    setConsent("declined");
+    track("consent_declined", undefined, { force: true });
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    const blob = sendBeaconMock.mock.calls[0][1] as Blob;
+    const events = JSON.parse(await blob.text()) as Array<{ ty: string; p: string }>;
+    expect(events).toHaveLength(1);
+    expect(events[0].ty).toBe("consent_declined");
   });
 
   it("flush() on pagehide sends buffered events", async () => {
@@ -77,10 +112,9 @@ describe("tracking client", () => {
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
   });
 
-  it("startTrackingSession emits session_start and page_view", async () => {
-    const { setConsent, startTrackingSession } = await import("@/lib/tracking");
+  it("startTrackingSession emits session_start and page_view by default", async () => {
+    const { startTrackingSession } = await import("@/lib/tracking");
 
-    setConsent("accepted");
     startTrackingSession();
 
     // 2 buffered events — flush via pagehide to inspect.

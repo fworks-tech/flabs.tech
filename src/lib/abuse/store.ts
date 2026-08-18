@@ -30,6 +30,8 @@ if (url && token) {
   redis = new Redis({ url, token });
 }
 
+export const storageBackend: 'redis' | 'memory' = redis ? 'redis' : 'memory';
+
 /** Converts a Redis-style glob pattern (`*`, `?`) to a RegExp. */
 function globToRegex(pattern: string): RegExp {
   let out = "";

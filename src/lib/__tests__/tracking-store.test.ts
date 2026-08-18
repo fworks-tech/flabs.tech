@@ -125,4 +125,42 @@ describe("tracking-store", () => {
     const topPages = await getTopPages(1);
     expect(topPages).toEqual([["/blog", 1]]);
   });
+
+  it("taxonomy is consistent — every client-emitted name is ingest-accepted", async () => {
+    const { EVENT_TYPES, EVENT_TYPES_SET } = await import("@/lib/tracking-store");
+    expect(EVENT_TYPES_SET.size).toBe(EVENT_TYPES.length);
+
+    const clientNames = [
+      "session_start",
+      "page_view",
+      "scroll_depth",
+      "nav_click",
+      "external_link",
+      "cta_click",
+      "project_view",
+      "post_click",
+      "social_link",
+      "ai_assistant_open",
+      "ai_assistant_close",
+      "ai_assistant_send",
+      "ai_assistant_error",
+      "ai_assistant_generation_stopped",
+      "protected_route_access_granted",
+      "consent_accepted",
+      "consent_declined",
+      "quiz_start",
+      "quiz_answer",
+      "quiz_complete",
+      "quiz_daily_answer",
+      "quiz_score_saved",
+      "quiz_feedback_submit",
+      "quiz_rating_submit",
+      "quiz_referral_cta_shown",
+      "quiz_referral_click",
+      "quiz_share",
+    ];
+    for (const name of clientNames) {
+      expect(EVENT_TYPES_SET.has(name)).toBe(true);
+    }
+  });
 });

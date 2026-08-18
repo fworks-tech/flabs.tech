@@ -2,19 +2,15 @@
 
 import { Button, Group, Paper, Text } from "@mantine/core";
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
-import {
-  getConsent,
-  setConsent,
-  startTrackingSession,
-  subscribeConsent,
-  track,
-} from "@/lib/tracking";
+import { getConsent, setConsent, subscribeConsent, track } from "@/lib/tracking";
 import styles from "./ConsentBanner.module.scss";
 
 interface ConsentBannerProps {
   /** Consent cookie value read server-side (SSR-consistent initial state). */
   initialConsent: string | null;
 }
+
+const AUTO_DISMISS_MS = 8000;
 
 export const ConsentBanner = ({ initialConsent }: ConsentBannerProps) => {
   const consent = useSyncExternalStore(subscribeConsent, getConsent, () => initialConsent);
@@ -45,14 +41,17 @@ export const ConsentBanner = ({ initialConsent }: ConsentBannerProps) => {
     };
   }, [visible]);
 
-  const handleAccept = useCallback(() => {
-    setConsent("accepted");
-    startTrackingSession();
-    track("consent_accepted");
-  }, []);
+  // Opt-out model: tracking runs by default, so an un-dismissed banner
+  // auto-accepts after a short window instead of blocking navigation.
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => setConsent("accepted"), AUTO_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [visible]);
 
   const handleDecline = useCallback(() => {
     setConsent("declined");
+    track("consent_declined", undefined, { force: true });
   }, []);
 
   if (!visible) return null;
@@ -72,15 +71,12 @@ export const ConsentBanner = ({ initialConsent }: ConsentBannerProps) => {
         Privacy-first analytics
       </Text>
       <Text size="sm" c="dimmed">
-        This site uses anonymous cookies to understand how visitors use it. Nothing personal is
-        collected — no IPs, no names. You can accept or decline.
+        This site collects anonymous usage analytics to improve the experience. No personal data is
+        collected — no IPs, no names. By continuing to browse, you agree.
       </Text>
       <Group justify="flex-end" mt="xs">
         <Button variant="subtle" size="xs" onClick={handleDecline} data-testid="consent-decline">
           Decline
-        </Button>
-        <Button size="xs" onClick={handleAccept} data-testid="consent-accept">
-          Accept
         </Button>
       </Group>
     </Paper>

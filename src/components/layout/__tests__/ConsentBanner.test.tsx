@@ -1,8 +1,8 @@
 import { MantineProvider } from "@mantine/core";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { type ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CONSENT_COOKIE } from "@/lib/tracking";
 
 function Wrapper({ children }: { children: ReactNode }) {
@@ -26,6 +26,7 @@ describe("ConsentBanner", () => {
 
   afterEach(() => {
     clearConsentCookie();
+    vi.useRealTimers();
   });
 
   it("shows the banner when no consent cookie exists", () => {
@@ -46,14 +47,28 @@ describe("ConsentBanner", () => {
     expect(screen.queryByTestId("consent-banner")).not.toBeInTheDocument();
   });
 
-  it("accepting persists the consent cookie and hides the banner", async () => {
-    const user = userEvent.setup();
+  it("auto-dismisses after the window and persists accepted", () => {
+    vi.useFakeTimers();
     render(<ConsentBanner initialConsent={null} />, { wrapper: Wrapper });
+    expect(screen.getByTestId("consent-banner")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("consent-accept"));
+    act(() => {
+      vi.advanceTimersByTime(8000);
+    });
 
     expect(document.cookie).toContain(`${CONSENT_COOKIE}=accepted`);
     expect(screen.queryByTestId("consent-banner")).not.toBeInTheDocument();
+  });
+
+  it("does not auto-dismiss before the window elapses", () => {
+    vi.useFakeTimers();
+    render(<ConsentBanner initialConsent={null} />, { wrapper: Wrapper });
+
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+
+    expect(screen.getByTestId("consent-banner")).toBeInTheDocument();
   });
 
   it("declining persists the opt-out cookie and hides the banner", async () => {

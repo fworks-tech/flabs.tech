@@ -17,7 +17,6 @@ import { useEffect, useState } from 'react';
 
 import { display, routes } from '@/config';
 import { about, blog, person, projects, work } from '@/content';
-import { trackEvent } from '@/lib/analytics';
 import styles from './Header.module.scss';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -120,7 +119,6 @@ export const Header = () => {
                   href={item.path}
                   variant={item.selected ? 'light' : 'subtle'}
                   visibleFrom="sm"
-                  onClick={() => trackEvent('nav_click', { page: item.path })}
                   className={item.highlight ? styles.tryYourself : undefined}
                 >
                   {item.label}
@@ -131,7 +129,6 @@ export const Header = () => {
                   variant={item.selected ? 'light' : 'subtle'}
                   size="md"
                   hiddenFrom="sm"
-                  onClick={() => trackEvent('nav_click', { page: item.path })}
                 >
                   {iconMap[item.icon] || null}
                 </ActionIcon>
@@ -185,10 +182,7 @@ export const Header = () => {
                     variant={item.selected ? 'light' : 'subtle'}
                     justify="flex-start"
                     leftSection={iconMap[item.icon] || null}
-                    onClick={() => {
-                      trackEvent('nav_click', { page: item.path });
-                      setMenuOpen(false);
-                    }}
+                    onClick={() => setMenuOpen(false)}
                     className={item.highlight ? styles.tryYourself : undefined}
                   >
                     {item.label}

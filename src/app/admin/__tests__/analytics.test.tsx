@@ -10,7 +10,10 @@ const trackingStoreMock = vi.hoisted(() => ({
   getRecentEvents: vi.fn(),
 }));
 
+const storeMock = vi.hoisted(() => ({ storageBackend: "memory" as "redis" | "memory" }));
+
 vi.mock("@/lib/tracking-store", () => trackingStoreMock);
+vi.mock("@/lib/abuse/store", () => storeMock);
 
 vi.mock("@/components/admin/AdminCharts", () => ({
   TrafficChart: () => <div data-testid="traffic-chart" />,
@@ -59,6 +62,16 @@ describe("admin analytics page", () => {
     expect(screen.getByTestId("top-pages-chart")).toBeInTheDocument();
     expect(screen.getByTestId("device-pie")).toBeInTheDocument();
     expect(screen.getByText("page_view")).toBeInTheDocument();
+  });
+
+  it("shows the storage backend badge", async () => {
+    const { default: Page } = await import("@/app/admin/analytics/page");
+    const view = await Page();
+    render(view, { wrapper: Wrapper });
+
+    const badge = screen.getByTestId("analytics-backend-badge");
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveTextContent("In-memory (resets on cold start)");
   });
 
   it("shows an empty state without recent events", async () => {

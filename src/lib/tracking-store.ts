@@ -17,8 +17,10 @@ export const EVENTS_TTL = 14 * 24 * 60 * 60;
 export const MAX_RECENT_EVENTS = 1000;
 export const MAX_PAGES = 100;
 
-/** Event types accepted by the ingest endpoint. */
-export const EVENT_TYPES = new Set([
+/** Event types accepted by the ingest endpoint. Single source of truth for
+ *  the self-hosted analytics taxonomy — the client `EventName` union and the
+ *  ingest validation both derive from this list. */
+export const EVENT_TYPES = [
   'session_start',
   'page_view',
   'scroll_depth',
@@ -28,11 +30,12 @@ export const EVENT_TYPES = new Set([
   'project_view',
   'post_click',
   'social_link',
-  'share_click',
   'ai_assistant_open',
   'ai_assistant_close',
   'ai_assistant_send',
   'ai_assistant_error',
+  'ai_assistant_generation_stopped',
+  'protected_route_access_granted',
   'consent_accepted',
   'consent_declined',
   'quiz_start',
@@ -45,7 +48,12 @@ export const EVENT_TYPES = new Set([
   'quiz_referral_cta_shown',
   'quiz_referral_click',
   'quiz_share',
-]);
+] as const;
+
+export type EventName = (typeof EVENT_TYPES)[number];
+
+/** Lookup set for O(1) ingest validation. */
+export const EVENT_TYPES_SET: ReadonlySet<string> = new Set(EVENT_TYPES);
 export interface TrackedEvent {
   t: number;
   ty: string;
