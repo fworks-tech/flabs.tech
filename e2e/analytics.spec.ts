@@ -119,12 +119,12 @@ test.describe("analytics tracking elements", () => {
   });
 
   test("a header nav click emits exactly one nav_click beacon", async ({ page }) => {
-    const navClicks: string[] = [];
+    const navClicks: Array<{ ty?: string; p?: string }> = [];
     await page.route("**/api/analytics/event", (route) => {
       const data = route.request().postData ? JSON.parse(route.request().postData() as string) : null;
       if (Array.isArray(data)) {
         for (const ev of data) {
-          if (ev.ty === "nav_click") navClicks.push(ev.ty);
+          if (ev.ty === "nav_click") navClicks.push(ev);
         }
       }
       route.continue();
@@ -139,5 +139,6 @@ test.describe("analytics tracking elements", () => {
     // The buffered nav_click flushes via the 5s interval.
     await expect.poll(() => navClicks.length, { timeout: 7000 }).toBeGreaterThan(0);
     expect(navClicks).toHaveLength(1);
+    expect(navClicks[0].p).toBe("/about");
   });
 });

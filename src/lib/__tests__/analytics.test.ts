@@ -2,12 +2,13 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const track = vi.fn();
 const capture = vi.fn();
+const selfHostedTrack = vi.fn();
 
 vi.mock("@vercel/analytics", () => ({ track }));
 vi.mock("posthog-js", () => ({ default: { capture: (...args: unknown[]) => capture(...args) } }));
 vi.mock("@/lib/tracking", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/tracking")>();
-  return { ...actual, track: vi.fn() };
+  return { ...actual, track: selfHostedTrack };
 });
 
 const CONSENT_COOKIE = "_fa_consent";
@@ -66,5 +67,12 @@ describe("analytics", () => {
     expect(() => trackEvent("cta_click")).not.toThrow();
     expect(track).not.toHaveBeenCalled();
     spy.mockRestore();
+  });
+
+  it("passes path and value through to the self-hosted tracker", async () => {
+    const { trackEvent } = await import("@/lib/analytics");
+    trackEvent("cta_click", { label: "View Projects", path: "/projects", value: 1 });
+
+    expect(selfHostedTrack).toHaveBeenCalledWith("cta_click", { path: "/projects", value: 1 });
   });
 });

@@ -49,7 +49,8 @@ export function setConsent(state: "accepted" | "declined"): void {
 /** Clears the consent decision (returns to the default opt-in state and re-opens the banner). */
 export function clearConsent(): void {
   if (typeof window === "undefined") return;
-  document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0; samesite=lax; secure`;
+  const secure = window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0; samesite=lax${secure}`;
   window.dispatchEvent(new CustomEvent("fa:consent", { detail: null }));
 }
 

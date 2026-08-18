@@ -11,6 +11,7 @@ export default function PostHogTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const consentedRef = useRef(getConsent() !== "declined");
+  const optedOutRef = useRef(false);
 
   const ensureInit = useCallback(() => {
     if (initialized) return;
@@ -41,7 +42,8 @@ export default function PostHogTracker() {
 
   // Privacy-first, opt-out: anonymous PostHog tracking runs by default and is
   // disabled only after the visitor declines. Declining past the init also
-  // stops future captures via opt_out_capturing.
+  // stops future captures via opt_out_capturing; re-accepting re-opts in so
+  // the re-enable path (footer Privacy & analytics) actually records again.
   useEffect(() => {
     if (consentedRef.current) {
       ensureInit();
@@ -50,10 +52,19 @@ export default function PostHogTracker() {
       if (getConsent() !== "declined") {
         consentedRef.current = true;
         ensureInit();
-        if (initialized) posthog.capture("$pageview");
+        if (initialized) {
+          if (optedOutRef.current) {
+            posthog.opt_in_capturing();
+            optedOutRef.current = false;
+          }
+          posthog.capture("$pageview");
+        }
       } else {
         consentedRef.current = false;
-        if (initialized) posthog.opt_out_capturing();
+        if (initialized) {
+          posthog.opt_out_capturing();
+          optedOutRef.current = true;
+        }
       }
     });
   }, [ensureInit]);

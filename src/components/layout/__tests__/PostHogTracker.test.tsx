@@ -4,12 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const initMock = vi.fn();
 const captureMock = vi.fn();
 const optOutMock = vi.fn();
+const optInMock = vi.fn();
 
 vi.mock("posthog-js", () => ({
   default: {
     init: (...args: unknown[]) => initMock(...args),
     capture: (...args: unknown[]) => captureMock(...args),
     opt_out_capturing: (...args: unknown[]) => optOutMock(...args),
+    opt_in_capturing: (...args: unknown[]) => optInMock(...args),
   },
 }));
 
@@ -83,6 +85,21 @@ describe("PostHogTracker", () => {
     setConsent("declined");
 
     expect(optOutMock).toHaveBeenCalled();
+  });
+
+  it("re-opts in to captures when consent is re-accepted after a decline", async () => {
+    const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
+    const { setConsent } = await import("@/lib/tracking");
+    render(<PostHogTracker />);
+    expect(initMock).toHaveBeenCalledTimes(1);
+
+    setConsent("declined");
+    expect(optOutMock).toHaveBeenCalledTimes(1);
+
+    setConsent("accepted");
+
+    expect(optInMock).toHaveBeenCalledTimes(1);
+    expect(captureMock).toHaveBeenCalledWith("$pageview");
   });
 
   it("inits at most once across remounts", async () => {

@@ -33,5 +33,8 @@ export function trackEvent(name: EventName, properties?: EventProperties) {
   if (process.env.NEXT_PUBLIC_POSTHOG_KEY && getConsent() !== 'declined') {
     posthog.capture(name, properties ?? {});
   }
-  trackSelfHosted(name);
+  trackSelfHosted(name, {
+    path: typeof properties?.path === 'string' ? properties.path : undefined,
+    value: typeof properties?.value === 'number' ? properties.value : undefined,
+  });
 }

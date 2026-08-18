@@ -39,6 +39,8 @@ The self-hosted, consent-first analytics (`/api/analytics/event` → Redis → `
 
 **Easier:** owners see their own traffic without configuration; clicks and sessions are no longer inflated; event names can't drift from the validated set; failures are visible in Vercel logs and on the dashboard.
 
+**Server-log note:** the ingest route logs the *proxied* client IP (rightmost `X-Forwarded-For`, per ADR-002's trust-boundary rule) in the 429 path. This IP appears in Vercel function logs only — it is never written to Redis, and the analytics event data itself remains IP-free. Log retention is governed by the hosting platform's log policy.
+
 **Harder / new risks:** opt-out means every visitor is tracked (anonymously) until they decline — a privacy-model change that must be communicated in the banner text; `trackEvent` now feeds self-hosted clicks without the semantic `page`/`platform` props it previously carried for nav/social events (Vercel/PostHog receive `path`/`label` instead — dashboard queries keyed on the old prop names must be updated); pre-decline buffered events still flush after a decline (a few anonymous events, accepted tradeoff).
 
 **Behavior changes needing operator awareness:** existing `_fa_consent=declined` cookies in visitors' browsers persist; the footer control (or clearing cookies) is the only way to re-enable tracking for those users. The `clicks` aggregate (`nav_click + external_link + cta_click + social_link`) is now a faithful per-action count instead of a doubled one, so historical dashboard baselines are not comparable.
