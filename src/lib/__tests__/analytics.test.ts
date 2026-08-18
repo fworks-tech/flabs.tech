@@ -40,17 +40,10 @@ describe("analytics", () => {
     expect(track).toHaveBeenCalledWith("nav_click", undefined);
   });
 
-  it("captures to posthog only after consent is accepted", async () => {
+  it("captures to posthog by default without consent", async () => {
     const { trackEvent } = await import("@/lib/analytics");
-    setConsentCookie("accepted");
     trackEvent("cta_click", { label: "View Projects" });
     expect(capture).toHaveBeenCalledWith("cta_click", { label: "View Projects" });
-  });
-
-  it("does not capture to posthog when consent is missing", async () => {
-    const { trackEvent } = await import("@/lib/analytics");
-    trackEvent("cta_click", { label: "View Projects" });
-    expect(capture).not.toHaveBeenCalled();
   });
 
   it("does not capture to posthog when consent is declined", async () => {
@@ -58,6 +51,13 @@ describe("analytics", () => {
     setConsentCookie("declined");
     trackEvent("cta_click", { label: "View Projects" });
     expect(capture).not.toHaveBeenCalled();
+  });
+
+  it("does not capture to posthog when consent is missing", async () => {
+    const { trackEvent } = await import("@/lib/analytics");
+    setConsentCookie(null);
+    trackEvent("cta_click", { label: "View Projects" });
+    expect(capture).toHaveBeenCalledWith("cta_click", { label: "View Projects" });
   });
 
   it("does not throw in server environment", async () => {

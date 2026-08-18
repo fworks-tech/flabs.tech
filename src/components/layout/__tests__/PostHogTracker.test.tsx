@@ -3,11 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const initMock = vi.fn();
 const captureMock = vi.fn();
+const optOutMock = vi.fn();
 
 vi.mock("posthog-js", () => ({
   default: {
     init: (...args: unknown[]) => initMock(...args),
     capture: (...args: unknown[]) => captureMock(...args),
+    opt_out_capturing: (...args: unknown[]) => optOutMock(...args),
   },
 }));
 
@@ -38,11 +40,11 @@ describe("PostHogTracker", () => {
     vi.unstubAllEnvs();
   });
 
-  it("does not init posthog without consent", async () => {
+  it("inits and captures $pageview by default without consent", async () => {
     const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
     render(<PostHogTracker />);
-    expect(initMock).not.toHaveBeenCalled();
-    expect(captureMock).not.toHaveBeenCalled();
+    expect(initMock).toHaveBeenCalledTimes(1);
+    expect(captureMock).toHaveBeenCalledWith("$pageview");
   });
 
   it("inits and captures $pageview when consent was already accepted", async () => {
@@ -53,15 +55,14 @@ describe("PostHogTracker", () => {
     expect(captureMock).toHaveBeenCalledWith("$pageview");
   });
 
-  it("inits and captures the current pageview when the banner is accepted later", async () => {
+  it("captures the current pageview when consent is re-enabled later", async () => {
     const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
     const { setConsent } = await import("@/lib/tracking");
     render(<PostHogTracker />);
-    expect(initMock).not.toHaveBeenCalled();
+    captureMock.mockClear();
 
     setConsent("accepted");
 
-    expect(initMock).toHaveBeenCalledTimes(1);
     expect(captureMock).toHaveBeenCalledWith("$pageview");
   });
 
@@ -73,6 +74,17 @@ describe("PostHogTracker", () => {
     expect(captureMock).not.toHaveBeenCalled();
   });
 
+  it("opts out of captures when consent is declined after init", async () => {
+    const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
+    const { setConsent } = await import("@/lib/tracking");
+    render(<PostHogTracker />);
+    expect(initMock).toHaveBeenCalledTimes(1);
+
+    setConsent("declined");
+
+    expect(optOutMock).toHaveBeenCalled();
+  });
+
   it("inits at most once across remounts", async () => {
     setConsentCookie("accepted");
     const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
@@ -82,9 +94,8 @@ describe("PostHogTracker", () => {
     expect(initMock).toHaveBeenCalledTimes(1);
   });
 
-  it("does not init or capture when keys are not configured, even if consent is accepted", async () => {
+  it("does not init or capture when keys are not configured", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "");
-    setConsentCookie("accepted");
     const { default: PostHogTracker } = await import("@/components/layout/PostHogTracker");
     const { setConsent } = await import("@/lib/tracking");
     render(<PostHogTracker />);

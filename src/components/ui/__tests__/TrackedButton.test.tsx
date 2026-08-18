@@ -27,19 +27,25 @@ describe("TrackedButton", () => {
     expect(link).toHaveAttribute("href", "/projects");
   });
 
-  it("calls track on click", async () => {
+  it("renders data-track-event and data-track-label attributes", () => {
+    render(<TrackedButton href="/about" eventName="cta_click" eventLabel="about-page">About</TrackedButton>, { wrapper: Wrapper });
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("data-track-event", "cta_click");
+    expect(link).toHaveAttribute("data-track-label", "about-page");
+  });
+
+  it("falls back to href as the tracked label", () => {
+    render(<TrackedButton href="/work" eventName="nav_click">Work</TrackedButton>, { wrapper: Wrapper });
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("data-track-event", "nav_click");
+    expect(link).toHaveAttribute("data-track-label", "/work");
+  });
+
+  it("does not fire tracking itself (single document listener owns clicks)", async () => {
     const user = userEvent.setup();
     render(<TrackedButton href="/about" eventName="cta_click" eventLabel="about-page">About</TrackedButton>, { wrapper: Wrapper });
     await user.click(screen.getByRole("link"));
-    expect(trackSpy).toHaveBeenCalledWith("cta_click", { label: "about-page" });
-  });
-
-  it("falls back to href as event label", async () => {
-    const user = userEvent.setup();
-    trackSpy.mockClear();
-    render(<TrackedButton href="/work" eventName="nav_click">Work</TrackedButton>, { wrapper: Wrapper });
-    await user.click(screen.getByRole("link"));
-    expect(trackSpy).toHaveBeenCalledWith("nav_click", { label: "/work" });
+    expect(trackSpy).not.toHaveBeenCalled();
   });
 
   it("maps variant primary to filled", () => {

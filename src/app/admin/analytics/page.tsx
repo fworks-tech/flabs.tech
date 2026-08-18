@@ -1,5 +1,6 @@
-import { Card, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Badge, Card, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { DevicePie, TopPagesChart, TrafficChart } from '@/components/admin/AdminCharts';
+import { storageBackend } from '@/lib/abuse/store';
 import { getDaySeries, getRecentEvents, getTopPages, getTotals } from '@/lib/tracking-store';
 import { RecentEventsTable } from './AnalyticsTables';
 import { LastUpdated } from '../LastUpdated';
@@ -25,7 +26,17 @@ export default async function AdminAnalyticsPage() {
   return (
     <Stack gap="xl">
       <Stack gap="4">
-        <Title order={2}>Analytics</Title>
+        <Group gap="sm" align="center">
+          <Title order={2}>Analytics</Title>
+          <Badge
+            size="sm"
+            variant="light"
+            color={storageBackend === 'redis' ? 'teal' : 'orange'}
+            data-testid="analytics-backend-badge"
+          >
+            {storageBackend === 'redis' ? 'Redis (persistent)' : 'In-memory (resets on cold start)'}
+          </Badge>
+        </Group>
         <Text size="sm" c="dimmed">
           Consent-first UX tracking over the last 14 days (self-hosted, anonymous).
         </Text>

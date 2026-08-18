@@ -9,7 +9,14 @@ vi.mock("@/lib/rateLimiter", () => ({
 }));
 
 vi.mock("@/lib/tracking-store", () => ({
-  EVENT_TYPES: new Set(["session_start", "page_view", "nav_click", "scroll_depth"]),
+  EVENT_TYPES_SET: new Set([
+    "session_start",
+    "page_view",
+    "nav_click",
+    "scroll_depth",
+    "ai_assistant_generation_stopped",
+    "protected_route_access_granted",
+  ]),
   recordEvent: recordEventMock,
 }));
 
@@ -59,6 +66,20 @@ describe("analytics event route", () => {
 
     expect(res.status).toBe(200);
     expect(recordEventMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("accepts event types that were previously dropped", async () => {
+    const { POST } = await import("@/app/api/analytics/event/route");
+
+    const res = await POST(
+      createRequest([
+        { t: Date.now(), ty: "ai_assistant_generation_stopped", uid: "u1", sid: "s1" },
+        { t: Date.now(), ty: "protected_route_access_granted", uid: "u1", sid: "s1" },
+      ]),
+    );
+
+    expect(res.status).toBe(200);
+    expect(recordEventMock).toHaveBeenCalledTimes(2);
   });
 
   it("rejects non-array bodies", async () => {

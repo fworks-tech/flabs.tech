@@ -80,19 +80,64 @@ test.describe("analytics tracking elements", () => {
     await expect(page).toHaveURL(/\/blog/);
   });
 
-  test("posthog stays dormant until consent is accepted", async ({ page }) => {
-    const posthogRequests: string[] = [];
+  test("self-hosted tracking fires by default without consent interaction", async ({ page }) => {
+    const beacons: string[] = [];
     page.on("request", (req) => {
-      if (/\.posthog\.com/i.test(req.url())) posthogRequests.push(req.url());
+      if (req.url().includes("/api/analytics/event")) beacons.push(req.url());
     });
 
     await page.goto("/");
     await expect(page.locator('[data-testid="consent-banner"]')).toBeVisible();
-    await page.waitForTimeout(750);
-    expect(posthogRequests).toHaveLength(0);
 
-    await page.locator('[data-testid="consent-accept"]').click();
+    // Unload triggers the buffered session/pageview flush via sendBeacon.
+    await page.goto("/about");
+
+    await expect.poll(() => beacons.length).toBeGreaterThan(0);
+  });
+
+  test("declining persists and hides the banner", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('[data-testid="consent-decline"]').click();
     await expect(page.locator('[data-testid="consent-banner"]')).toBeHidden();
-    await expect.poll(() => posthogRequests.length).toBeGreaterThan(0);
+
+    const cookie = await page.evaluate(() => document.cookie);
+    expect(cookie).toContain("_fa_consent=declined");
+
+    await page.goto("/about");
+    await expect(page.locator('[data-testid="consent-banner"]')).not.toBeVisible();
+  });
+
+  test("privacy settings link re-opens the banner", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('[data-testid="consent-decline"]').click();
+
+    await page.locator('[data-testid="privacy-settings"]').click();
+    await expect(page.locator('[data-testid="consent-banner"]')).toBeVisible();
+
+    const cookie = await page.evaluate(() => document.cookie);
+    expect(cookie).not.toContain("_fa_consent=declined");
+  });
+
+  test("a header nav click emits exactly one nav_click beacon", async ({ page }) => {
+    const navClicks: string[] = [];
+    await page.route("**/api/analytics/event", (route) => {
+      const data = route.request().postData ? JSON.parse(route.request().postData() as string) : null;
+      if (Array.isArray(data)) {
+        for (const ev of data) {
+          if (ev.ty === "nav_click") navClicks.push(ev.ty);
+        }
+      }
+      route.continue();
+    });
+
+    await page.goto("/");
+    await page.waitForTimeout(1000);
+
+    await page.locator('header a[href="/about"]').first().click();
+    await expect(page).toHaveURL(/\/about/);
+
+    // The buffered nav_click flushes via the 5s interval.
+    await expect.poll(() => navClicks.length, { timeout: 7000 }).toBeGreaterThan(0);
+    expect(navClicks).toHaveLength(1);
   });
 });

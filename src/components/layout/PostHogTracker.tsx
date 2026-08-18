@@ -10,7 +10,7 @@ let initialized = false;
 export default function PostHogTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const consentedRef = useRef(getConsent() === "accepted");
+  const consentedRef = useRef(getConsent() !== "declined");
 
   const ensureInit = useCallback(() => {
     if (initialized) return;
@@ -39,20 +39,21 @@ export default function PostHogTracker() {
     initialized = true;
   }, []);
 
-  // Privacy-first: PostHog is only initialized (and only starts writing its
-  // `ph_*` cookies) after the visitor accepts the consent banner. Accepting
-  // late fires the pageview for the current page.
+  // Privacy-first, opt-out: anonymous PostHog tracking runs by default and is
+  // disabled only after the visitor declines. Declining past the init also
+  // stops future captures via opt_out_capturing.
   useEffect(() => {
     if (consentedRef.current) {
       ensureInit();
     }
     return subscribeConsent(() => {
-      if (getConsent() === "accepted") {
+      if (getConsent() !== "declined") {
         consentedRef.current = true;
         ensureInit();
         if (initialized) posthog.capture("$pageview");
       } else {
         consentedRef.current = false;
+        if (initialized) posthog.opt_out_capturing();
       }
     });
   }, [ensureInit]);

@@ -1,0 +1,53 @@
+# ADR-006: Analytics collection health — opt-out consent, single-source taxonomy, observability
+
+**Date:** 2026-08-17
+**Status:** Accepted
+
+## Context
+
+The self-hosted, consent-first analytics (`/api/analytics/event` → Redis → `/admin/analytics`) silently stopped showing the site owner's own activity in production. Investigation found:
+
+1. **Irreversible opt-in lockout** — the old model only tracked after an explicit Accept; a single Decline set a 1y `_fa_consent=declined` cookie and there was no UI to re-accept. The owner's own navigation therefore never appeared.
+2. **Double-counted events** — session starts fired twice on consent accept (`setConsent` listener + explicit call), nav/social/CTA clicks fired twice (per-element `onClick` handlers + a document-level listener), and the initial `page_view` fired twice (session start + route-change effect).
+3. **Silent failure** — the ingest path had zero logging, so none of the above produced any signal in Vercel logs, and the admin page had no indicator of which storage backend was in use.
+4. **Event-taxonomy drift** — the client `EventName` union (`src/lib/analytics.ts`) and the server validation set `EVENT_TYPES` (`src/lib/tracking-store.ts`) were maintained separately; `ai_assistant_generation_stopped` and `protected_route_access_granted` were emitted client-side but silently rejected by ingest validation.
+
+## Decision
+
+**Rework the collection pipeline around four explicit principles:**
+
+1. **Opt-out by default** — anonymous UX tracking runs from first load. `null` (no cookie) and `accepted` both track; only `declined` stops tracking. The banner is informational ("By continuing to browse you agree"), auto-dismisses after 8s (persisting `accepted`), and keeps a `Decline` action. A footer "Privacy & analytics" control calls `clearConsent()` to re-open the banner, making the decision reversible. `consent_declined` is the single exception that may be emitted while consent is declined, via a narrow `{ force: true }` bypass in `track()` — it records the opt-out itself (accept/decline ratio) and is the only event allowed through a declined state.
+
+2. **One document listener owns anchor-click classification** — per-element `onClick` trackers were removed from `Header`, `Footer`, and `TrackedButton`. The single listener in `usePageTracking` reads `data-track-event`/`data-track-label` when present, otherwise classifies by `href` (external → `external_link`, internal `/` → `nav_click`). Each click emits exactly one event to all destinations (Vercel, PostHog, self-hosted via `trackEvent`).
+
+3. **Exactly-once session + pageview semantics** — a session starts at most once per page load (`sessionStarted` ref) and restarts only after decline→re-enable; the route-change effect skips its first run so the initial `page_view` is emitted only by `startTrackingSession`.
+
+4. **Single-source event taxonomy** — `EVENT_TYPES` in `src/lib/tracking-store.ts` is now a `const` tuple; the validated ingest set (`EVENT_TYPES_SET`) and the client `EventName` union both derive from it, so a name that compiles in `trackEvent` is guaranteed to pass server validation. The previously-dropped types are restored and the dead `share_click` name was removed.
+
+5. **Observability** — the ingest route logs `stored`/`rejected`/429s at `info`, and the admin analytics page shows a storage-backend badge (`Redis (persistent)` vs `In-memory (resets on cold start)`), surfacing configuration failures that were previously invisible.
+
+## Alternatives considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|-------------|
+| Keep opt-in, add a "re-accept" button | Minimal change | Never fixes owners who never accepted; keeps friction on every first visit; banner still gates data | Rejected in favor of opt-out with reversible decline |
+| Pure href classification (collapse all clicks to `nav_click`/`external_link`) | Simplest single-listener | Loses `cta_click`/`social_link`/`project_view`/`post_click` semantics; breaks Vercel/PostHog custom events | Rejected in favor of `data-track-event` override |
+| Keep duplicate event-name lists + runtime-only check | No type changes | Drift class of bugs recurs (this incident); runtime checks can't catch emit-time mistakes | Rejected in favor of deriving `EventName` from `EVENT_TYPES` |
+| No observability | — | — | Settling the same incident took multiple deployment/environment checks; logging + backend badge turns this into a one-glance read |
+
+## Consequences
+
+**Easier:** owners see their own traffic without configuration; clicks and sessions are no longer inflated; event names can't drift from the validated set; failures are visible in Vercel logs and on the dashboard.
+
+**Harder / new risks:** opt-out means every visitor is tracked (anonymously) until they decline — a privacy-model change that must be communicated in the banner text; `trackEvent` now feeds self-hosted clicks without the semantic `page`/`platform` props it previously carried for nav/social events (Vercel/PostHog receive `path`/`label` instead — dashboard queries keyed on the old prop names must be updated); pre-decline buffered events still flush after a decline (a few anonymous events, accepted tradeoff).
+
+**Behavior changes needing operator awareness:** existing `_fa_consent=declined` cookies in visitors' browsers persist; the footer control (or clearing cookies) is the only way to re-enable tracking for those users. The `clicks` aggregate (`nav_click + external_link + cta_click + social_link`) is now a faithful per-action count instead of a doubled one, so historical dashboard baselines are not comparable.
+
+## References
+
+- ADR-002 — abuse-prevention pipeline (shared Redis `store` adapter and privacy posture this work builds on)
+- `src/lib/tracking-store.ts` — `EVENT_TYPES`, `EVENT_TYPES_SET`, `EventName`
+- `src/hooks/usePageTracking.ts` — single document listener, session/pageview dedup
+- `src/lib/tracking.ts` — opt-out consent, `clearConsent()`, `consent_declined` force bypass
+- `src/app/api/analytics/event/route.ts` — ingest validation + logging
+- `src/app/admin/analytics/page.tsx` — storage-backend badge

@@ -1,9 +1,9 @@
 "use client";
 
-import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, Group, Text, Tooltip } from "@mantine/core";
 import { IconBrandGithub, IconBrandLinkedin, IconMail } from "@tabler/icons-react";
 import { person, social } from "@/content";
-import { trackEvent } from "@/lib/analytics";
+import { clearConsent } from "@/lib/tracking";
 import styles from "./Footer.module.scss";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -30,7 +30,15 @@ export const Footer = () => {
         <Text size="sm" c="var(--mantine-color-text)">
           © {currentYear} {person.name}
         </Text>
-        <Group gap="xs">
+        <Group gap="xs" align="center">
+          <Button
+            variant="subtle"
+            size="compact-xs"
+            onClick={clearConsent}
+            data-testid="privacy-settings"
+          >
+            Privacy & analytics
+          </Button>
           {social.map(
             (item) =>
               item.link && (
@@ -42,7 +50,8 @@ export const Footer = () => {
                     size="lg"
                     aria-label={`Visit my ${item.name} profile`}
                     className={styles.socialIcon}
-                    onClick={() => trackEvent("social_link", { platform: item.name })}
+                    data-track-event="social_link"
+                    data-track-label={item.name}
                   >
                     {iconMap[item.icon] || "?"}
                   </ActionIcon>
