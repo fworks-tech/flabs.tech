@@ -1,0 +1,162 @@
+---
+title: "How I Structure a Next.js 16 Project in 2026"
+publishedAt: "2026-08-19"
+summary: "flabs.tech started as a one-file template and grew into a fifteen-feature site. This post walks through the architecture decisions — features/, layered components, the testing stack, and why MDX beat every CMS — milestone by milestone, and what I'd do differently."
+tag: "Architecture"
+draft: true
+subtitle: "From a flat template to a structured App Router codebase — the decisions, the milestones, and the lessons."
+shareText: |
+  I rebuilt a flat Next.js template into a structured, fully-tested codebase with features/, layered components, Vitest + Playwright + Storybook, and an MDX-first blog strategy.
+
+  Here's exactly how — milestone by milestone — and what I'd do differently next time.
+---
+
+## Introduction
+
+Every project starts as a template. Mine was a Next.js portfolio with everything in a handful of loose files: components, content, styling, and logic all living in two or three directories. It worked — for a day. The moment I started adding real features (blog posts, projects, analytics, a quiz, an AI assistant), the flat structure stopped cooperating.
+
+What forced the change wasn't an opinion — it was the **tests**. When I tried to start writing unit tests, every file dragged in half the UI, and the imports made no sense. "Which folder owns this? Is this a component or a feature?" Nobody could answer. That's a codebase telling you the structure is wrong.
+
+So I rebuilt the structure first, then locked it in with a testing stack. This post documents the decisions, milestone by milestone (M1 → M6), the blog strategy that came out of it, and what I'd genuinely do differently.
+
+## The architecture decision: `features/`, layered components, `config/` vs `content/`
+
+The template started with a simple tree: components, content, and a few loose modules. The fix was to separate **three concerns that were being mixed**: pages and routing, reusable UI, and domain logic + content.
+
+The structure that survived was:
+
+```text
+src/
+  app/           # Next.js App Router pages (about, blog, projects, work, quiz, admin)
+  components/     # Shared component libraries
+    layout/       # Header, Footer, Providers, ThemeToggle
+    ui/           # NavLink, ProjectCard, Mailchimp, HeadingLink
+    shared/       # MDX rendering, blog-links, mdx-table styles
+  config/         # Theme + site config (Once UI / Mantine theme, routes, sameAs)
+  content/        # MDX source for blog, projects, work entries
+  features/       # Feature modules (about, blog, projects, work, quiz)
+  hooks/          # Custom React hooks
+  lib/            # Business logic (mdx, draft, seo, schema, analytics, abuse/)
+  styles/         # Global SCSS variables and breakpoints
+  test/           # Vitest setup (jsdom, RTL)
+  types/          # TypeScript type definitions
+```
+
+### Why `features/` over `components/pages/`
+
+A page isn't a component folder problem — it's a domain problem. A blog is not "a bunch of components with route files attached"; it's a **module** with its own components, styles, stories, and tests. Co-locating the blog's `Post.tsx`, `Posts.tsx`, `ShareSection.tsx`, their SCSS Modules, stories, and `__tests__/` under `src/features/blog/` means one directory answers "how does the blog work?" without a cross-repo chase.
+
+### Why components are layered
+
+Not all components are equal. Putting `NavLink` (a UI atom) next to `Footer` (layout) next to `CustomMDX` (shared rendering) in one flat folder hides the dependency direction. The split says:
+
+- **`ui/`** — presentational, no business logic, reusable anywhere
+- **`layout/`** — app chrome: header, footer, providers, theming
+- **`shared/`** — cross-cutting rendering, like the MDX pipeline
+
+The rule is simple: if a component needs to know about a feature's data shape, it lives *in* that feature, not in `ui/`.
+
+### `config/` vs `content/`
+
+The most confusing pair. Both look like "stuff that isn't code." The distinction I use:
+
+- **`config/`** — the site's *behavior*: theme, routes, social links, Mailchimp settings, sharing platforms. This is typed program configuration (the `SameAsConfig` type, `routes`, `display`).
+- **`content/`** — the site's *writing*: MDX files for blog, projects, and work entries, parsed by `gray-matter` + `next-mdx-remote`.
+
+Configuration changes code behavior; content changes what readers see. Mixing them means editing a blog post requires understanding theme code, and vice versa. Splitting them lets the content pipeline (`getPosts()`, drafts, scheduling, RSS, cross-posting) operate on a known shape.
+
+### The `@/` alias
+
+Every decision above is only as good as its enforcement. The `@/ → src/` path alias means imports read like `@/features/blog/Post` and `@/lib/draft` — you can *see* the layer boundary in the import statement. Flat relative imports like `../../../components/...` were the first signal the structure was wrong.
+
+## The testing stack: why Vitest + Playwright + Storybook
+
+The template had zero tests. The milestone plan (M2–M4) added them deliberately, in order of leverage:
+
+### M2 — Unit tests: Vitest + React Testing Library + jsdom
+
+Vitest with jsdom and RTL targets, and the targets were explicit:
+
+- **`lib/` and `hooks/` → 100% coverage**
+- **components and features → ≥80% coverage**
+
+Tests are co-located next to the source (`src/features/blog/__tests__/`), which keeps "is this tested?" one glance away. The `lib/` 100% target is what made `getPosts()`, `formatDate()`, the draft filter, and the SEO/schema generators trustworthy enough to build features on top of. Mocking follows a strict pattern: `vi.mock` at the top, deterministic `vi.hoisted` mocks, and **no guarded assertions** — an `if (condition) expect(...)` is vacuous and gets flagged in review.
+
+### M3 — E2E: Playwright
+
+Unit tests prove functions; Playwright proves the site. The e2e suite:
+
+- Visits **every route** and checks navigation, links, and render
+- Tests **responsive** behavior at desktop, tablet, and **375px mobile**
+- Runs **axe-core accessibility** checks on key pages
+- Maintains **visual snapshots** (chromium locally, updated intentionally via a dedicated script)
+
+In CI, e2e runs chromium-only with snapshots inverted out — fast stability insurance, not a screenshot treadmill.
+
+### M4 — Storybook
+
+Storybook 10 with the Next.js integration, stories for `ui/`, `shared/`, and feature components, plus the a11y addon. Storybook isn't a documentation nicety here — it's the shortest path to *rendering a component in isolation* when you're debating a UI change, and it double-checks the RSC/`"use client"` boundaries that Next.js 16 is strict about (compound Mantine components accessed from server components are a classic crash — stories catch that shape).
+
+### The gates
+
+All of it is enforced where it matters: CI runs `lint → typecheck → test → e2e → Lighthouse CI`, plus `gitleaks` secret scanning and `commitlint` on the message. The hooks (`commitlint`, `lint-staged`) run locally; the gates run on every PR.
+
+## Blog strategy: why MDX won
+
+A blog needs two separate decisions, and I documented both as ADRs:
+
+**ADR-001 — distribution.** The real problem with a personal blog isn't the editor, it's *discovery*. Content on a personal domain has no feed, no community, no audience. The decision: **keep MDX as the canonical source, cross-post to Dev.to for distribution.**
+
+**ADR-008 — the CMS evaluation.** Issue #76 asked the literal question: MDX, Sanity, Decap, or something else? Scoring on writing experience / performance / cost / maintenance:
+
+| Criterion | MDX | Sanity | Decap | Payload |
+|-----------|-----|--------|-------|---------|
+| Writing experience | Great for a developer | Strong editor | WYSIWYG | Strong editor |
+| Performance | Best — compiled at build | Network fetch per page | Excellent (file-based) | Network / self-hosted |
+| Cost | **$0** | Free tier → paid | $0 | $0 / self-hosted ops |
+| Maintenance | Low | Accounts + API keys | OAuth + admin surface | Service to run |
+
+**MDX wins for a solo technical author.** No account to manage, no runtime fetch, content in git with PR review — and if a visual editor is ever needed, one can be layered onto the same files later.
+
+### Making the decision operational
+
+The hard part isn't deciding; it's wiring the decision so it actually runs. The cross-posting pipeline:
+
+- `src/lib/mdxToMarkdown.ts` — MDX → Markdown for off-site rendering (strips JSX components, rewrites relative image URLs to absolute)
+- `src/lib/crosspost.ts` — an **idempotent** publish/update: it reconciles against the account's existing articles by canonical URL, so a re-run updates instead of duplicating
+- `/admin/publishing` — a manual "Publish to Dev.to" button on every post, backed by an auth-guarded API route
+- `.github/workflows/crosspost.yml` — the automated path: on a blog push it cross-posts every published post and commits the `devtoId` back into frontmatter
+
+Both manual and automated paths share one pipeline, which is what makes "MDX + Dev.to" a strategy and not a wish.
+
+## The milestone roadmap: M1 through M6
+
+The whole build ran as numbered milestones, each tracked in issues:
+
+| Milestone | Scope | What shipped |
+|-----------|-------|--------------|
+| **M1 — Project Structure** | features/, layered components, config/ vs content/, lib/, hooks/, styles/ | The architecture above, plus a full import migration |
+| **M2 — Unit Tests (Vitest)** | jsdom + RTL setup, coverage targets | 100% lib/hooks, ≥80% components; centralized mocks |
+| **M3 — E2E (Playwright)** | all routes, responsive, a11y, CI | Route + navigation + responsive + axe suites |
+| **M4 — Storybook** | Storybook 10 + stories + a11y addon | Isolated component rendering for ui/shared/features |
+| **M5 — Performance & SEO** | bundle audit, Lighthouse CI, WCAG AA audit, smoke test | Performance budgets, Lighthouse in CI, sitemap/OG/canonical fixes |
+| **M6 — Blog Decision + Post** | CMS evaluation, cross-posting, this post | ADR-001/008, Dev.to pipeline, the post you're reading |
+
+Each milestone produced something *visible or testable* by its end — structure that compiles, tests that pass, stories that render, budgets that hold. That cadence matters more than any single decision.
+
+## What I'd do differently
+
+Honest lessons, in order of cost:
+
+1. **Decide the design system once.** The site started on Once UI and later migrated to Mantine (#183–#190) — a full 8-step migration that shipped zero user-visible features. Structure first wasn't the mistake; *two* design-system eras was. If I restarted, I'd pick the component library up front and freeze it.
+2. **Put the test scaffolding in M1.** Tests started in M2, and the M1 refactor would have been far safer with them underneath. Coverage before refactor, not after.
+3. **Evaluate the blog stack earlier.** The CMS-vs-MDX question (M6) could have been an M1 decision and saved the "what editor do we use" ambiguity through the whole project. The *distribution* question still had to wait for content to exist, but the authoring decision was always knowable.
+4. **Keep milestone scope tighter.** Milestones are great; I occasionally let a milestone balloon past the point of one clean review. A milestone should survive "can I describe this in one sentence" — the same test I apply to commits.
+
+## Conclusion
+
+Structure isn't aesthetics — it's decisions that make the next change cheap. `features/` co-locates domains, layered components make dependencies visible, `config/` vs `content/` separates behavior from writing, and a testing stack (Vitest → Playwright → Storybook) turns "is this right?" into a CI answer instead of a feeling.
+
+The blog decision (MDX + Dev.to cross-posting) followed the same pattern: document the tradeoffs, decide, then wire the decision up so it runs without you. Twelve months from now, the next contributor — or the next version of me — should be able to read the ADRs, look at the folders, and know exactly where everything lives.
+
+That's the whole goal: a codebase you can hand to someone (or to a future version of yourself on a Sunday) without a two-hour orientation.
