@@ -4,7 +4,7 @@ const staticRoutes = ["/", "/about", "/blog", "/work", "/projects"];
 
 const detailSlugs = {
   "/blog": ["graphql-federation-at-scale", "agenthood-the-academy"],
-  "/projects": ["agenthood", "hasheyes", "arxiv-manager", "agenthood-site", "logroute", "flabs-tech", "verihire"],
+  "/projects": ["atlaslink", "arxiv-manager", "flabs-tech", "agenthood", "agenthood-site", "hasheyes", "logroute"],
   "/work": ["agenthood", "flabs-tech", "verihire"],
 };
 
