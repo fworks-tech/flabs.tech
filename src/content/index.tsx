@@ -88,9 +88,11 @@ const about: About = {
         <br />
         <br />
         On the backend, I design and build production GraphQL APIs and federated architectures with
-        TypeScript and Node.js. At BairesDev I&apos;ve engineered AI‑powered checkout systems for major
-        US telecom partners using Apollo Federation and WunderGraph, handling 1,000+ transactions
-        per day with CI‑enforced contracts and New Relic observability end‑to‑end.
+        TypeScript and Node.js. I&apos;ve engineered AI‑powered checkout systems for major US telecom
+        partners using Apollo Federation and WunderGraph, handling 1,000+ transactions per day with
+        CI‑enforced contracts and New Relic observability. I also contributed to a reusable AI agent
+        skills repository that standardized workflow automations across multiple client integrations,
+        reducing new project onboarding time by 40%.
         <br />
         <br />
         On the frontend, I have deep experience building modern React and Next.js applications for
@@ -249,6 +251,8 @@ const workExperience = {
       type: "Full-time",
       achievements: [
         "Engineered automated AI checkout systems using GraphQL Federation for major US telecom partners, processing 1,000+ daily transactions.",
+        "Contributed to a reusable AI agent skills repository that standardized workflow automations across multiple client integrations, reducing new project onboarding time by 40%.",
+        "Engineered end-to-end API integration workflows connecting third-party systems with internal orchestration layers, enabling automated agent workflows to integrate with multiple connections.",
         "Architected subgraph solutions overseeing the full lifecycle — from API analysis to CI/infrastructure setup.",
         "Enhanced system observability by implementing New Relic flow-tracking instrumentation.",
       ],
