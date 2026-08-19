@@ -3,6 +3,7 @@
 import { Anchor, Badge, Button, Group, Stack, Table, Text } from "@mantine/core";
 import Link from "next/link";
 
+import { PublishToDevtoButton } from "@/components/ui/PublishToDevtoButton";
 import { formatDate } from "@/lib/formatDate";
 
 /**
@@ -84,7 +85,10 @@ export function DraftsTable({ rows }: { rows: DraftRow[] }) {
               {post.tag && <Badge variant="light">{post.tag}</Badge>}
             </Table.Td>
             <Table.Td>
-              <DraftPreviewLink href={`/admin/drafts/${post.slug}`} />
+              <Group gap="6" wrap="wrap">
+                <PublishToDevtoButton slug={post.slug} size="xs" />
+                <DraftPreviewLink href={`/admin/drafts/${post.slug}`} />
+              </Group>
             </Table.Td>
           </Table.Tr>
         ))}
