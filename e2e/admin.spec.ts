@@ -14,6 +14,7 @@ import { expect, test } from "@playwright/test";
 const ADMIN_ROUTES = [
   "/admin",
   "/admin/drafts",
+  "/admin/publishing",
   "/admin/ai",
   "/admin/quiz",
   "/admin/analytics",

@@ -1,5 +1,6 @@
 import { Badge, Group, Stack, Text, Title } from '@mantine/core';
 import { CustomMDX } from '@/components';
+import { PublishToDevtoButton } from '@/components/ui/PublishToDevtoButton';
 import { formatDate } from '@/lib/formatDate';
 import { isPostVisible } from '@/lib/draft';
 import { getPosts } from '@/lib/mdx';
@@ -39,6 +40,7 @@ export default async function AdminDraftPreview({
             </Badge>
           )}
         </Group>
+        <PublishToDevtoButton slug={slug} />
       </Group>
 
       <Stack align="center" gap="8">
