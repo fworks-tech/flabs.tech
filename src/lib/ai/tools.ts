@@ -173,10 +173,11 @@ async function searchContent(query: string) {
 
 /**
  * Repos hidden from the assistant's project knowledge even though they exist
- * on GitHub. Kept in sync with the site's project curation: fashionista and
- * ApolloDroid were removed from the portfolio, `fworks-tech` is the profile
- * README, and `blockchain-explorer` / `fworks.tech` are experimental repos
- * not presented as showcase work.
+ * on GitHub. The site's featured catalog itself is sourced from the profile
+ * README (see src/lib/github-repos.ts); this denylist applies only to the
+ * assistant's full-list tool: fashionista and ApolloDroid were removed from
+ * the portfolio, `fworks-tech` is the profile README, and `blockchain-explorer`
+ * / `fworks.tech` are experimental repos not presented as showcase work.
  */
 export const EXCLUDED_REPOS = new Set([
   "fashionista",
