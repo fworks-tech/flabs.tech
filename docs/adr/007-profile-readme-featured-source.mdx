@@ -1,0 +1,53 @@
+# ADR-007: GitHub profile README as the source of truth for featured projects
+
+**Date:** 2026-08-19
+**Status:** Accepted
+
+## Context
+
+The `/projects` page listed a hand-maintained allowlist (`featuredRepos` in `src/config/projects.ts`), while the `fworks-tech` GitHub profile README's **Featured Projects** table is the canonical public statement of which repos are showcased. The two lists drifted: `atlaslink` was featured on the profile but absent from the site, and `verihire.mdx` remained orphaned on the site despite not being featured. Nothing consumed the profile's table, so keeping the site in sync was a manual, forgettable step.
+
+A secondary defect: when the GitHub API was unavailable, `fetchFeaturedRepos` dropped every repo whose API call failed, so `/projects` (and the homepage grid) rendered silently empty even for projects that have rich local MDX content.
+
+## Decision
+
+1. **The profile README owns membership and order.** A new `fetchFeaturedRepoNames()` fetches `raw.githubusercontent.com/fworks-tech/fworks-tech/main/README.md` (ISR, revalidated every 6h), parses the first markdown table under the `## Featured Projects` heading via `parseFeaturedTable()`, and returns the ordered repo-name list. `fetchFeaturedRepos()` iterates that list in order; `ProjectsList` and `ProjectGrid` no longer re-sort by `pushed_at`. The site and the profile cannot drift.
+2. **Config becomes a content map, not a membership list.** `featuredRepos: FeaturedRepo[]` is replaced by `mdxSlugByRepo: Record<repoName, mdxSlug>` (rich-content attachment only) plus `defaultFeaturedRepos: string[]` — a fallback list mirroring the current profile table.
+3. **Graceful degradation on both layers.**
+   - If the profile README cannot be fetched or parsed, `fetchFeaturedRepoNames()` logs and returns `defaultFeaturedRepos`, so the page never goes empty.
+   - A repo with readable MDX is kept even when the GitHub API call fails (`githubUrl`, title, summary fall back to MDX); only repos with neither MDX nor API data are dropped.
+4. **Catalog alignment.** `atlaslink` gains a minimal MDX card/detail page (it is featured; surfacing it without content was a broken-link regression). Non-featured content (`verihire`) is removed from `/projects` detail generation and the sitemap in follow-up surface work.
+
+## Alternatives considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|-------------|
+| Keep the manual allowlist, just sync it | No new architecture | Still two sources that drift; the profile stays un-authoritative | The root cause — duplicate curation — persists |
+| Fetch GitHub API repo list and filter | Reuses live metadata | No public "featured" concept; pins/README table still manual; no curated order | Doesn't represent "featured" intent |
+| Parse a shared JSON manifest both repos read | Machine-readable, single build-time source | Requires a cross-repo artifact and coordination to keep it updated | The profile README already IS the canonical, human-maintained statement |
+
+## Consequences
+
+### What becomes easier
+
+- Adding/removing a featured project on the GitHub profile automatically changes the site within one revalidation window — no site deploy required.
+- Display order is deliberately controlled by the profile's table order.
+- A GitHub API outage no longer blanks MDX-backed cards; the profile-README outage falls back to a known-good list.
+
+### What becomes harder
+
+- The site now depends on a fetch to the profile repository at render time (ISR-cached); a temporary profile outage degrades to the fallback list rather than the freshest truth.
+- `mdxSlugByRepo` must be updated in the same change that adds an MDX file for a new featured repo.
+
+### What we gain
+
+- A single human-editable source of truth for featured projects, shared with the GitHub profile, with no empty-page failure mode.
+
+## References
+
+- `src/lib/github-repos.ts` — `parseFeaturedTable`, `fetchFeaturedRepoNames`, `fetchFeaturedRepos` (MDX-first degradation, profile order)
+- `src/config/projects.ts` — `mdxSlugByRepo`, `defaultFeaturedRepos`
+- `src/features/projects/ProjectsList.tsx`, `src/features/work/ProjectGrid.tsx` — canonical order (no re-sort)
+- `src/content/projects/atlaslink.mdx` — new featured card content
+- GitHub profile: `fworks-tech/fworks-tech` README → Featured Projects table
+- Supersedes ADR-005's manual-sync caveat for site membership (`featuredRepos` ↔ assistants stay as documented there)

@@ -123,4 +123,16 @@ describe("ProjectsList", () => {
     const link = await screen.findByRole("link", { name: "Read case study" });
     expect(link).toHaveAttribute("href", "/projects/flabs-tech");
   });
+
+  it("preserves the returned order instead of sorting by recency", async () => {
+    // gamma (2024-01) is older than alpha (2024-06); returned order must win.
+    vi.mocked(fetchFeaturedRepos).mockResolvedValue([
+      { ...mockProjects[2] },
+      { ...mockProjects[0] },
+      { ...mockProjects[1] },
+    ]);
+    render(await ProjectsList({ range: [1, 1] }), { wrapper: Wrapper });
+    expect(screen.queryByText("Alpha Project")).not.toBeInTheDocument();
+    expect(screen.getByText("Gamma Project")).toBeInTheDocument();
+  });
 });

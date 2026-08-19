@@ -53,6 +53,7 @@ vi.mock("@/lib/github-repos", () => ({
   fetchFeaturedRepos: vi.fn(() => Promise.resolve(mockProjects)),
 }));
 
+import { fetchFeaturedRepos } from "@/lib/github-repos";
 import { ProjectGrid } from "../ProjectGrid";
 
 describe("ProjectGrid", () => {
@@ -82,5 +83,16 @@ describe("ProjectGrid", () => {
   it('shows "+N" for tags beyond 3', async () => {
     render(await ProjectGrid({}));
     expect(screen.getByText("+1")).toBeInTheDocument();
+  });
+
+  it("preserves the returned order instead of sorting by recency", async () => {
+    // project-one (2024-03) is newer than project-two (2024-01); returned order wins.
+    vi.mocked(fetchFeaturedRepos).mockResolvedValue([
+      { ...mockProjects[1] },
+      { ...mockProjects[0] },
+    ]);
+    render(await ProjectGrid({ range: [1, 1] }));
+    expect(screen.queryByAltText("Project One")).not.toBeInTheDocument();
+    expect(screen.getByText("Project Two")).toBeInTheDocument();
   });
 });
