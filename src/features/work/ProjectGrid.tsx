@@ -25,11 +25,10 @@ export async function ProjectGrid({ range, exclude }: ProjectGridProps) {
     allProjects = allProjects.filter((p) => !exclude.includes(p.detailSlug));
   }
 
-  const sorted = allProjects.sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-  );
-
-  const displayed = range ? sorted.slice(range[0] - 1, range[1] ?? sorted.length) : sorted;
+  // Order is canonical (profile README featured table order) — do not re-sort.
+  const displayed = range
+    ? allProjects.slice(range[0] - 1, range[1] ?? allProjects.length)
+    : allProjects;
 
   return (
     <div className={styles.grid}>

@@ -1,25 +1,33 @@
-export type FeaturedRepo = {
-  owner: string;
-  name: string;
-  /** Optional MDX slug to merge rich content from (maps to src/content/projects/<slug>.mdx) */
-  mdxSlug?: string;
+/**
+ * Content mapping from GitHub repo name to an optional MDX slug (without
+ * extension) in src/content/projects/.
+ *
+ * This map only attaches rich content (images, detailed summary, team).
+ * Featured-project membership and order are owned by the GitHub profile
+ * README's "Featured Projects" table (see src/lib/github-repos.ts), so the
+ * site and the profile can never drift.
+ */
+export const mdxSlugByRepo: Record<string, string> = {
+  atlaslink: "atlaslink",
+  "arxiv-manager": "arxiv-manager",
+  "flabs.tech": "flabs-tech",
+  agenthood: "agenthood",
+  "agenthood-site": "agenthood-site",
+  hasheyes: "hasheyes",
+  logroute: "logroute",
 };
 
 /**
- * Featured GitHub repos displayed on the /projects page.
- *
- * To add a new project: append an entry here. If you have rich MDX content
- * (images, detailed description, team info), set `mdxSlug` to the filename
- * (without .mdx) in src/content/projects/.
- *
- * To remove a project: delete the entry. The site will stop showing it on
- * the next build or ISR revalidation.
+ * Fallback featured repo list, in display order, used when the profile
+ * README cannot be fetched or parsed. Mirrors the profile's current
+ * Featured Projects table so degradation stays truthful.
  */
-export const featuredRepos: FeaturedRepo[] = [
-  { owner: "fworks-tech", name: "arxiv-manager", mdxSlug: "arxiv-manager" },
-  { owner: "fworks-tech", name: "flabs.tech", mdxSlug: "flabs-tech" },
-  { owner: "fworks-tech", name: "agenthood", mdxSlug: "agenthood" },
-  { owner: "fworks-tech", name: "agenthood-site", mdxSlug: "agenthood-site" },
-  { owner: "fworks-tech", name: "hasheyes", mdxSlug: "hasheyes" },
-  { owner: "fworks-tech", name: "logroute", mdxSlug: "logroute" },
+export const defaultFeaturedRepos: string[] = [
+  "atlaslink",
+  "arxiv-manager",
+  "flabs.tech",
+  "agenthood",
+  "agenthood-site",
+  "hasheyes",
+  "logroute",
 ];
