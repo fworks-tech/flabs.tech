@@ -43,6 +43,7 @@ jobs:
   e2e:
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v5
@@ -54,7 +55,10 @@ jobs:
 
       - run: npm install
 
-      - run: npx playwright install chromium --with-deps
+      # Avoid `--with-deps`: it runs `apt-get update`, which can hang for hours
+      # when GitHub's azure.archive.ubuntu.com mirror is unreachable. The
+      # ubuntu-latest runners already ship all Chromium system dependencies.
+      - run: npx playwright install chromium
 
       - run: npm run test:e2e:ci
 
@@ -84,5 +88,3 @@ jobs:
       - run: npm run build
 
       - run: npx lhci autorun
-
-
