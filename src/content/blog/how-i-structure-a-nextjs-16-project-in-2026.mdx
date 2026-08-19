@@ -120,6 +120,19 @@ A blog needs two separate decisions, and I documented both as ADRs:
 
 **MDX wins for a solo technical author.** No account to manage, no runtime fetch, content in git with PR review — and if a visual editor is ever needed, one can be layered onto the same files later.
 
+### The counter-argument: why not make Dev.to the source of truth?
+
+Fair question. If every post is cross-posted to Dev.to anyway and that's where the readers are, why maintain a second copy in the repo? Why not write in Dev.to's editor, treat it as canonical, and pull the content back into the site?
+
+| For Dev.to canonical | Against it |
+|----------------------|------------|
+| One writing surface — no converter or sync pipeline to maintain | Your entire blog becomes owned by a third party: a ToS change, a suspension, or a platform shutdown removes your writing with no local history |
+| Rich editor, comments, analytics, built-in audience | No diff / PR review / CI on content — publishing lives outside the repo workflow this site was built on |
+| Images hosted for you | `/blog/[slug]` becomes a fetch against a remote API (ISR + revalidation + a new failure domain) instead of build-time static HTML |
+| — | The portfolio *is* the resume; content portability away from any one platform is exactly what a resume should retain |
+
+My answer didn't come from the table alone. It came from respecting the two axes: distribution is already solved by cross-posting, which is automated and costs nothing per post. Relocating the canonical home would buy zero additional reach while selling the git history, the review workflow, and the build-time rendering that M1–M5 exist to protect. Markdown authoring is the only real cost, and it's a cost a developer pays gladly — until it isn't, at which point a git-based editor layers onto the same files without touching content or the pipeline.
+
 ### Making the decision operational
 
 The hard part isn't deciding; it's wiring the decision so it actually runs. The cross-posting pipeline:
