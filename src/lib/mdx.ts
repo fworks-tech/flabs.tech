@@ -26,6 +26,7 @@ export type Metadata = {
   draft?: boolean;
   scheduledAt?: string;
   devtoId?: number;
+  devtoUrl?: string;
 };
 
 function getMDXFiles(dir: string) {
@@ -81,6 +82,7 @@ function readMDXFile(filePath: string) {
     draft: data.draft === true,
     scheduledAt: data.scheduledAt || "",
     devtoId: data.devtoId || undefined,
+    devtoUrl: data.devtoUrl || "",
   };
 
   return { metadata, content };

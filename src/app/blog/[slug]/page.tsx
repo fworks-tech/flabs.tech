@@ -1,4 +1,4 @@
-import { Avatar, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Avatar, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
 import { NavLink } from "@/components/ui/NavLink";
 import Link from "next/link";
 import { CustomMDX, ScrollToHash } from "@/components";
@@ -162,6 +162,18 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           url={`${baseURL}${blog.path}/${post.slug}`}
           shareText={post.metadata.shareText}
         />
+
+        {post.metadata.devtoUrl && (
+          <Anchor
+            href={post.metadata.devtoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+            c="dimmed"
+          >
+            Discuss this post on Dev.to
+          </Anchor>
+        )}
 
         <JsonLd data={{
           "@context": "https://schema.org",

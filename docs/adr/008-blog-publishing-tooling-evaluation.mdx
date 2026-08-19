@@ -1,0 +1,89 @@
+# ADR-008: Blog publishing tooling evaluation (CMS decision)
+
+**Date:** 2026-08-19
+**Status:** Accepted
+
+## Context
+
+Issue #76 asked whether the blog should keep its current approach (MDX files in the repo), migrate to a dedicated CMS (Sanity), adopt a git-based visual editor (Decap CMS), or pick another option. Decision criteria were stated as: writing experience, performance, cost, and maintenance overhead.
+
+ADR-001 already settled the *distribution* question: keep MDX as the canonical source and cross-post to Dev.to for reach. This ADR answers the *authoring and tooling* question directly, dimension by dimension, so the two concerns are documented independently.
+
+## Decision
+
+**Stay with MDX files in the repository as the authoring format.** The cross-posting pipeline (ADR-001) is the execution layer; no separate CMS is introduced. A visual editor can be layered on later without changing content or pipeline if writing-in-markdown ever becomes the bottleneck.
+
+## Options evaluated
+
+### Option A: MDX in the repo (current)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Excellent for a developer. Frontmatter + Markdown + GFM tables, edits in any editor, PR review, diffs. No forms, no lock-in, works offline. |
+| Performance | Best possible. Content is compiled at build time into the Next.js bundle; no runtime fetches, no CDN latency, no core web-vitals cost. |
+| Cost | **$0.** Content lives in the existing GitHub repo; no SaaS subscription, no per-seat charges. |
+| Maintenance | Low. Gray-matter reads, remark renders, `next-mdx-remote` executes. One dependency set already pinned (remark-parse/mdx/stringify). No account, quota, or API to babysit. |
+
+**Chosen.** The trade-off is that non-technical editors need git to publish — an acceptable constraint for a single-author engineer portfolio.
+
+### Option B: Sanity (headless CMS)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Strong — rich editor, validation, structured content, media library, collaboration. |
+| Performance | Good but worse than static MDX. At runtime each page requires fetching from Sanity's CDN/API; adds network latency and a failure domain between readers and content. Can be mitigated with on-demand ISR revalidation. |
+| Cost | Free tier (community) is limited; growing datasets and faster CDNs move to paid plans. Adds an account, a dataset, auth, and API keys to manage. |
+| Maintenance | Medium-high. Content schema, preview URL config, webhooks for revalidation, token rotation, and the content→site mapping all become ongoing concerns. Image URLs point offsite, complicating the `flabs.tech` asset model. |
+
+**Why not:** The portfolio is a static personal site with a handful of posts per year. A headless CMS adds a network dependency, operational surface, and cost to solve a problem (structured editorial workflow) that single-author markdown already solves.
+
+### Option C: Decap CMS (git-based visual editor)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Good for non-technical editors — visual/rich editor that commits Markdown back to the repo. |
+| Performance | Excellent. Content stays as files; the editor is only used at authoring time, and identity auth (GitHub OAuth) runs at edit time, not read time. |
+| Cost | **$0.** Decap is open source; only GitHub OAuth app setup is free and self-hosted (or Netlify Identity). |
+| Maintenance | Medium. Requires an OAuth app/client-id config, an admin route under `/admin`, and commitback flow; adds moving parts to the build. Decap's core is in maintenance mode — the community has largely moved to successors (e.g. `astro-pagefind`, TinaCMS) — which is a long-term upkeep signal. |
+
+**Why not:** The engineering payoff is only realized if a non-technical editor needs to publish. That editor is the site owner, who is technical and already writes MDX. Accepting Decap's admin-surface + OAuth + declining community momentum to buy a WYSIWYG the author won't use is negative value today.
+
+### Option D: Other (Payload, Contentful, etc.)
+
+| Criterion | Assessment |
+|-----------|------------|
+| Writing experience | Varies, generally comparable to Sanity (hosted CMS editor). |
+| Performance / cost / maintenance | Same class of drawbacks as Sanity: runtime fetches, SaaS cost, account+API surface. Payload is self-hostable but then *is* a service to run. |
+
+**Why not:** No distinguishing advantage over Sanity for this site; inherits the same runtime and operational costs.
+
+## What this means for the repo
+
+- `src/content/blog/*.mdx` remains the single canonical source — this ADR confirms, rather than changes, the existing structure.
+- The Dev.to cross-posting layer (ADR-001) is implemented as: `src/lib/mdxToMarkdown.ts` (MDX→Markdown for off-site rendering), `src/lib/crosspost.ts` (idempotent publish/update), `src/app/admin/publishing` (manual button), and `.github/workflows/crosspost.yml` (automated path).
+- A visual editor (Decap or its successor) could be added behind the same MDX files at any future date without forking content or the rendering pipeline.
+
+## Consequences
+
+### What becomes easier
+
+- No external service to provision, monitor, or pay for.
+- Build-time rendering keeps Lighthouse/performance budgets intact.
+- Content review stays in the normal PR + CI flow (`lint`, `typecheck`, `test`, `e2e`).
+
+### What becomes harder
+
+- Publishing to the site requires a git commit (acceptable for a solo technical author).
+- Non-technical editors are not supported out of the box — revisit only if the authoring audience changes.
+
+### What we gain
+
+- Full ownership and portability of content (no CMS export/import concerns).
+- A single dependency set already exercised across `next-mdx-remote`, remark, and the new converter.
+
+## References
+
+- Issue #76: Evaluate and decide blog CMS
+- ADR-001: Blog distribution strategy (MDX canonical + Dev.to cross-posting)
+- Sanity: https://www.sanity.io
+- Decap CMS: https://decapcms.org
