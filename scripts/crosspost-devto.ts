@@ -8,6 +8,11 @@ import { getPosts } from "../src/lib/mdx";
 const root = process.cwd();
 const slugFilter = process.env.CROSSPOST_SLUG?.trim() || "";
 const dryRun = process.argv.includes("--dry-run");
+// Dev.to rate-limits article creation to roughly one per 30s; space the
+// cross-posts out so a full backfill does not hit 429.
+const publishDelayMs = Number(process.env.CROSSPOST_DELAY_MS ?? 35000);
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 function injectDevtoIds(raw: string, id: number, url: string): string {
   const lines = raw.split("\n");
@@ -69,6 +74,7 @@ async function main(): Promise<void> {
     } catch (error) {
       console.error(`  FAILED: ${post.slug}: ${error instanceof Error ? error.message : error}`);
     }
+    await sleep(publishDelayMs);
   }
 }
 

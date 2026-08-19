@@ -12,6 +12,9 @@ on:
     paths:
       - "src/content/blog/**"
 
+permissions:
+  contents: write
+
 jobs:
   crosspost:
     # The devtoId commit-back below re-triggers this workflow for the bot
