@@ -8,14 +8,15 @@ import { ProjectsList } from "@/features/projects/ProjectsList";
 import { formatDate } from "@/lib/formatDate";
 import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
+import { fetchFeaturedRepos } from "@/lib/github-repos";
 import { generateMeta } from "@/lib/seo";
 import { Schema } from "@/lib/schema";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const posts = getPosts(["src", "content", "projects"]);
-  return posts.map((post) => ({ slug: post.slug }));
+  const featured = await fetchFeaturedRepos();
+  return featured.map((p) => ({ slug: p.detailSlug }));
 }
 
 export async function generateMetadata({
