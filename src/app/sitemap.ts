@@ -1,5 +1,6 @@
 import { baseURL, routes as routesConfig } from "@/config";
 import { filterPosts } from "@/lib/draft";
+import { fetchFeaturedRepos } from "@/lib/github-repos";
 import { getPosts } from "@/lib/mdx";
 
 export default async function sitemap() {
@@ -8,10 +9,15 @@ export default async function sitemap() {
     lastModified: post.metadata.publishedAt,
   }));
 
-  const projects = filterPosts(getPosts(["src", "content", "projects"]), false).map((post) => ({
-    url: `${baseURL}/projects/${post.slug}`,
-    lastModified: post.metadata.publishedAt,
-  }));
+  // Only featured projects get detail pages and appear in the sitemap.
+  const featured = await fetchFeaturedRepos();
+  const featuredSlugs = new Set(featured.map((p) => p.detailSlug));
+  const projects = filterPosts(getPosts(["src", "content", "projects"]), false)
+    .filter((post) => featuredSlugs.has(post.slug))
+    .map((post) => ({
+      url: `${baseURL}/projects/${post.slug}`,
+      lastModified: post.metadata.publishedAt,
+    }));
 
   const workItems = filterPosts(getPosts(["src", "content", "work"]), false).map((post) => ({
     url: `${baseURL}/work/${post.slug}`,
