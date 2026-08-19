@@ -2,6 +2,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { streamText } from 'ai';
 import { about, home, person, workExperience } from '@/content';
 import { sameAs } from '@/config';
+import { mdxSlugByRepo } from '@/config/projects';
 import { getPosts } from '@/lib/mdx';
 import { rateLimit } from '@/lib/rateLimiter';
 import { aiTools } from '@/lib/ai/tools';
@@ -59,7 +60,12 @@ function countPii(text: string): number {
 function buildSystemPrompt(): string {
   if (cachedSystemPrompt) return cachedSystemPrompt;
 
-  const projects = getPosts(['src', 'content', 'projects']);
+  // The static project list mirrors the site's featured catalog (the MDX the
+  // /projects page renders); the GitHub tools cover every real repo besides.
+  const featuredSlugs = new Set(Object.values(mdxSlugByRepo));
+  const projects = getPosts(['src', 'content', 'projects']).filter((p) =>
+    featuredSlugs.has(p.slug),
+  );
   const blogs = getPosts(['src', 'content', 'blog']);
 
   const projectList = projects
