@@ -75,10 +75,12 @@ The template had zero tests. The milestone plan (M2–M4) added them deliberatel
 
 ### M2 — Unit tests: Vitest + React Testing Library + jsdom
 
-Vitest with jsdom and RTL targets, and the targets were explicit:
+Vitest with jsdom and RTL runs against explicit coverage targets:
 
 - **`lib/` and `hooks/` → 100% coverage**
 - **components and features → ≥80% coverage**
+
+These are tracked in CI (v8 coverage over `src/lib`, `src/hooks`, `src/components`, `src/features`) as a visibility tool rather than a hard-failing threshold — the discipline is the test, not the gate.
 
 Tests are co-located next to the source (`src/features/blog/__tests__/`), which keeps "is this tested?" one glance away. The `lib/` 100% target is what made `getPosts()`, `formatDate()`, the draft filter, and the SEO/schema generators trustworthy enough to build features on top of. Mocking follows a strict pattern: `vi.mock` at the top, deterministic `vi.hoisted` mocks, and **no guarded assertions** — an `if (condition) expect(...)` is vacuous and gets flagged in review.
 
@@ -87,7 +89,7 @@ Tests are co-located next to the source (`src/features/blog/__tests__/`), which 
 Unit tests prove functions; Playwright proves the site. The e2e suite:
 
 - Visits **every route** and checks navigation, links, and render
-- Tests **responsive** behavior at desktop, tablet, and **375px mobile**
+- Tests **responsive** behavior at desktop and **mobile (375px)**
 - Runs **axe-core accessibility** checks on key pages
 - Maintains **visual snapshots** (chromium locally, updated intentionally via a dedicated script)
 
