@@ -37,6 +37,7 @@ export async function ProjectsList({ range, exclude }: ProjectsListProps) {
             })) || []
           }
           link={project.link}
+          comingSoon={project.comingSoon}
           tag={project.tag}
           tags={project.tags}
         />

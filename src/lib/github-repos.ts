@@ -165,6 +165,7 @@ export async function fetchFeaturedRepos(): Promise<ProjectData[]> {
         title: (meta?.title as string) || gh?.name || name,
         summary: (meta?.summary as string) || gh?.description || "",
         link: (meta?.link as string) || gh?.homepage || gh?.html_url || "",
+        comingSoon: meta?.comingSoon === true,
         tag: (meta?.tag as string) || inferCategory(gh?.topics ?? [], gh?.language ?? ""),
         tags: (meta?.tags as string[]) || (gh?.topics ?? []).slice(0, 6),
         images: (meta?.images as string[]) || [],
