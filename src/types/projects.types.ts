@@ -19,6 +19,8 @@ export type ProjectData = {
   title: string;
   summary: string;
   link: string;
+  /** When true the card renders no links and a "Coming soon" badge. */
+  comingSoon?: boolean;
   tag?: string;
   tags?: string[];
   images: string[];

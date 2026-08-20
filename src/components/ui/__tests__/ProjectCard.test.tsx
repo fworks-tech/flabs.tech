@@ -56,6 +56,20 @@ describe("ProjectCard", () => {
     expect(screen.getByText("View project")).toBeInTheDocument();
   });
 
+  it("hides links and shows a coming soon badge when comingSoon is set", () => {
+    render(<ProjectCard {...defaultProps} link="https://example.com" comingSoon />, {
+      wrapper: Wrapper,
+    });
+    expect(screen.queryByText("Read case study")).not.toBeInTheDocument();
+    expect(screen.queryByText("View project")).not.toBeInTheDocument();
+    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+  });
+
+  it("appends (coming soon) to the description when comingSoon is set", () => {
+    render(<ProjectCard {...defaultProps} comingSoon />, { wrapper: Wrapper });
+    expect(screen.getByText("A test project description (coming soon)")).toBeInTheDocument();
+  });
+
   it("renders avatars when provided", () => {
     render(<ProjectCard {...defaultProps} avatars={[{ src: "/images/avatar.png" }]} />, { wrapper: Wrapper });
     expect(screen.getByText("Test Project")).toBeInTheDocument();

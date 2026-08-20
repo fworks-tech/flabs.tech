@@ -1,6 +1,6 @@
 "use client";
 
-import { Anchor, Avatar, Group, Stack, Text } from "@mantine/core";
+import { Anchor, Avatar, Badge, Group, Stack, Text } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import Link from "next/link";
 import styles from "./ProjectCard.module.scss";
@@ -14,6 +14,7 @@ interface ProjectCardProps {
   description: string;
   avatars: { src: string; "aria-label"?: string }[];
   link: string;
+  comingSoon?: boolean;
   tag?: string;
   tags?: string[];
 }
@@ -26,11 +27,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   description,
   avatars,
   link,
+  comingSoon,
   tag,
   tags,
 }) => {
   const allTags = tags?.length ? tags : tag ? [tag] : [];
   const tagKey = (tag || (tags?.[0] ?? "")).toLowerCase().replace(/[^a-z]/g, "-");
+  const displayDescription =
+    comingSoon && description ? `${description} (coming soon)` : description;
 
   return (
     <Stack gap="md">
@@ -72,21 +76,26 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 ))}
               </Avatar.Group>
             )}
-            {description?.trim() && (
+            {displayDescription?.trim() && (
               <Text size="sm" c="dimmed">
-                {description}
+                {displayDescription}
               </Text>
             )}
             <Group gap="24" wrap="wrap">
-              {content?.trim() && (
+              {!comingSoon && content?.trim() && (
                 <Anchor component={Link} href={href} size="sm">
                   Read case study
                 </Anchor>
               )}
-              {link && (
+              {!comingSoon && link && (
                 <Anchor href={link} target="_blank" rel="noopener noreferrer" size="sm">
                   View project
                 </Anchor>
+              )}
+              {comingSoon && (
+                <Badge color="gray" variant="light" size="sm" radius="sm">
+                  Coming soon
+                </Badge>
               )}
             </Group>
           </Stack>
