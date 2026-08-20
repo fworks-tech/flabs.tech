@@ -33,15 +33,18 @@ function absolutize(url: string): string {
  * platform. A single generic tag (e.g. "AI") is otherwise low-signal.
  */
 const DEVTO_TAG_MAP: Record<string, string[]> = {
-  AI: ["ai", "webdev", "programming"],
-  Engineering: ["engineering", "webdev", "programming"],
-  Architecture: ["architecture", "webdev", "programming"],
-  Projects: ["showdev", "javascript", "webdev"],
+  ai: ["ai", "webdev", "programming"],
+  engineering: ["engineering", "webdev", "programming"],
+  architecture: ["architecture", "webdev", "programming"],
+  projects: ["showdev", "javascript", "webdev"],
 };
 
 function resolveTags(metadata: Metadata): string[] {
   if (metadata.tags?.length) return metadata.tags;
-  if (metadata.tag) return DEVTO_TAG_MAP[metadata.tag] ?? [metadata.tag];
+  if (metadata.tag) {
+    const key = metadata.tag.toLowerCase();
+    return DEVTO_TAG_MAP[key] ?? [metadata.tag];
+  }
   return [];
 }
 
