@@ -60,9 +60,17 @@ describe("crosspost", () => {
       expect(input.published).toBe(true);
     });
 
-    it("falls back to the single tag when tags is empty", () => {
+    it("maps a broad content tag to a curated Dev.to tag set", () => {
       const input = buildDevtoInput({ ...post, metadata: { ...baseMetadata, tags: [], tag: "AI" } });
-      expect(input.tags).toEqual(["AI"]);
+      expect(input.tags).toEqual(["ai", "webdev", "programming"]);
+    });
+
+    it("keeps an explicit tags array as-is", () => {
+      const input = buildDevtoInput({
+        ...post,
+        metadata: { ...baseMetadata, tags: ["react", "nextjs"], tag: "AI" },
+      });
+      expect(input.tags).toEqual(["react", "nextjs"]);
     });
 
     it("leaves absolute image urls intact", () => {

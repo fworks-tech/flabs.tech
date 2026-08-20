@@ -27,22 +27,36 @@ function absolutize(url: string): string {
   return url.startsWith("/") ? `${DEFAULT_BASE_URL}${url}` : url;
 }
 
+/**
+ * Maps the site's broad content tags to a small set of well-known Dev.to
+ * tags, which is what actually drives tag feeds and discovery on the
+ * platform. A single generic tag (e.g. "AI") is otherwise low-signal.
+ */
+const DEVTO_TAG_MAP: Record<string, string[]> = {
+  AI: ["ai", "webdev", "programming"],
+  Engineering: ["engineering", "webdev", "programming"],
+  Architecture: ["architecture", "webdev", "programming"],
+  Projects: ["showdev", "javascript", "webdev"],
+};
+
+function resolveTags(metadata: Metadata): string[] {
+  if (metadata.tags?.length) return metadata.tags;
+  if (metadata.tag) return DEVTO_TAG_MAP[metadata.tag] ?? [metadata.tag];
+  return [];
+}
+
 /** Builds a Dev.to article input from a site blog post. */
 export function buildDevtoInput(
   post: PostContent,
   published = true,
 ): DevtoArticleInput {
   const metadata = post.metadata;
-  const tags =
-    (metadata.tags?.length ? metadata.tags : metadata.tag ? [metadata.tag] : []).filter(
-      Boolean,
-    ) || [];
   return {
     title: metadata.title,
     bodyMarkdown: mdxToMarkdown(post.content),
     canonicalUrl: canonicalUrl(post.slug),
     description: metadata.summary || "",
-    tags,
+    tags: [...new Set(resolveTags(metadata))].filter(Boolean),
     published,
     mainImage: metadata.image ? absolutize(metadata.image) : undefined,
   };

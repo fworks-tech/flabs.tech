@@ -22,7 +22,7 @@ const apiResponse = {
   url: "https://dev.to/testuser/test-post",
   canonical_url: "https://flabs.tech/blog/test-post",
   published: true,
-  tags: ["testing", "typescript", "engineering"],
+  tag_list: ["testing", "typescript", "engineering"],
   created_at: "2026-07-06T12:00:00Z",
 };
 
@@ -59,7 +59,7 @@ describe("devto API client", () => {
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(callBody.article.title).toBe("Test Post");
       expect(callBody.article.canonical_url).toBe("https://flabs.tech/blog/test-post");
-      expect(callBody.article.tags).toBe("testing,typescript,engineering");
+      expect(callBody.article.tags).toEqual(["testing", "typescript", "engineering"]);
       expect(callBody.article.published).toBe(true);
       expect(result.title).toBe("Test Post");
     });
@@ -86,7 +86,7 @@ describe("devto API client", () => {
       await createArticle({ ...validInput, tags: ["a", "b", "c", "d", "e", "f"] });
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(callBody.article.tags).toBe("a,b,c,d");
+      expect(callBody.article.tags).toEqual(["a", "b", "c", "d"]);
     });
 
     it("sanitizes tags", async () => {
@@ -98,7 +98,7 @@ describe("devto API client", () => {
       await createArticle({ ...validInput, tags: ["TypeScript!", "React.js", "AI/ML"] });
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(callBody.article.tags).toBe("typescript,reactjs,aiml");
+      expect(callBody.article.tags).toEqual(["typescript", "reactjs", "aiml"]);
     });
 
     it("throws when both DEVTO_API_KEY and OPENCODE_API_KEY are missing", async () => {
