@@ -40,7 +40,7 @@ export default async function AdminDraftPreview({
             </Badge>
           )}
         </Group>
-        <PublishToDevtoButton slug={slug} />
+        {!(scheduledAt && !visible) && <PublishToDevtoButton slug={slug} />}
       </Group>
 
       <Stack align="center" gap="8">

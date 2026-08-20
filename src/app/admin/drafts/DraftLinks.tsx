@@ -86,7 +86,7 @@ export function DraftsTable({ rows }: { rows: DraftRow[] }) {
             </Table.Td>
             <Table.Td>
               <Group gap="6" wrap="wrap">
-                <PublishToDevtoButton slug={post.slug} size="xs" />
+                {!post.scheduled && <PublishToDevtoButton slug={post.slug} size="xs" />}
                 <DraftPreviewLink href={`/admin/drafts/${post.slug}`} />
               </Group>
             </Table.Td>
