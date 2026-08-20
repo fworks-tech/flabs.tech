@@ -10,7 +10,8 @@ const slugFilter = process.env.CROSSPOST_SLUG?.trim() || "";
 const dryRun = process.argv.includes("--dry-run");
 // Dev.to rate-limits article creation to roughly one per 30s; space the
 // cross-posts out so a full backfill does not hit 429.
-const publishDelayMs = Number(process.env.CROSSPOST_DELAY_MS ?? 35000);
+const parsedDelay = Number(process.env.CROSSPOST_DELAY_MS ?? 35000);
+const publishDelayMs = Number.isFinite(parsedDelay) && parsedDelay > 0 ? parsedDelay : 35000;
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -62,7 +63,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  for (const post of candidates) {
+  for (let i = 0; i < candidates.length; i += 1) {
+    const post = candidates[i];
     if (dryRun) {
       console.log(`  would publish: ${post.slug}`);
       continue;
@@ -74,7 +76,9 @@ async function main(): Promise<void> {
     } catch (error) {
       console.error(`  FAILED: ${post.slug}: ${error instanceof Error ? error.message : error}`);
     }
-    await sleep(publishDelayMs);
+    if (i < candidates.length - 1) {
+      await sleep(publishDelayMs);
+    }
   }
 }
 
