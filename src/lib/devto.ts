@@ -112,7 +112,7 @@ export async function createArticle(
 
   const slug = toDevtoSlug(input.canonicalUrl.split("/").pop() || "");
 
-  const result = await request<{ id: number; title: string; url: string; canonical_url: string; published: boolean; tags: string[]; created_at: string }>(
+  const result = await request<{ id: number; title: string; url: string; canonical_url: string; published: boolean; tag_list: string[]; created_at: string }>(
     "POST",
     "/articles",
     {
@@ -121,7 +121,7 @@ export async function createArticle(
         body_markdown: input.bodyMarkdown,
         canonical_url: input.canonicalUrl,
         description: input.description.slice(0, 200),
-        tags: tags.join(","),
+        tags,
         published: input.published ?? true,
         series: input.series || null,
         main_image: input.mainImage || null,
@@ -137,7 +137,7 @@ export async function createArticle(
     url: result.url,
     canonicalUrl: result.canonical_url,
     published: result.published,
-    tags: result.tags,
+    tags: result.tag_list,
     createdAt: result.created_at,
   };
 }
@@ -151,7 +151,7 @@ export async function updateArticle(
     .map((t) => t.toLowerCase().replace(/[^a-z0-9-]/g, ""))
     .filter(Boolean);
 
-  const result = await request<{ id: number; title: string; url: string; canonical_url: string; published: boolean; tags: string[]; created_at: string }>(
+  const result = await request<{ id: number; title: string; url: string; canonical_url: string; published: boolean; tag_list: string[]; created_at: string }>(
     "PUT",
     `/articles/${id}`,
     {
@@ -160,7 +160,7 @@ export async function updateArticle(
         body_markdown: input.bodyMarkdown,
         canonical_url: input.canonicalUrl,
         description: input.description.slice(0, 200),
-        tags: tags.join(","),
+        tags,
         published: input.published ?? true,
         series: input.series || null,
         main_image: input.mainImage || null,
@@ -176,13 +176,13 @@ export async function updateArticle(
     url: result.url,
     canonicalUrl: result.canonical_url,
     published: result.published,
-    tags: result.tags,
+    tags: result.tag_list,
     createdAt: result.created_at,
   };
 }
 
 export async function getMyArticles(): Promise<DevtoArticle[]> {
-  const results = await request<Array<{ id: number; title: string; url: string; canonical_url: string; published: boolean; tags: string[]; created_at: string }>>(
+  const results = await request<Array<{ id: number; title: string; url: string; canonical_url: string; published: boolean; tag_list: string[]; created_at: string }>>(
     "GET",
     "/articles/me",
   );
@@ -193,7 +193,7 @@ export async function getMyArticles(): Promise<DevtoArticle[]> {
     url: a.url,
     canonicalUrl: a.canonical_url,
     published: a.published,
-    tags: a.tags,
+    tags: a.tag_list,
     createdAt: a.created_at,
   }));
 }
