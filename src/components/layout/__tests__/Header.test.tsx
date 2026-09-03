@@ -15,7 +15,7 @@ vi.mock('next/navigation', () => ({
 }));
 vi.mock('@/config', () => ({
   display: { time: true, themeSwitcher: true },
-  routes: { '/': true, '/work': true, '/projects': true, '/blog': true, '/about': true },
+  routes: { '/': true, '/work': true, '/projects': true, '/blog': true, '/about': true, '/quiz': true },
 }));
 
 import { Header } from '@/components/layout/Header';
@@ -139,5 +139,14 @@ describe('Header', () => {
     expect(homeLink.style.getPropertyValue('--button-fz')).toBe(
       'var(--mantine-font-size-md)',
     );
+  });
+
+  it('renders the Try Yourself! link as gradient text with no filled background', () => {
+    render(<Header />, { wrapper: Wrapper });
+    const mainNav = screen.getByRole('navigation', { name: /main navigation/i });
+    const quizLink = within(mainNav).getByRole('link', { name: /try yourself/i });
+
+    expect(quizLink).toHaveAttribute('data-variant', 'subtle');
+    expect(quizLink.className).toMatch(/tryYourself/);
   });
 });
