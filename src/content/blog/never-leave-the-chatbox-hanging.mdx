@@ -11,6 +11,8 @@ shareText: |
   The postmortem found four missing timeouts across four layers — and the fix that almost broke something worse.
 
   Full breakdown on flabs.tech
+devtoId: 4563086
+devtoUrl: "https://dev.to/flabstech/never-leave-the-chatbox-hanging-fixing-a-silent-timeout-in-our-ai-assistant-2bik"
 ---
 
 Someone asked our portfolio assistant about the Atlaslink project. The widget showed **Thinking…**, then **Typing…**, then nothing. No answer. No error. No retry button. Just a dead chatbox and a session counter reading `1/20` — which, by the way, is not a retry counter. It's the message budget. The widget had simply given up without telling anyone.
