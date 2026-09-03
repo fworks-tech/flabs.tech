@@ -66,7 +66,7 @@ export default function Home() {
             View all
           </NavLink>
         </Group>
-        <ProjectGrid range={[1, 3]} />
+        <ProjectGrid range={[1, 3]} exclude={["flabs-tech"]} />
       </Stack>
 
       {routes["/blog"] && hasBlogPosts && (
