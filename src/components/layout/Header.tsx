@@ -70,9 +70,21 @@ type NavItem = {
   highlight?: boolean;
 };
 
+/** Scroll offset (px) after which the transparent header frosts over. */
+const SCROLL_FROST_THRESHOLD = 24;
+
 export const Header = () => {
   const pathname = usePathname() ?? '';
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Frost the transparent header once the starfield scrolls underneath content.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_FROST_THRESHOLD);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const navItems: NavItem[] = [
     { path: '/', label: 'Home', icon: 'home', selected: pathname === '/' },
@@ -98,7 +110,7 @@ export const Header = () => {
     <>
       {/* Desktop: sticky header with nav + theme toggle */}
       <Group
-        className={styles.position}
+        className={`${styles.position} ${scrolled ? styles.scrolled : ''}`}
         component="header"
         style={{ zIndex: 100 }}
         px="24"
@@ -112,7 +124,7 @@ export const Header = () => {
             {navItems.map((item) => (
               <div
                 key={item.path}
-                className={`${styles.navItem} ${item.highlight ? styles.highlight : ''}`}
+                className={`${styles.navItem} ${item.selected ? styles.selected : ''} ${item.highlight ? styles.highlight : ''}`}
               >
                 <Button
                   component={Link}

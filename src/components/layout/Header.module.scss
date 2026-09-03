@@ -3,17 +3,33 @@
 .position {
   position: sticky;
   top: 0;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+
+// Frosted once page content scrolls underneath the transparent header.
+.scrolled {
   backdrop-filter: blur(12px);
 
   [data-mantine-color-scheme='dark'] & {
-    background: var(--mantine-color-dark-8);
+    background: rgba(20, 21, 23, 0.72);
+    background: color-mix(in srgb, var(--mantine-color-dark-8) 72%, transparent);
     border-bottom: 1px solid var(--mantine-color-dark-5);
   }
 
   [data-mantine-color-scheme='light'] & {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.72);
+    background: color-mix(in srgb, #ffffff 72%, transparent);
     border-bottom: 1px solid var(--mantine-color-gray-2);
   }
+}
+
+// Readability over the bright starfield while the header is still transparent.
+[data-mantine-color-scheme='dark'] .position:not(.scrolled) nav {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
 }
 
 @include bp.s {
@@ -26,6 +42,82 @@
   position: relative;
   display: flex;
   align-items: center;
+  animation: nav-enter 0.45s ease both;
+}
+
+.navItem:nth-child(1) {
+  animation-delay: 0s;
+}
+
+@for $i from 2 through 6 {
+  .navItem:nth-child(#{$i}) {
+    animation-delay: #{($i - 1) * 0.05}s;
+  }
+}
+
+@keyframes nav-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Animated gradient underline for desktop nav links (mobile uses icon buttons).
+// 768px mirrors Mantine's `sm` breakpoint used by visibleFrom/hiddenFrom in Header.tsx.
+@media (min-width: 768px) {
+  .navItem a {
+    position: relative;
+  }
+
+  .navItem a::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 4px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--mantine-color-grape-4),
+      var(--mantine-color-cyan-4)
+    );
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.25s ease;
+  }
+
+  .navItem a:hover::after,
+  .navItem a:focus-visible::after,
+  .selected a::after {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .position {
+    transition: none;
+  }
+
+  .navItem {
+    animation: none;
+  }
+
+  .navItem a::after {
+    transition: none;
+  }
+
+  .highlight::before {
+    transition: none;
+  }
+
+  .highlight::after {
+    animation: none;
+  }
 }
 
 .highlight {

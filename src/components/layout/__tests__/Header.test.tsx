@@ -1,7 +1,7 @@
 import { MantineProvider } from '@mantine/core';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: Record<string, unknown>) => (
@@ -28,6 +28,22 @@ function openMenu() {
   const hamburger = screen.getByRole('button', { name: /open navigation menu/i });
   return hamburger;
 }
+
+const originalScrollY = Object.getOwnPropertyDescriptor(window, 'scrollY');
+
+function setScrollY(value: number) {
+  Object.defineProperty(window, 'scrollY', { value, configurable: true });
+}
+
+beforeEach(() => {
+  setScrollY(0);
+});
+
+afterEach(() => {
+  if (originalScrollY) {
+    Object.defineProperty(window, 'scrollY', originalScrollY);
+  }
+});
 
 describe('Header', () => {
   it('renders navigation links for each route', () => {
@@ -83,5 +99,27 @@ describe('Header', () => {
     await ue.click(openMenu());
 
     expect(screen.getByRole('button', { name: /close navigation menu/i })).toBeInTheDocument();
+  });
+
+  it('frosts the header after scrolling past the threshold', () => {
+    render(<Header />, { wrapper: Wrapper });
+    const banner = screen.getByRole('banner');
+
+    setScrollY(0);
+    fireEvent.scroll(window);
+    expect(banner.className).not.toMatch(/scrolled/);
+
+    // Boundary: threshold is 24, so 24 stays transparent, 25 frosts.
+    setScrollY(24);
+    fireEvent.scroll(window);
+    expect(banner.className).not.toMatch(/scrolled/);
+
+    setScrollY(25);
+    fireEvent.scroll(window);
+    expect(banner.className).toMatch(/scrolled/);
+
+    setScrollY(0);
+    fireEvent.scroll(window);
+    expect(banner.className).not.toMatch(/scrolled/);
   });
 });
