@@ -172,6 +172,21 @@ describe("listGitHubRepos", () => {
     ).execute({ repo: "../../evil" })) as { error?: string };
     expect(result.error).toContain("Invalid GitHub repository");
   });
+
+  it("rejects dot-only segments that would normalize away in the URL path", async () => {
+    // The tool schema only exposes `repo` (owner is hardcoded), so only the
+    // repo parameter is model-controlled; the internal guard validates both
+    // as defense in depth for future callers.
+    const { aiTools } = await loadTools();
+    const execute = aiTools.fetchGitHubRepo as {
+      execute: (args: { repo: string }) => unknown;
+    };
+    for (const args of [{ repo: ".." }, { repo: "." }]) {
+      const result = (await execute.execute(args)) as { error?: string };
+      expect(result.error).toContain("Invalid GitHub repository");
+    }
+    expect(vi.mocked(globalThis.fetch)).not.toHaveBeenCalled();
+  });
 });
 
 describe("fetchUrlContent allowlist", () => {
@@ -210,6 +225,20 @@ describe("fetchUrlContent allowlist", () => {
     for (const url of allowed) {
       expect(AUTHORIZED_URLS.some((re: RegExp) => re.test(url))).toBe(true);
     }
+  });
+
+  it("matches first-party hosts case-insensitively", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: () => "text/plain" },
+        text: async () => "atlas content",
+      }),
+    );
+    const result = (await executeFetchUrl("https://ATLAS.FLABS.TECH/")) as { content?: string };
+    expect(result.content).toContain("atlas content");
   });
 
   it("rejects third-party URLs at the gate without fetching", async () => {
@@ -274,6 +303,18 @@ describe("searchContent", () => {
       results: unknown[];
     };
     expect(result.results).toHaveLength(1);
+  });
+
+  it("requires every token to match (multi-token AND)", async () => {
+    const hit = (await executeSearch("atlaslink pipeline", { blog: [], projects: [atlasProject] })) as {
+      results: unknown[];
+    };
+    expect(hit.results).toHaveLength(1);
+
+    const miss = (await executeSearch("atlaslink zzzqqq", { blog: [], projects: [atlasProject] })) as {
+      results: unknown[];
+    };
+    expect(miss.results).toHaveLength(0);
   });
 
   it("does not match on single characters via the slug shortcut", async () => {

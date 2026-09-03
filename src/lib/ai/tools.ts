@@ -10,10 +10,10 @@ import { logger } from "@/lib/logger";
 // `*.flabs.tech` subdomains are first-party (atlas, agenthood, hasheyes…).
 // ---------------------------------------------------------------------------
 export const AUTHORIZED_URLS: RegExp[] = [
-  /^https?:\/\/github\.com\/fworks-tech\/.+/,
-  /^https?:\/\/([a-z0-9-]+\.)*flabs\.tech(\/.*)?$/,
-  /^https?:\/\/logroute-app\.vercel\.app(\/.*)?$/,
-  /^https?:\/\/www\.npmjs\.com\/package\/agenthood/,
+  /^https?:\/\/github\.com\/fworks-tech\/.+/i,
+  /^https?:\/\/([a-z0-9-]+\.)*flabs\.tech(\/.*)?$/i,
+  /^https?:\/\/logroute-app\.vercel\.app(\/.*)?$/i,
+  /^https?:\/\/www\.npmjs\.com\/package\/agenthood/i,
 ];
 
 export const TOOL_FETCH_TIMEOUT_MS = 10_000;
@@ -29,8 +29,17 @@ function isAuthorizedUrl(url: string): boolean {
 async function fetchGitHubRepo(owner: string, repo: string) {
   // Tool args come from the model: constrain them to plain GitHub path
   // segments so no crafted string can escape into an unintended API path.
+  // Dot-only segments are rejected explicitly — they pass the character
+  // class but normalize away in URL paths (`repos/a/..` → `repos/`).
   const segment = /^[A-Za-z0-9_.-]+$/;
-  if (!segment.test(owner) || !segment.test(repo)) {
+  if (
+    !segment.test(owner) ||
+    !segment.test(repo) ||
+    owner === '.' ||
+    owner === '..' ||
+    repo === '.' ||
+    repo === '..'
+  ) {
     return { error: `Invalid GitHub repository "${owner}/${repo}"` };
   }
   try {
@@ -137,56 +146,60 @@ function matchesQuery(
   );
 }
 
+type SearchResult = {
+  type: string;
+  title: string;
+  summary: string;
+  publishedAt?: string;
+  link: string;
+};
+
+/** Matches one content collection against the query keys. */
+function searchEntries(
+  entries: Array<ReturnType<typeof getPosts>[number]>,
+  type: string,
+  linkFor: (slug: string) => string,
+  keys: string[],
+  q: string,
+  matchSlug: boolean,
+): SearchResult[] {
+  const out: SearchResult[] = [];
+  for (const entry of entries) {
+    const title = (entry.metadata.title as string) ?? '';
+    const summary = (entry.metadata.summary as string) ?? '';
+    const tags = getTags(entry.metadata);
+    // Slug match covers queries like "atlaslink" even when metadata is thin.
+    // Gated on length so single characters (e.g. "a") don't match every slug.
+    const slugQuery = q.replace(/[^a-z0-9]/gi, '');
+    const slugHit =
+      matchSlug && slugQuery.length > 2 && entry.slug.toLowerCase().includes(slugQuery);
+    if (q && (slugHit || matchesQuery(keys, title, summary, tags, entry.content ?? ''))) {
+      out.push({
+        type,
+        title,
+        summary: summary.slice(0, 200),
+        publishedAt: entry.metadata.publishedAt,
+        link: linkFor(entry.slug),
+      });
+    }
+  }
+  return out;
+}
+
 async function searchContent(query: string) {
   const q = query.toLowerCase().trim();
   const tokens = q.split(/[^a-z0-9]+/i).filter((t) => t.length > 1);
   const keys = tokens.length > 0 ? tokens : [q];
-  const results: {
-    type: string;
-    title: string;
-    summary: string;
-    publishedAt?: string;
-    link: string;
-  }[] = [];
 
   try {
     // Public surface: never surface unpublished drafts to chat visitors.
     const blogPosts = getPosts(['src', 'content', 'blog'], false);
     const projects = getPosts(['src', 'content', 'projects'], false);
 
-    for (const post of blogPosts) {
-      const title = (post.metadata.title as string) ?? '';
-      const summary = (post.metadata.summary as string) ?? '';
-      const tags = getTags(post.metadata);
-      if (q && matchesQuery(keys, title, summary, tags, post.content ?? '')) {
-        results.push({
-          type: 'blog',
-          title,
-          summary: summary.slice(0, 200),
-          publishedAt: post.metadata.publishedAt,
-          link: `/blog/${post.slug}`,
-        });
-      }
-    }
-
-    for (const project of projects) {
-      const title = (project.metadata.title as string) ?? '';
-      const summary = (project.metadata.summary as string) ?? '';
-      const tags = getTags(project.metadata);
-      // Slug match covers queries like "atlaslink" even when metadata is thin.
-      // Gated on length so single characters (e.g. "a") don't match every slug.
-      const slugQuery = q.replace(/[^a-z0-9]/gi, '');
-      const slugHit = slugQuery.length > 2 && project.slug.toLowerCase().includes(slugQuery);
-      if (q && (slugHit || matchesQuery(keys, title, summary, tags, project.content ?? ''))) {
-        results.push({
-          type: 'project',
-          title,
-          summary: summary.slice(0, 200),
-          publishedAt: project.metadata.publishedAt,
-          link: `/projects/${project.slug}`,
-        });
-      }
-    }
+    const results: SearchResult[] = [
+      ...searchEntries(blogPosts, 'blog', (slug) => `/blog/${slug}`, keys, q, false),
+      ...searchEntries(projects, 'project', (slug) => `/projects/${slug}`, keys, q, true),
+    ];
 
     results.sort((a, b) => {
       const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;

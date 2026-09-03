@@ -271,6 +271,83 @@ async function handleAbuseSignal(
   return incident;
 }
 
+type ChatStreamOptions = Parameters<typeof streamText>[0];
+
+/**
+ * Observability callbacks for the tool-calling stream, factored out of POST
+ * so the handler stays focused on validation and abuse gating. Completion is
+ * written exactly once here (per-event payload + global token aggregate);
+ * the `result.usage` handler in POST only feeds the abuse cost budget.
+ */
+function createChatStreamObservers(ctx: {
+  key: string;
+  streamStart: number;
+  eventPromise: Promise<string>;
+}): Pick<ChatStreamOptions, 'onStepFinish' | 'onFinish' | 'onError'> {
+  const { key, streamStart, eventPromise } = ctx;
+  return {
+    onStepFinish: ({ toolCalls, usage }) => {
+      logger.info(
+        {
+          key,
+          tools: (toolCalls ?? []).map((t: any) => t?.toolName ?? 'unknown'),
+          tokens: usage?.totalTokens ?? 0,
+          scope: 'chat',
+        },
+        'chat step',
+      );
+    },
+    onFinish: ({ text, steps, usage, finishReason }) => {
+      const durationMs = Date.now() - streamStart;
+      const empty = !text?.trim();
+      logger.info(
+        {
+          key,
+          steps: steps?.length ?? 0,
+          outputTokens: usage?.outputTokens ?? 0,
+          finishReason,
+          empty,
+          durationMs,
+          scope: 'chat',
+        },
+        empty ? 'chat request finished empty' : 'chat request finished',
+      );
+      void (async () => {
+        try {
+          const eventId = await eventPromise;
+          // Single event write: the completion payload already carries
+          // tokensOut, so a separate update call would race this one.
+          if (usage?.outputTokens) {
+            void addAiTokensOut(usage.outputTokens);
+          }
+          await updateAiEventCompletion(eventId, {
+            durationMs,
+            steps: steps?.length ?? 0,
+            empty,
+            ...(usage?.outputTokens ? { tokensOut: usage.outputTokens } : {}),
+          });
+        } catch {
+          // Observability must never break the response.
+        }
+      })();
+    },
+    onError: ({ error }) => {
+      logger.error({ key, scope: 'chat', err: String(error) }, 'chat stream error');
+      void (async () => {
+        try {
+          const eventId = await eventPromise;
+          await updateAiEventCompletion(eventId, {
+            durationMs: Date.now() - streamStart,
+            error: String(error)?.slice(0, 300),
+          });
+        } catch {
+          // ignore
+        }
+      })();
+    },
+  };
+}
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
@@ -434,65 +511,7 @@ export async function POST(req: NextRequest) {
       stopWhen: createChatStopCondition(),
       maxOutputTokens: 1000,
       temperature: 0.3,
-      onStepFinish: ({ toolCalls, usage }) => {
-        logger.info(
-          {
-            key,
-            tools: (toolCalls ?? []).map((t: any) => t?.toolName ?? 'unknown'),
-            tokens: usage?.totalTokens ?? 0,
-            scope: 'chat',
-          },
-          'chat step',
-        );
-      },
-      onFinish: ({ text, steps, usage, finishReason }) => {
-        const durationMs = Date.now() - streamStart;
-        const empty = !text?.trim();
-        logger.info(
-          {
-            key,
-            steps: steps?.length ?? 0,
-            outputTokens: usage?.outputTokens ?? 0,
-            finishReason,
-            empty,
-            durationMs,
-            scope: 'chat',
-          },
-          empty ? 'chat request finished empty' : 'chat request finished',
-        );
-        void (async () => {
-          try {
-            const eventId = await eventPromise;
-            // Single event write: the completion payload already carries
-            // tokensOut, so a separate update call would race this one.
-            if (usage?.outputTokens) {
-              void addAiTokensOut(usage.outputTokens);
-            }
-            await updateAiEventCompletion(eventId, {
-              durationMs,
-              steps: steps?.length ?? 0,
-              empty,
-              ...(usage?.outputTokens ? { tokensOut: usage.outputTokens } : {}),
-            });
-          } catch {
-            // Observability must never break the response.
-          }
-        })();
-      },
-      onError: ({ error }) => {
-        logger.error({ key, scope: 'chat', err: String(error) }, 'chat stream error');
-        void (async () => {
-          try {
-            const eventId = await eventPromise;
-            await updateAiEventCompletion(eventId, {
-              durationMs: Date.now() - streamStart,
-              error: String(error)?.slice(0, 300),
-            });
-          } catch {
-            // ignore
-          }
-        })();
-      },
+      ...createChatStreamObservers({ key, streamStart, eventPromise }),
     });
 
     // Log request for monitoring (pre-stream; completion logged in onFinish).

@@ -52,13 +52,13 @@ export function AiAssistant() {
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const { messages, sendMessage, status, error, stop, regenerate } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
-    onError: () => trackEvent('ai_assistant_error'),
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -117,7 +117,10 @@ export function AiAssistant() {
   useEffect(() => {
     if (!isOpen) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -204,6 +207,7 @@ export function AiAssistant() {
   return (
     <>
       <ActionIcon
+        ref={toggleRef}
         className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ''}`}
         onClick={() => {
           trackEvent('ai_assistant_open');

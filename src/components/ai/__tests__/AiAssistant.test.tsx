@@ -1,5 +1,5 @@
 import { MantineProvider } from "@mantine/core";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -775,6 +775,59 @@ describe("AiAssistant", () => {
       await user.click(screen.getByRole("button", { name: "Try again" }));
       expect(regenerate).toHaveBeenCalled();
       expect(sendMessage).not.toHaveBeenCalledWith({ text: "hello" });
+    });
+
+    it("stops the stream and offers retry after the response timeout", async () => {
+      vi.useFakeTimers();
+      try {
+        mockUseChat.mockReturnValue({
+          messages: [
+            { id: "u1", role: "user", parts: [{ type: "text", text: "hello" }] },
+          ],
+          sendMessage,
+          status: "streaming" as const,
+          error: null,
+          stop,
+        });
+        const { rerender } = render(<AiAssistant />, { wrapper: Wrapper });
+        fireEvent.click(screen.getByLabelText("Open AI assistant"));
+        expect(stop).not.toHaveBeenCalled();
+        // RESPONSE_TIMEOUT_MS (65s) elapses with the stream still open.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(65_000);
+        });
+        expect(stop).toHaveBeenCalledTimes(1);
+        // The SDK reports idle after stop(): the notice renders only then.
+        mockUseChat.mockReturnValue({
+          messages: [
+            { id: "u1", role: "user", parts: [{ type: "text", text: "hello" }] },
+          ],
+          sendMessage,
+          status: "ready" as const,
+          error: null,
+          stop,
+        });
+        rerender(<AiAssistant />);
+        expect(
+          screen.getByText("The response took too long and was stopped. Please try again."),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("returns focus to the toggle when Escape closes the chat", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      // jsdom has no layout/CSS: assert the open class, not visibility
+      // (visual close is covered by e2e/ai-assistant.spec.ts).
+      const dialog = screen.getByRole("dialog", { name: "AI assistant chat" });
+      expect(dialog).toHaveClass("chatOpen");
+      await user.keyboard("{Escape}");
+      expect(dialog).not.toHaveClass("chatOpen");
+      expect(screen.getByLabelText("Open AI assistant")).toHaveFocus();
     });
   });
 });

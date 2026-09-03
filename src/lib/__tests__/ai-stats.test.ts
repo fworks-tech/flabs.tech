@@ -82,63 +82,6 @@ describe('ai-stats', () => {
     expect(totals.requests).toBe(0);
   });
 
-  it('updateAiEventTokensOut patches the event that matches the id', async () => {
-    const { recordAiEvent, updateAiEventTokensOut, getRecentAiEvents } =
-      await import('@/lib/ai-stats');
-
-    const id = await recordAiEvent({
-      model: 'mimo-v2.5',
-      tokensIn: 100,
-      tokensOut: 0,
-      tier: 'none',
-      blocked: false,
-      injection: false,
-    });
-
-    expect(id).toEqual(expect.any(String));
-
-    await updateAiEventTokensOut(id, 77);
-
-    const recent = await getRecentAiEvents();
-    expect(recent).toHaveLength(1);
-    expect(recent[0].tokensOut).toBe(77);
-    expect(recent[0].tokensIn).toBe(100);
-  });
-
-  it('updateAiEventTokensOut patches by id even when the event is not the latest', async () => {
-    const { recordAiEvent, updateAiEventTokensOut, getRecentAiEvents } =
-      await import('@/lib/ai-stats');
-
-    const firstId = await recordAiEvent({
-      model: 'mimo-v2.5',
-      tokensIn: 100,
-      tokensOut: 0,
-      tier: 'none',
-      blocked: false,
-      injection: false,
-    });
-    await recordAiEvent({
-      model: 'mimo-v2.5',
-      tokensIn: 200,
-      tokensOut: 0,
-      tier: 'none',
-      blocked: false,
-      injection: false,
-    });
-
-    await updateAiEventTokensOut(firstId, 77);
-
-    const recent = await getRecentAiEvents();
-    expect(recent[0].tokensOut).toBe(0);
-    expect(recent[1].tokensOut).toBe(77);
-  });
-
-  it('updateAiEventTokensOut is a no-op for unknown ids and empty lists', async () => {
-    const { updateAiEventTokensOut } = await import('@/lib/ai-stats');
-
-    await expect(updateAiEventTokensOut('missing-id', 42)).resolves.toBeUndefined();
-  });
-
   it('updateAiEventCompletion patches duration, steps, empty, and error', async () => {
     const { recordAiEvent, updateAiEventCompletion, getRecentAiEvents } =
       await import('@/lib/ai-stats');
@@ -163,14 +106,14 @@ describe('ai-stats', () => {
     expect(recent[0].error).toBeUndefined();
   });
 
-  it('updateAiEventTokensOut is a no-op for events recorded without an id', async () => {
-    const { updateAiEventTokensOut, getRecentAiEvents } = await import('@/lib/ai-stats');
+  it('updateAiEventCompletion is a no-op for events recorded without an id', async () => {
+    const { updateAiEventCompletion, getRecentAiEvents } = await import('@/lib/ai-stats');
 
     await storeMock.set('admin:ai:events', [
       { id: undefined, t: Date.now(), model: 'mimo-v2.5', tokensIn: 10, tokensOut: 0, tier: 'none', blocked: false, injection: false },
     ]);
 
-    await updateAiEventTokensOut('any-id', 42);
+    await updateAiEventCompletion('any-id', { tokensOut: 42 });
 
     const recent = await getRecentAiEvents();
     expect(recent[0].tokensOut).toBe(0);

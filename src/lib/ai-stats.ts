@@ -84,25 +84,6 @@ export async function addAiTokensOut(tokens: number): Promise<void> {
   await store.set(statsKey, stats, { ex: AI_STATS_TTL });
 }
 
-/**
- * Patches the event with the given id with the actual output tokens once the
- * stream completes (events are recorded with `tokensOut: 0` before the
- * response is generated). Patching is per-request, so concurrent streams
- * never write their tokens onto a sibling request's row.
- *
- * No-op when the id is not found (list evicted, or the event was recorded
- * before events carried ids — those rows keep `tokensOut: 0` until the
- * 14-day list rolls over). Daily counters are corrected independently via
- * `addAiTokensOut`.
- */
-export async function updateAiEventTokensOut(id: string, tokens: number): Promise<void> {
-  const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
-  const index = events.findIndex((ev) => ev.id === id);
-  if (index === -1) return;
-  events[index] = { ...events[index], tokensOut: tokens };
-  await store.set('admin:ai:events', events, { ex: AI_EVENTS_TTL });
-}
-
 /** Records stream completion (duration, steps, empty flag, error). Never throws. */
 export async function updateAiEventCompletion(
   id: string,

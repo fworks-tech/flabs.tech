@@ -68,8 +68,9 @@ while `fetchGitHubRepo`/`listGitHubRepos` had no fetch timeout, the route had no
 had no timeout/retry. Fixed by: `TOOL_FETCH_TIMEOUT_MS` on all GitHub fetches,
 `maxDuration = 60` (+ `vercel.json` functions cap), wildcard `*.flabs.tech` allowlist,
 `onStepFinish`/`onFinish`/`onError` logging with empty-duration-step tracking in
-`admin:ai:events`, client 65s timeout with `Try again`, and answering from the static
-project list when tools error.
+`admin:ai:events`, client 65s timeout with `Try again`, answering from the static
+project list when tools error, and rejecting empty/whitespace-only messages with
+`400` before any stream starts (previously they burned a full model round).
 
 ## Review corrections (2026-09-03)
 
