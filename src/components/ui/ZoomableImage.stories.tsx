@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from "@storybook/nextjs";
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
-import { ZoomableImage } from "./ZoomableImage";
+import { ZoomableImage } from './ZoomableImage';
 
 const meta = {
-  title: "UI/ZoomableImage",
+  title: 'UI/ZoomableImage',
   component: ZoomableImage,
-  args: { src: "https://picsum.photos/800/400", alt: "Demo image — hover to zoom" },
+  args: { src: 'https://picsum.photos/800/400', alt: 'Demo image — hover to zoom' },
 } satisfies Meta<typeof ZoomableImage>;
 
 export default meta;

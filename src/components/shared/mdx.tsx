@@ -54,7 +54,7 @@ function CustomLink({ href, children, ...props }: CustomLinkProps) {
   );
 }
 
-function createImage({ alt, src, ...props }: { alt?: string; src: string }) {
+function createImage({ alt, src, ...props }: { alt?: string; src: string } & React.ImgHTMLAttributes<HTMLImageElement>) {
   if (!src) {
     logger.error("Media requires a valid 'src' property.");
     return null;
