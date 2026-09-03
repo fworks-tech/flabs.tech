@@ -30,7 +30,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **Once UI** design system — component-driven, SCSS Modules for overrides
 - **MDX** content pipeline for blog posts and project detail pages with gray-matter
 - **Dynamic OG images** via `next/og` — auto-generated for every page with 1200×630 (1.91:1)
-- **Profile photo favicon** generated server-side via `icon.tsx` (no binary files)
+- **Profile photo favicon** generated server-side via `icon.tsx`, plus a static `favicon.ico` built from the same avatar photo (what Google/browsers fetch at `/favicon.ico`)
 - **Abuse prevention** for the AI chat endpoint — deterministic pipeline (`src/lib/abuse/`): signal scoring → quarantine tiers → shadow/enforce modes; privacy-first HMAC keyed identities
 - **AGENTS.md** — AI agent instructions (build/test commands, conventions, git workflow)
 - Deployed on **Vercel** with PR preview deployments
