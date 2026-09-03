@@ -14,7 +14,6 @@ import {
   Code,
   Divider,
   Grid,
-  Image,
   List,
   ListItem,
   Text,
@@ -24,6 +23,7 @@ import Link from "next/link";
 
 import tableStyles from "./mdx-table.module.scss";
 import { HeadingLink } from "@/components/ui/HeadingLink";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   href: string;
@@ -60,16 +60,7 @@ function createImage({ alt, src, ...props }: { alt?: string; src: string }) {
     return null;
   }
 
-  return (
-    <Image
-      my="8"
-      mb="16"
-      radius="md"
-      alt={alt || ""}
-      src={src}
-      {...props}
-    />
-  );
+  return <ZoomableImage alt={alt || ""} src={src} {...props} />;
 }
 
 function extractText(node: ReactNode): string {
