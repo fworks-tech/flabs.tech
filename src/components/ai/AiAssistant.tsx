@@ -18,6 +18,7 @@ import styles from './AiAssistant.module.scss';
 
 const MAX_SESSION_MESSAGES = 20;
 const MAX_INPUT_LENGTH = 500;
+const RESPONSE_TIMEOUT_MS = 65_000;
 
 const EMPTY_RESPONSE_FALLBACK =
   "I couldn't produce a summary from what I found. Could you rephrase your question?";
@@ -51,17 +52,56 @@ export function AiAssistant() {
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  const { messages, sendMessage, status, error, stop } = useChat({
+  const { messages, sendMessage, status, error, stop, regenerate } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';
   const userMsgCount = messages.filter((m) => m.role === 'user').length;
   const sessionLimitReached = userMsgCount >= MAX_SESSION_MESSAGES;
+  const [timedOut, setTimedOut] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Client-side guard: the stream should never hang forever (server caps at
+  // 60s via maxDuration). Abort and surface a retry after the timeout.
+  // `timedOut` resets on the next user-initiated send (see handleSubmit /
+  // handleKeyDown / handleRetry), never synchronously inside this effect.
+  useEffect(() => {
+    if (isLoading) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        stop();
+        setTimedOut(true);
+        trackEvent('ai_assistant_timeout');
+      }, RESPONSE_TIMEOUT_MS);
+    } else if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [isLoading, stop]);
+
+  function handleRetry() {
+    setTimedOut(false);
+    trackEvent('ai_assistant_retry');
+    if (regenerate) {
+      regenerate();
+      return;
+    }
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+    const text = lastUser ? getMessageText(lastUser) : '';
+    if (text.trim()) sendMessage({ text });
+  }
 
   useEffect(() => {
     if (error) trackEvent('ai_assistant_error');
@@ -73,11 +113,24 @@ export function AiAssistant() {
     }
   }, [isOpen]);
 
+  // Esc closes, and focus returns to the toggle for keyboard users.
+  useEffect(() => {
+    if (!isOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen]);
+
   useEffect(() => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, status, error]);
 
   const handleDragStart = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
@@ -129,6 +182,7 @@ export function AiAssistant() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!input.trim() || isLoading || sessionLimitReached) return;
+    setTimedOut(false);
     trackEvent('ai_assistant_send', { length: input.length });
     sendMessage({ text: input });
     setInput('');
@@ -138,6 +192,7 @@ export function AiAssistant() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!input.trim() || isLoading || sessionLimitReached) return;
+      setTimedOut(false);
       trackEvent('ai_assistant_send', { length: input.length });
       sendMessage({ text: input });
       setInput('');
@@ -152,6 +207,7 @@ export function AiAssistant() {
   return (
     <>
       <ActionIcon
+        ref={toggleRef}
         className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ''}`}
         onClick={() => {
           trackEvent('ai_assistant_open');
@@ -198,6 +254,9 @@ export function AiAssistant() {
             ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
             : undefined
         }
+        role="dialog"
+        aria-modal="false"
+        aria-label="AI assistant chat"
       >
         <div className={styles.header} onMouseDown={handleDragStart} onTouchStart={handleDragStart}>
           <div className={styles.headerLeft}>
@@ -236,7 +295,7 @@ export function AiAssistant() {
           </div>
         </div>
 
-        <div ref={messagesRef} className={styles.messages}>
+        <div ref={messagesRef} className={styles.messages} role="log" aria-live="polite">
           {messages.length === 0 && (
             <div className={styles.welcome}>
               <div className={styles.welcomeIcon}>
@@ -287,10 +346,22 @@ export function AiAssistant() {
             );
           })}
           {error && (
-            <div className={styles.error}>
+            <div className={styles.error} role="alert">
               {error.message?.includes('429') || error.message?.includes('rate limit')
                 ? 'Too many requests. Please wait a moment.'
                 : 'Something went wrong. Please try again.'}
+            </div>
+          )}
+          {timedOut && !isLoading && (
+            <div className={styles.error} role="alert">
+              The response took too long and was stopped. Please try again.
+            </div>
+          )}
+          {(error || timedOut) && !isLoading && !sessionLimitReached && (
+            <div className={styles.retryRow}>
+              <button type="button" className={styles.retryButton} onClick={handleRetry}>
+                Try again
+              </button>
             </div>
           )}{' '}
         </div>
@@ -306,6 +377,8 @@ export function AiAssistant() {
                 ref={inputRef}
                 className={styles.input}
                 placeholder="Ask anything..."
+                aria-label="Ask the AI assistant"
+                aria-describedby="ai-char-count"
                 value={input}
                 onChange={(e) => {
                   if (e.target.value.length <= MAX_INPUT_LENGTH) {
@@ -317,6 +390,7 @@ export function AiAssistant() {
                 disabled={isLoading}
               />
               <span
+                id="ai-char-count"
                 className={`${styles.charCount} ${input.length >= MAX_INPUT_LENGTH ? styles.charCountWarn : ''}`}
               >
                 {input.length}/{MAX_INPUT_LENGTH}

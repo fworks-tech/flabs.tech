@@ -155,4 +155,183 @@ describe("listGitHubRepos", () => {
     const result = await listGitHubRepos();
     expect("error" in result).toBe(true);
   });
+
+  it("passes an abort timeout to the GitHub API fetch", async () => {
+    const { listGitHubRepos } = await loadTools();
+    const fetchMock = vi.mocked(globalThis.fetch);
+
+    await listGitHubRepos();
+
+    const init = fetchMock.mock.calls[0]?.[1] as { signal?: unknown } | undefined;
+    expect(init?.signal).toBeDefined();
+  });
+  it("rejects crafted repo names instead of interpolating them into the API path", async () => {
+    const { aiTools } = await loadTools();
+    const result = (await (
+      aiTools.fetchGitHubRepo as { execute: (args: { repo: string }) => unknown }
+    ).execute({ repo: "../../evil" })) as { error?: string };
+    expect(result.error).toContain("Invalid GitHub repository");
+  });
+
+  it("rejects dot-only segments that would normalize away in the URL path", async () => {
+    // The tool schema only exposes `repo` (owner is hardcoded), so only the
+    // repo parameter is model-controlled; the internal guard validates both
+    // as defense in depth for future callers.
+    const { aiTools } = await loadTools();
+    const execute = aiTools.fetchGitHubRepo as {
+      execute: (args: { repo: string }) => unknown;
+    };
+    for (const args of [{ repo: ".." }, { repo: "." }]) {
+      const result = (await execute.execute(args)) as { error?: string };
+      expect(result.error).toContain("Invalid GitHub repository");
+    }
+    expect(vi.mocked(globalThis.fetch)).not.toHaveBeenCalled();
+  });
+});
+
+describe("fetchUrlContent allowlist", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function executeFetchUrl(url: string) {
+    const { aiTools } = await loadTools();
+    return await (aiTools.fetchUrlContent as { execute: (args: { url: string }) => unknown }).execute({
+      url,
+    });
+  }
+
+  it("allows first-party subdomains such as atlas.flabs.tech", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: () => "text/plain" },
+        text: async () => "atlas content",
+      }),
+    );
+    const result = (await executeFetchUrl("https://atlas.flabs.tech")) as { content?: string };
+    expect(result.content).toContain("atlas content");
+  });
+
+  it("still allows apex flabs.tech and agenthood/hasheyes subdomains", async () => {
+    const { AUTHORIZED_URLS } = await loadTools();
+    const allowed = ["https://flabs.tech/x", "https://agenthood.flabs.tech/", "https://hasheyes.flabs.tech/"];
+    for (const url of allowed) {
+      expect(AUTHORIZED_URLS.some((re: RegExp) => re.test(url))).toBe(true);
+    }
+  });
+
+  it("matches first-party hosts case-insensitively", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: () => "text/plain" },
+        text: async () => "atlas content",
+      }),
+    );
+    const result = (await executeFetchUrl("https://ATLAS.FLABS.TECH/")) as { content?: string };
+    expect(result.content).toContain("atlas content");
+  });
+
+  it("rejects third-party URLs at the gate without fetching", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const result = (await executeFetchUrl("https://evil.example.com/steal")) as { error?: string };
+    expect(result.error).toContain("not in the list of authorized sources");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("searchContent", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function executeSearch(query: string, posts: { blog: unknown[]; projects: unknown[] }) {
+    const { getPosts } = await import("@/lib/mdx");
+    vi.mocked(getPosts).mockImplementation(((...args: unknown[]) => {
+      const segs = args[0] as string[];
+      if (segs.includes("blog")) return posts.blog as never;
+      return posts.projects as never;
+    }) as never);
+    const { aiTools } = await loadTools();
+    return await (aiTools.searchContent as { execute: (args: { query: string }) => unknown }).execute({
+      query,
+    });
+  }
+
+  const atlasProject = {
+    slug: "atlaslink",
+    metadata: {
+      title: "Atlaslink — Multi-Agent Orchestrator",
+      summary: "A multi-agent orchestrator proof of concept.",
+      publishedAt: "2026-08-19",
+      tag: "AI",
+      tags: ["AI", "Multi-Agent", "Agenthood", "Orchestrator", "Flow", "Pipeline"],
+    },
+    content: "Agents are wired together visually and executed as a pipeline in real time.",
+  };
+
+  it("matches by slug even when title/summary are thin", async () => {
+    const result = (await executeSearch("atlaslink", { blog: [], projects: [atlasProject] })) as {
+      results: { title: string }[];
+    };
+    expect(result.results).toHaveLength(1);
+  });
+
+  it("matches body-only terms such as pipeline", async () => {
+    const result = (await executeSearch("pipeline", { blog: [], projects: [atlasProject] })) as {
+      results: unknown[];
+    };
+    expect(result.results).toHaveLength(1);
+  });
+
+  it("matches tags such as workflow synonyms", async () => {
+    const result = (await executeSearch("multi-agent", { blog: [], projects: [atlasProject] })) as {
+      results: unknown[];
+    };
+    expect(result.results).toHaveLength(1);
+  });
+
+  it("requires every token to match (multi-token AND)", async () => {
+    const hit = (await executeSearch("atlaslink pipeline", { blog: [], projects: [atlasProject] })) as {
+      results: unknown[];
+    };
+    expect(hit.results).toHaveLength(1);
+
+    const miss = (await executeSearch("atlaslink zzzqqq", { blog: [], projects: [atlasProject] })) as {
+      results: unknown[];
+    };
+    expect(miss.results).toHaveLength(0);
+  });
+
+  it("does not match on single characters via the slug shortcut", async () => {
+    const thinProject = {
+      slug: "aqq",
+      metadata: {
+        title: "Qq project",
+        summary: "Qq synopsis",
+        publishedAt: "2026-08-19",
+        tag: "qq",
+        tags: ["qq"],
+      },
+      content: "qq qq qq",
+    };
+    const result = (await executeSearch("a", { blog: [], projects: [thinProject] })) as {
+      results: unknown[];
+    };
+    expect(result.results).toHaveLength(0);
+  });
 });

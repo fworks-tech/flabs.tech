@@ -486,24 +486,26 @@ describe("POST /api/chat", () => {
       );
     });
 
-    it("handles messages with missing parts gracefully", async () => {
-      mockStreamText.mockReturnValue({
-        toUIMessageStreamResponse: vi.fn().mockReturnValue(
-          new Response("ok", { status: 200 }),
-        ),
-      });
-
+    it("rejects empty messages instead of wasting a stream", async () => {
       const { POST } = await import("../route");
       const req = createRequest({
         messages: [{ role: "user", parts: [] }],
       });
-      await POST(req);
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toContain("empty");
+      expect(mockStreamText).not.toHaveBeenCalled();
+    });
 
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: [{ role: "user", content: "" }],
-        }),
-      );
+    it("rejects whitespace-only messages", async () => {
+      const { POST } = await import("../route");
+      const req = createRequest({
+        messages: [{ role: "user", parts: [{ type: "text", text: "   " }] }],
+      });
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+      expect(mockStreamText).not.toHaveBeenCalled();
     });
 
     it("treats non-assistant roles as user", async () => {
@@ -589,6 +591,85 @@ describe("POST /api/chat", () => {
       await POST(req);
 
       expect(typeof mockStreamText.mock.calls[0][0].stopWhen).toBe("function");
+    });
+
+    it("passes observability callbacks to streamText", async () => {
+      mockStreamText.mockReturnValue({
+        toUIMessageStreamResponse: vi.fn().mockReturnValue(
+          new Response("ok", { status: 200 }),
+        ),
+      });
+
+      const { POST } = await import("../route");
+      const req = createRequest({
+        messages: [{ role: "user", parts: [{ type: "text", text: "hello" }] }],
+      });
+      await POST(req);
+
+      const opts = mockStreamText.mock.calls[0][0];
+      expect(typeof opts.onFinish).toBe("function");
+      expect(typeof opts.onStepFinish).toBe("function");
+      expect(typeof opts.onError).toBe("function");
+    });
+
+    it("records completion with steps and empty flag when the stream finishes", async () => {
+      mockStreamText.mockReturnValue({
+        toUIMessageStreamResponse: vi.fn().mockReturnValue(
+          new Response("ok", { status: 200 }),
+        ),
+      });
+
+      const { POST } = await import("../route");
+      const req = createRequest({
+        messages: [{ role: "user", parts: [{ type: "text", text: "hello" }] }],
+      });
+      await POST(req);
+
+      const opts = mockStreamText.mock.calls[0][0];
+      // onFinish is fire-and-forget by design (observability never blocks);
+      // wait until the async write lands instead of awaiting a return value.
+      opts.onFinish({ text: "hi there", steps: [{}, {}], usage: { outputTokens: 5 }, finishReason: "stop" });
+
+      const { getRecentAiEvents } = await import("@/lib/ai-stats");
+      await vi.waitFor(async () => {
+        const latest = (await getRecentAiEvents(1))[0];
+        expect(latest.steps).toBe(2);
+      });
+      const latest = (await getRecentAiEvents(1))[0];
+      expect(latest.empty).toBe(false);
+      expect(latest.tokensOut).toBe(5);
+      expect(typeof latest.durationMs).toBe("number");
+    });
+
+    it("records the error without throwing when the stream fails", async () => {
+      mockStreamText.mockReturnValue({
+        toUIMessageStreamResponse: vi.fn().mockReturnValue(
+          new Response("ok", { status: 200 }),
+        ),
+      });
+
+      const { POST } = await import("../route");
+      const req = createRequest({
+        messages: [{ role: "user", parts: [{ type: "text", text: "hello" }] }],
+      });
+      await POST(req);
+
+      const opts = mockStreamText.mock.calls[0][0];
+      opts.onError({ error: new Error("boom") });
+
+      const { getRecentAiEvents } = await import("@/lib/ai-stats");
+      await vi.waitFor(async () => {
+        const latest = (await getRecentAiEvents(1))[0];
+        expect(latest.error).toContain("boom");
+      });
+    });
+  });
+
+  describe("serverless bounds", () => {
+    it("exports a maxDuration cap so hung tool chains fail fast", async () => {
+      const route = await import("../route");
+      expect(route.maxDuration).toBeLessThanOrEqual(60);
+      expect(route.maxDuration).toBeGreaterThan(0);
     });
   });
 });

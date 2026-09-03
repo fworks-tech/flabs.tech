@@ -25,8 +25,16 @@ import {
   type SignalInput,
 } from '@/lib/abuse';
 import { logger } from '@/lib/logger';
-import { addAiTokensOut, recordAiEvent, updateAiEventTokensOut } from '@/lib/ai-stats';
+import {
+  addAiTokensOut,
+  recordAiEvent,
+  updateAiEventCompletion,
+} from '@/lib/ai-stats';
 import { type NextRequest } from 'next/server';
+
+// Vercel serverless bound: fail fast instead of hanging the widget until the
+// platform kills the stream (previously a 300s timeout with no client error).
+export const maxDuration = 60;
 
 const zen = createOpenAICompatible({
   name: 'zen',
@@ -63,13 +71,14 @@ function buildSystemPrompt(): string {
   // The static project list mirrors the site's featured catalog (the MDX the
   // /projects page renders); the GitHub tools cover every real repo besides.
   const featuredSlugs = new Set(Object.values(mdxSlugByRepo));
-  const projects = getPosts(['src', 'content', 'projects']).filter((p) =>
+  // Public surface: never ground answers in unpublished drafts.
+  const projects = getPosts(['src', 'content', 'projects'], false).filter((p) =>
     featuredSlugs.has(p.slug),
   );
-  const blogs = getPosts(['src', 'content', 'blog']);
+  const blogs = getPosts(['src', 'content', 'blog'], false);
 
   const projectList = projects
-    .map((p) => `- ${p.metadata.title}: ${p.metadata.summary}`)
+    .map((p) => `- ${p.metadata.title}: ${p.metadata.summary} (/projects/${p.slug})`)
     .join('\n');
 
   const blogList = blogs.map((b) => `- ${b.metadata.title} (${b.metadata.publishedAt})`).join('\n');
@@ -115,6 +124,8 @@ ${blogList}
 - Be concise, professional, and friendly.
 - Answer questions about Fabio's experience, skills, projects, and work history.
 - For project questions, prefer the GitHub tools (listGitHubRepos / fetchGitHubRepo): the static project list above is only the curated subset shown on the site.
+- If a tool returns an error or empty results, answer from the static project/blog list above instead of chaining more tool calls. Never end without text.
+- Always produce a text answer, even when tools fail — summarize what is known and say what is not yet available (e.g. coming-soon status).
 - If asked about something not in your context, say you don't have that information.
 - Keep responses short and helpful — this is a portfolio site chat widget.
 - Use "he/him" pronouns when referring to Fabio.
@@ -143,12 +154,22 @@ function normalizeMessages(raw: any[]): Array<{ role: 'user' | 'assistant'; cont
     if (m.parts && Array.isArray(m.parts)) {
       const text = m.parts
         .filter((p: any) => p.type === 'text' || !p.type)
-        .map((p: any) => p.text || '')
+        .map((p: any) => (typeof p.text === 'string' ? p.text : ''))
         .join('');
       return { role, content: text };
     }
     if (typeof m.content === 'string') {
       return { role, content: m.content };
+    }
+    if (Array.isArray(m.content)) {
+      return {
+        role,
+        content: m.content
+          .map((p: any) =>
+            typeof p === 'string' ? p : typeof p?.text === 'string' ? p.text : '',
+          )
+          .join(''),
+      };
     }
     return { role, content: '' };
   });
@@ -250,6 +271,83 @@ async function handleAbuseSignal(
   return incident;
 }
 
+type ChatStreamOptions = Parameters<typeof streamText>[0];
+
+/**
+ * Observability callbacks for the tool-calling stream, factored out of POST
+ * so the handler stays focused on validation and abuse gating. Completion is
+ * written exactly once here (per-event payload + global token aggregate);
+ * the `result.usage` handler in POST only feeds the abuse cost budget.
+ */
+function createChatStreamObservers(ctx: {
+  key: string;
+  streamStart: number;
+  eventPromise: Promise<string>;
+}): Pick<ChatStreamOptions, 'onStepFinish' | 'onFinish' | 'onError'> {
+  const { key, streamStart, eventPromise } = ctx;
+  return {
+    onStepFinish: ({ toolCalls, usage }) => {
+      logger.info(
+        {
+          key,
+          tools: (toolCalls ?? []).map((t: any) => t?.toolName ?? 'unknown'),
+          tokens: usage?.totalTokens ?? 0,
+          scope: 'chat',
+        },
+        'chat step',
+      );
+    },
+    onFinish: ({ text, steps, usage, finishReason }) => {
+      const durationMs = Date.now() - streamStart;
+      const empty = !text?.trim();
+      logger.info(
+        {
+          key,
+          steps: steps?.length ?? 0,
+          outputTokens: usage?.outputTokens ?? 0,
+          finishReason,
+          empty,
+          durationMs,
+          scope: 'chat',
+        },
+        empty ? 'chat request finished empty' : 'chat request finished',
+      );
+      void (async () => {
+        try {
+          const eventId = await eventPromise;
+          // Single event write: the completion payload already carries
+          // tokensOut, so a separate update call would race this one.
+          if (usage?.outputTokens) {
+            void addAiTokensOut(usage.outputTokens);
+          }
+          await updateAiEventCompletion(eventId, {
+            durationMs,
+            steps: steps?.length ?? 0,
+            empty,
+            ...(usage?.outputTokens ? { tokensOut: usage.outputTokens } : {}),
+          });
+        } catch {
+          // Observability must never break the response.
+        }
+      })();
+    },
+    onError: ({ error }) => {
+      logger.error({ key, scope: 'chat', err: String(error) }, 'chat stream error');
+      void (async () => {
+        try {
+          const eventId = await eventPromise;
+          await updateAiEventCompletion(eventId, {
+            durationMs: Date.now() - streamStart,
+            error: String(error)?.slice(0, 300),
+          });
+        } catch {
+          // ignore
+        }
+      })();
+    },
+  };
+}
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
@@ -318,12 +416,18 @@ export async function POST(req: NextRequest) {
   const rawText = lastMsg.parts
     ? lastMsg.parts
         .filter((p: any) => !p.type || p.type === 'text')
-        .map((p: any) => p.text)
+        .map((p: any) => (typeof p.text === 'string' ? p.text : ''))
         .join('')
-    : lastMsg.content || '';
+    : typeof lastMsg.content === 'string'
+      ? lastMsg.content
+      : '';
 
   // Sanitize input
   const text = sanitizeInput(rawText);
+
+  if (!text) {
+    return jsonResponse(400, { error: 'Message is empty. Please ask a question.' });
+  }
 
   if (text.length > MAX_INPUT_LENGTH) {
     await handleAbuseSignal(key, 'oversize', `message length ${text.length}`, {
@@ -395,6 +499,7 @@ export async function POST(req: NextRequest) {
   });
 
   try {
+    const streamStart = Date.now();
     const result = streamText({
       model,
       messages: normalized,
@@ -406,9 +511,10 @@ export async function POST(req: NextRequest) {
       stopWhen: createChatStopCondition(),
       maxOutputTokens: 1000,
       temperature: 0.3,
+      ...createChatStreamObservers({ key, streamStart, eventPromise }),
     });
 
-    // Log request for monitoring
+    // Log request for monitoring (pre-stream; completion logged in onFinish).
     const duration = Date.now() - startTime;
     logger.info(
       { key, messages: messages.length, estTokens: estimatedTokens, duration, scope: 'chat' },
@@ -418,14 +524,11 @@ export async function POST(req: NextRequest) {
     // Correct the cost estimate with actual usage once the stream completes.
     // `totalTokens` includes input tokens (already counted via `tokensIn`),
     // so only output tokens belong in the output counter.
+    // Note: per-event/token aggregates are written once in onFinish above;
+    // this handler only feeds the abuse cost budget to avoid double counting.
     void Promise.resolve(result.usage)
       .then(async (usage) => {
         if (usage?.totalTokens) recordActualUsage(key, usage.totalTokens);
-        if (usage?.outputTokens) {
-          const eventId = await eventPromise;
-          void addAiTokensOut(usage.outputTokens);
-          void updateAiEventTokensOut(eventId, usage.outputTokens);
-        }
       })
       .catch(() => undefined);
 

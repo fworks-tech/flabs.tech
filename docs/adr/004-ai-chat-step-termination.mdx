@@ -5,7 +5,7 @@
 
 ## Context
 
-The AI chat endpoint (`/api/chat`) enables tool calling against the OpenCode Zen model (`mimo-v2.5`) with three tools: `searchContent`, `fetchUrlContent`, and `fetchGitHubRepo`. The AI SDK's `streamText` executes a tool-calling loop in "steps": each step is one model generation, and a step that calls a tool leads to a follow-up step that consumes the tool results.
+The AI chat endpoint (`/api/chat`) enables tool calling against the OpenCode Zen model (`mimo-v2.5`) with four tools: `searchContent`, `fetchUrlContent`, `fetchGitHubRepo`, and `listGitHubRepos`. The AI SDK's `streamText` executes a tool-calling loop in "steps": each step is one model generation, and a step that calls a tool leads to a follow-up step that consumes the tool results.
 
 The initial implementation used the SDK default `stopWhen: isStepCount(1)`, which ends the stream immediately after the first tool round — so the final text answer after a tool call was never generated. This was patched twice: raised to `isStepCount(3)`, then to `isStepCount(6)`.
 
@@ -58,3 +58,28 @@ As defense in depth, the client (`AiAssistant.tsx`) now renders a muted fallback
 - `src/components/ai/AiAssistant.tsx` — `EMPTY_RESPONSE_FALLBACK`, empty-message rendering
 - `src/components/ai/__tests__/AiAssistant.test.tsx` and `src/app/api/chat/__tests__/route.test.ts` — coverage for this decision
 - AI SDK `streamText` options (`stopWhen`, `isStepCount`, `isLoopFinished`): `node_modules/ai/dist/index.d.ts`
+
+## Follow-up (2026-09-03): production Atlaslink hang
+
+A query about the Atlaslink project hung the widget (`Thinking` → `Typing`, then
+empty fallback): the model chained `searchContent → fetchGitHubRepo → fetchUrlContent`
+while `fetchGitHubRepo`/`listGitHubRepos` had no fetch timeout, the route had no
+`maxDuration`, `atlas.flabs.tech` was missing from `AUTHORIZED_URLS`, and the client
+had no timeout/retry. Fixed by: `TOOL_FETCH_TIMEOUT_MS` on all GitHub fetches,
+`maxDuration = 60` (+ `vercel.json` functions cap), wildcard `*.flabs.tech` allowlist,
+`onStepFinish`/`onFinish`/`onError` logging with empty-duration-step tracking in
+`admin:ai:events`, client 65s timeout with `Try again`, answering from the static
+project list when tools error, and rejecting empty/whitespace-only messages with
+`400` before any stream starts (previously they burned a full model round).
+
+## Review corrections (2026-09-03)
+
+Code review caught three issues in the fix above, all addressed before merge:
+draft filtering was initially hardcoded in `getMDXData`, which would have hidden
+drafts from the admin drafts UI and broken draft preview (`notFound`) — replaced
+with an `includeDrafts` parameter (default `true`, preserving existing behavior;
+`false` only at the chat prompt and `searchContent` call sites). The `onFinish`
+token write raced/duplicated the `result.usage` handler — token aggregates are now
+written exactly once in `onFinish`, with the usage handler feeding only the abuse
+cost budget. `fetchGitHubRepo` now validates the model-supplied repo segment
+(`^[A-Za-z0-9_.-]+$`) before interpolating it into the GitHub API path.

@@ -35,6 +35,8 @@ export const EVENT_TYPES = [
   'ai_assistant_send',
   'ai_assistant_error',
   'ai_assistant_generation_stopped',
+  'ai_assistant_timeout',
+  'ai_assistant_retry',
   'protected_route_access_granted',
   'consent_accepted',
   'consent_declined',

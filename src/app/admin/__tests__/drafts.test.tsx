@@ -30,7 +30,8 @@ describe("admin drafts page", () => {
         metadata: {
           title: "Scheduled Post",
           publishedAt: "2026-08-10",
-          scheduledAt: "2026-09-01",
+          // Relative so the fixture stays in the future no matter when the suite runs.
+          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         },
         content: "scheduled content",
       },
