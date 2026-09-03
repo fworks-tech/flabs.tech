@@ -1,0 +1,182 @@
+---
+title: "Mysterious Contributor on my GitHub Repository: What Happened and How to Avoid It"
+publishedAt: "2026-09-08"
+summary: "A contributors pill shows three avatars, the API lists one, and git log agrees with the API. We traced a live incident on atlaslink — branch fix/issue-7-isolate-session-diagram showed fworks-tech, claude and krkshw — to a force-pushed orphan history, GitHub's two contributor graphs, and the cache that makes ghosts linger for weeks. Here is which graph to trust and how to prove it."
+tag: "Engineering"
+tags: ['github', 'git', 'opensource', 'debugging']
+image: "/images/ghost-contributors-sidebar.webp"
+subtitle: "The contributors pill, the API, and git log disagree after a force-push. Here's which graph to trust and how to exorcise the ghost."
+shareText: |
+  Your repo shows 3 contributors. The API lists 1. git log agrees with the API.
+
+  We traced a live incident on atlaslink — branch fix/issue-7-isolate-session-diagram — to a force-pushed orphan history and GitHub's two contributor graphs.
+
+  Here's how to hunt ghosts, which endpoint to trust, and the one-command proof.
+
+  Read the breakdown on flabs.tech
+---
+
+A teammate pings you: "Who is [krkshw](https://github.com/krkshw)? Why does our repo list Claude as a contributor?" The screenshot shows **Contributors 3** — `fworks-tech`, `claude`, [`krkshw`](https://github.com/krkshw) — on a repository you have touched alone for weeks. It feels like a permission leak.
+
+It isn't. It's how GitHub counts contributors — and every team that uses `push --force` and AI coding agents will see it sooner or later.
+
+We hit this on [atlaslink](https://github.com/fworks-tech/atlaslink), branch `fix/issue-7-isolate-session-diagram`. The web pill said 3 avatars, `GET /repos/.../contributors` said 1, and `git log --all` agreed with the API. Here are the six things to know, the troubleshooting table we now keep, and the one-command proof that settles it.
+
+![Contributors sidebar on GitHub showing 3 avatars: fworks-tech, claude and krkshw](/images/ghost-contributors-sidebar.webp)
+
+*The sidebar that started it — 3 avatars while we expected 1. The highlighted [@krkshw](https://github.com/krkshw) ([Krksh](https://github.com/krkshw), public profile, kitten avatar, bio "i'am @krkshs") had never committed to `main`.*
+
+![Insights > Contributors — only fworks-tech with 153 commits appears](/images/ghost-contributors-insights.webp)
+
+*Insights tells the truth: `fworks-tech` — 153 commits, 39,007 ++, 3,611 -- — is the sole contributor on `main` (Period: Last 3 months, Contributions: Commits). Same API that returned `[{login: "fworks-tech"}]` while the pill showed 3. The divergence is the clue.*
+
+![Public profile of krkshw — the ghost avatar](/images/ghost-contributors-krkshw-profile.webp)
+
+*The ghost: public profile [@krkshw](https://github.com/krkshw) — not a collaborator, not in `git log`, but cached in the pill from an orphaned push. Public info, no private data — we link it so you can see what a ghost looks like in the wild.*
+
+---
+
+## What GitHub actually counts
+
+A contributor is not "someone with push access." It's "an author email GitHub has seen on a commit object it retains."
+
+Think of it like a guest list at a venue:
+
+- Naive: "Contributors = `git shortlog -sn` on `main`."
+- Effective: "Contributors pill = `git log --all` over GitHub's retained graph — including deleted and force-pushed orphans — while `api/contributors` = `git log main` only."
+
+The second version explains why two official GitHub surfaces disagree. The pill is for *discovery* — it aggregates every author ever pushed to any ref, including branches you deleted. The API is for *attribution* — it walks the default branch history after deduplication. The `git log` you get after a fresh `clone` is the canonical graph: what is reachable *now*.
+
+What makes ghosts appear is a small AI-specific detail: agents like Claude Code, Cursor, and Agenthood create commits as `claude[bot]` or `co-authored-by` trailers that get squashed away. The commit disappears from `main`, but not from GitHub's orphan retention.
+
+---
+
+## The six moves that surface ghosts
+
+### 1. Two graphs, not one
+
+GitHub runs **two contributor graphs** with different caches. Treat **the pill and the API as different endpoints**, not two views of the same data.
+
+> `GET /repos/fworks-tech/atlaslink/contributors` → `[{ "login": "fworks-tech", "contributions": 164 }]`
+
+Versus:
+
+> Web pill → `fworks-tech · claude · krkshw` (3 avatars)
+
+The API is `Cache-Control: public, max-age=60` and recomputes hourly from `main`. The pill recomputes daily from every ref ever pushed plus co-authors. For an audit, trust the API and a fresh clone — never the pill.
+
+### 2. Force-push orphans ghosts
+
+A force-push does not delete a commit on the server. It **orphans** it.
+
+> `git push --force origin fix/issue-7-isolate-session-diagram` → `dde860e` (now) was `abc123` (by `claude[bot]`) a minute ago
+
+Versus:
+
+> `git log --all --oneline` → only `dde860e` is reachable; `abc123` is gone from your clone
+
+GitHub retains orphans for ~90 days for the PR timeline and the contributors graph, even though you can no longer fetch them. This is exactly what happened on `fix/issue-7-isolate-session-diagram` — an earlier iteration contained a bot-authored commit that was force-pushed to `dde860e` before the merge. Pill = 3, API = 1. One `git push --force` is a ghost factory.
+
+### 3. Co-authors are not contributors
+
+GitHub surfaces `Co-authored-by:` trailers in the PR timeline and sometimes in the pill, but **never** in `api/contributors`, which counts `commit.author.email` only.
+
+> `Author: Fabio <...@users.noreply.github.com>` + `Co-authored-by: Claude <noreply@anthropic.com>` → pill may show `claude`, API will not
+
+Versus:
+
+> `Author: Claude <...>` → both surfaces count it
+
+If your agent workflow adds `Co-authored-by: claude` on every AI-assisted commit and you squash-merge, expect a transient ghost that fades after the next graph recompute.
+
+### 4. Author vs committer matters
+
+Every commit has two identities. The web-flow merge user `GitHub <noreply@github.com>` is a committer, not an author.
+
+> `git log --pretty=fuller` → `Author: Fabio RItzel Borges` + `Commit: GitHub <noreply@github.com>` (merge #64, #66)
+
+The commit shows up in `GET /commits?anon=1` but `stats/contributors` credits the *author* only. AI commits often mismatch the two — `author=claude[bot]`, `committer=fworks-tech` — which is why `claude` can appear in commits but not in stats.
+
+### 5. Rebuild the graph yourself
+
+When the pill lies, **ask git and the API for the truth**. One command proves it:
+
+> `git log --all --pretty="%an <%ae> | %cn <%ce>" | sort -u`
+> `curl -s https://api.github.com/repos/fworks-tech/atlaslink/contributors | jq '.[].login'`
+> `curl -s https://api.github.com/repos/fworks-tech/atlaslink/stats/contributors | jq '.[].author.login'`
+
+If the first two diverge, it's an orphan or cache — not a permission leak. On atlaslink all three converged to `fworks-tech` after we compared them. If they had shown `krkshw`, you would have a concrete SHA to purge.
+
+### 6. Define who should appear
+
+Tell git **whose name to commit under**, not just what to commit. A team policy removes most ghosts before they form.
+
+> `git config user.name "Fabio Ritzel Borges"` + `git config user.email "38725315+fworks-tech@users.noreply.github.com"`
+
+Versus the same repo without the config — your OS username or an agent default like `krkshw` becomes the author. Define the taxonomy you want:
+
+- **Human or bot** — `fworks-tech` vs `claude[bot]`
+- **Squash or keep** — squash-merge hides co-authors, rebase keeps them
+- **Author or co-author** — `--author` rewrites, `Co-authored-by` appends
+- **Lease or force** — `--force-with-lease` vs `--force`
+
+The policy isn't bureaucracy. It's the constraint that tells GitHub whose avatar belongs on the graph.
+
+---
+
+## Troubleshooting: when the pill lies
+
+Even when you know the two graphs, you'll still stare at a pill that doesn't match. Resist the urge to revoke access immediately. Apply a targeted fix:
+
+| Symptom | Fix |
+|---------|-----|
+| Pill shows more avatars than `api/contributors` | Compare `api/contributors` vs `git log --all`; trust log |
+| New avatar right after a force-push | Check `gh api repos/.../events --jq 'select(.payload.forced)'` for orphan |
+| `claude` appears once then disappears | Orphan GC: wait 24h–30d, pill converges; re-push without bot author if urgent |
+| `web-flow` in commits but not contributors | Merge via CLI instead of web UI; `web-flow` never counts as contributor |
+| `stats/contributors` is empty `{}` | Stats recompute hourly; retry with `If-None-Match` or wait for next window |
+| Teammate `krkshw` never committed but shows | Search PR timeline for `Co-authored-by: krkshw` on orphaned push |
+| Need audit proof for security | Run `git log --all --pretty=fuller` + `gh api .../commits?anon=1` and screenshot both |
+
+One targeted check beats five theories. Change **one variable at a time** — force-push vs co-author vs author — and you'll learn which graph lied.
+
+---
+
+## Common successful patterns
+
+Across every incident we've debugged, the same checks recur:
+
+- **A canonical graph.** A fresh `git clone` + `git log --all` — the source of truth.
+- **An API graph.** `GET /contributors` + `GET /stats/contributors` — default-branch attribution.
+- **An event graph.** `GET /repos/.../events` and `PushEvent.forced` — orphan proof.
+- **A UI graph.** The Contributors pill — discovery, eventual-consistent, never for audit.
+
+If you have those four, you're already debugging better than most teams. Format them however you like — a table, a timeline, or a checklist. The point is you checked all four before concluding "breach" vs "ghost."
+
+---
+
+## The secret weapon: ask git for the orphans
+
+When a pill still feels wrong, there's a shortcut most teams miss: **ask the server for the orphans**.
+
+> `git fsck --lost-found` locally; `gh api repos/fworks-tech/atlaslink/commits --paginate` + `GET /repos/.../events` as the server-side reflog
+
+Then paste the SHA that only the server sees and compare authors. This turns ghost-hunting from a guessing game into a diff, and it teaches you which push created the ghost in the first place.
+
+It's also the honest description of how we wrote this post: we showed the pill to an AI, asked it to critique the two-graph hypothesis, hit `fsck` and the Events API to confirm the orphan, refined, repeat.
+
+If you want prevention over forensics, swap `--force` for `--force-with-lease` — it blocks the overwrite that orphans the ghost — and set `Settings > Branches > Protect main > Require PR` so even a leaked token can't force-push ghosts into the graph. Squash-merge policy and explicit `git commit --author` for bots do the rest.
+
+---
+
+## Ghosts are iterative
+
+The most important takeaway: ghosts **fade**. API cache 60s, stats hourly, pill daily, orphan retention 90 days. What looks like a leak today converges to one contributor tomorrow with no action — which is exactly what `atlaslink` did: pill 3 → API 1 → pill 1.
+
+Rarely does the first check explain the whole avatar. You clone the graph, hit the API, check the events, notice the force-push flag, swap the force for a lease, and suddenly the graph makes sense.
+
+None of the six moves is complicated. Combined, they turn a spooky screenshot into a routine triage.
+
+**Clone the graph. Hit the API. Check the events. Don't trust the pill. Then teach the bot whose name to commit under — and refine.**
+
+*Debugged on atlaslink — the multi-agent orchestrator we ship at fworks-tech, where every agent's commit is traceable before it hits main.*
