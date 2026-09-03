@@ -139,6 +139,30 @@ describe('ai-stats', () => {
     await expect(updateAiEventTokensOut('missing-id', 42)).resolves.toBeUndefined();
   });
 
+  it('updateAiEventCompletion patches duration, steps, empty, and error', async () => {
+    const { recordAiEvent, updateAiEventCompletion, getRecentAiEvents } =
+      await import('@/lib/ai-stats');
+
+    const id = await recordAiEvent({
+      model: 'mimo-v2.5',
+      tokensIn: 100,
+      tokensOut: 0,
+      tier: 'none',
+      blocked: false,
+      injection: false,
+    });
+
+    await updateAiEventCompletion(id, { durationMs: 1200, steps: 3, empty: false });
+    await updateAiEventCompletion('missing-id', { error: 'nope' });
+
+    const recent = await getRecentAiEvents();
+    expect(recent).toHaveLength(1);
+    expect(recent[0].durationMs).toBe(1200);
+    expect(recent[0].steps).toBe(3);
+    expect(recent[0].empty).toBe(false);
+    expect(recent[0].error).toBeUndefined();
+  });
+
   it('updateAiEventTokensOut is a no-op for events recorded without an id', async () => {
     const { updateAiEventTokensOut, getRecentAiEvents } = await import('@/lib/ai-stats');
 

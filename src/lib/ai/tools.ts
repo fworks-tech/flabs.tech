@@ -7,15 +7,16 @@ import { logger } from "@/lib/logger";
 // ---------------------------------------------------------------------------
 // Authorized domains — only these URLs may be fetched by the web tool.
 // Keep this list tight: anything outside it is rejected at the gate.
+// `*.flabs.tech` subdomains are first-party (atlas, agenthood, hasheyes…).
 // ---------------------------------------------------------------------------
-const AUTHORIZED_URLS: RegExp[] = [
+export const AUTHORIZED_URLS: RegExp[] = [
   /^https?:\/\/github\.com\/fworks-tech\/.+/,
-  /^https?:\/\/agenthood\.flabs\.tech(\/.*)?$/,
-/^https?:\/\/logroute-app\.vercel\.app(\/.*)?$/,
-    /^https?:\/\/hasheyes\.flabs\.tech(\/.*)?$/,
-  /^https?:\/\/flabs\.tech(\/.*)?$/,
+  /^https?:\/\/([a-z0-9-]+\.)*flabs\.tech(\/.*)?$/,
+  /^https?:\/\/logroute-app\.vercel\.app(\/.*)?$/,
   /^https?:\/\/www\.npmjs\.com\/package\/agenthood/,
 ];
+
+export const TOOL_FETCH_TIMEOUT_MS = 10_000;
 
 function isAuthorizedUrl(url: string): boolean {
   return AUTHORIZED_URLS.some((re) => re.test(url));
@@ -26,10 +27,17 @@ function isAuthorizedUrl(url: string): boolean {
 // Fetches live metadata about one of Fabio's GitHub repositories.
 // ---------------------------------------------------------------------------
 async function fetchGitHubRepo(owner: string, repo: string) {
+  // Tool args come from the model: constrain them to plain GitHub path
+  // segments so no crafted string can escape into an unintended API path.
+  const segment = /^[A-Za-z0-9_.-]+$/;
+  if (!segment.test(owner) || !segment.test(repo)) {
+    return { error: `Invalid GitHub repository "${owner}/${repo}"` };
+  }
   try {
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: { Accept: "application/vnd.github.v3+json" },
+      headers: { Accept: 'application/vnd.github.v3+json' },
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(TOOL_FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       return { error: `GitHub returned ${res.status} for ${owner}/${repo}` };
@@ -75,7 +83,7 @@ async function fetchUrlContent(url: string) {
         "User-Agent": "flabs-tech-assistant/1.0",
         Accept: "text/html,text/plain",
       },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(TOOL_FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       return { error: `Failed to fetch ${url} (${res.status})` };
@@ -103,13 +111,36 @@ async function fetchUrlContent(url: string) {
 
 // ---------------------------------------------------------------------------
 // Tool 3 — searchContent
-// Searches Fabio's blog posts and projects by title / summary.
+// Searches Fabio's blog posts and projects by title / summary / tags / body.
 // Returns matching entries from the static content index.
 // ---------------------------------------------------------------------------
-import { getPosts } from "@/lib/mdx";
+import { getPosts, type Metadata } from '@/lib/mdx';
+
+/** Merges the `tags[]` array and legacy singular `tag` into one list. */
+function getTags(metadata: Metadata): string[] {
+  return [...(metadata.tags ?? []), metadata.tag ?? ''].filter(Boolean);
+}
+
+function matchesQuery(
+  tokens: string[],
+  title: string,
+  summary: string,
+  tags: string[],
+  content: string,
+): boolean {
+  const haystacks = [title.toLowerCase(), summary.toLowerCase(), content.toLowerCase().slice(0, 4000)];
+  const tagHay = tags.map((t) => t.toLowerCase());
+  // Multi-token AND: every token must appear in title/summary/body or match a tag.
+  return tokens.every(
+    (tok) =>
+      haystacks.some((h) => h.includes(tok)) || tagHay.some((t) => t.includes(tok) || tok.includes(t)),
+  );
+}
 
 async function searchContent(query: string) {
-  const q = query.toLowerCase();
+  const q = query.toLowerCase().trim();
+  const tokens = q.split(/[^a-z0-9]+/i).filter((t) => t.length > 1);
+  const keys = tokens.length > 0 ? tokens : [q];
   const results: {
     type: string;
     title: string;
@@ -119,15 +150,17 @@ async function searchContent(query: string) {
   }[] = [];
 
   try {
-    const blogPosts = getPosts(["src", "content", "blog"]);
-    const projects = getPosts(["src", "content", "projects"]);
+    // Public surface: never surface unpublished drafts to chat visitors.
+    const blogPosts = getPosts(['src', 'content', 'blog'], false);
+    const projects = getPosts(['src', 'content', 'projects'], false);
 
     for (const post of blogPosts) {
-      const title = (post.metadata.title as string) ?? "";
-      const summary = (post.metadata.summary as string) ?? "";
-      if (title.toLowerCase().includes(q) || summary.toLowerCase().includes(q)) {
+      const title = (post.metadata.title as string) ?? '';
+      const summary = (post.metadata.summary as string) ?? '';
+      const tags = getTags(post.metadata);
+      if (q && matchesQuery(keys, title, summary, tags, post.content ?? '')) {
         results.push({
-          type: "blog",
+          type: 'blog',
           title,
           summary: summary.slice(0, 200),
           publishedAt: post.metadata.publishedAt,
@@ -137,11 +170,16 @@ async function searchContent(query: string) {
     }
 
     for (const project of projects) {
-      const title = (project.metadata.title as string) ?? "";
-      const summary = (project.metadata.summary as string) ?? "";
-      if (title.toLowerCase().includes(q) || summary.toLowerCase().includes(q)) {
+      const title = (project.metadata.title as string) ?? '';
+      const summary = (project.metadata.summary as string) ?? '';
+      const tags = getTags(project.metadata);
+      // Slug match covers queries like "atlaslink" even when metadata is thin.
+      // Gated on length so single characters (e.g. "a") don't match every slug.
+      const slugQuery = q.replace(/[^a-z0-9]/gi, '');
+      const slugHit = slugQuery.length > 2 && project.slug.toLowerCase().includes(slugQuery);
+      if (q && (slugHit || matchesQuery(keys, title, summary, tags, project.content ?? ''))) {
         results.push({
-          type: "project",
+          type: 'project',
           title,
           summary: summary.slice(0, 200),
           publishedAt: project.metadata.publishedAt,
@@ -207,9 +245,10 @@ export async function listGitHubRepos(): Promise<{ repos: RepoSummary[] } | { er
   }
 
   try {
-    const res = await fetch("https://api.github.com/users/fworks-tech/repos?per_page=100&sort=updated", {
-      headers: { Accept: "application/vnd.github.v3+json" },
+    const res = await fetch('https://api.github.com/users/fworks-tech/repos?per_page=100&sort=updated', {
+      headers: { Accept: 'application/vnd.github.v3+json' },
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(TOOL_FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       return { error: `GitHub returned ${res.status}` };

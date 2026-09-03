@@ -88,7 +88,7 @@ function readMDXFile(filePath: string) {
   return { metadata, content };
 }
 
-function getMDXData(dir: string) {
+function getMDXData(dir: string, includeDrafts = true) {
   const mdxFiles = getMDXFiles(dir);
   return mdxFiles
     .map((file) => {
@@ -98,7 +98,9 @@ function getMDXData(dir: string) {
       const slug = path.basename(file, path.extname(file));
       return { metadata, slug, content };
     })
-    .filter((item): item is NonNullable<typeof item> => item !== null);
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .filter((item) => includeDrafts || item.metadata.draft !== true)
+    .sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
 /**
@@ -107,11 +109,15 @@ function getMDXData(dir: string) {
  *
  * Each file is parsed for frontmatter metadata and MDX body content.
  * Returns the collection sorted alphabetically by slug.
+ * Drafts are included by default (public pages narrow them down with
+ * `filterPosts(posts, isAuthenticated)`); pass `includeDrafts: false` for
+ * public surfaces such as the AI assistant that must never see drafts.
  *
  * @param customPath - Directory path segments (e.g. `["src", "content", "blog"]`)
+ * @param includeDrafts - When false, entries with `draft: true` are excluded
  * @returns Array of objects with `metadata`, `slug`, and `content`
  */
-export function getPosts(customPath = ["", "", "", ""]) {
+export function getPosts(customPath = ["", "", "", ""], includeDrafts = true) {
   const postsDir = path.join(process.cwd(), ...customPath);
-  return getMDXData(postsDir);
+  return getMDXData(postsDir, includeDrafts);
 }

@@ -729,4 +729,52 @@ describe("AiAssistant", () => {
       expect(screen.getByLabelText("Expand chat")).toBeInTheDocument();
     });
   });
+
+  describe("recovery and accessibility", () => {
+    it("shows a Try again button on error that resends the last question", async () => {
+      mockUseChat.mockReturnValue({
+        messages: [
+          { id: "u1", role: "user", parts: [{ type: "text", text: "hello" }] },
+        ],
+        sendMessage,
+        status: "error" as const,
+        error: new Error("network failure"),
+        stop,
+      });
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      await user.click(screen.getByRole("button", { name: "Try again" }));
+      expect(sendMessage).toHaveBeenCalledWith({ text: "hello" });
+    });
+
+    it("renders the chat as a labeled dialog with a live message log", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      expect(screen.getByRole("dialog", { name: "AI assistant chat" })).toBeInTheDocument();
+      expect(screen.getByRole("log")).toBeInTheDocument();
+      expect(screen.getByLabelText("Ask the AI assistant")).toBeInTheDocument();
+    });
+
+    it("prefers regenerate over resending when the SDK supports it", async () => {
+      const regenerate = vi.fn();
+      mockUseChat.mockReturnValue({
+        messages: [
+          { id: "u1", role: "user", parts: [{ type: "text", text: "hello" }] },
+        ],
+        sendMessage,
+        regenerate,
+        status: "error" as const,
+        error: new Error("network failure"),
+        stop,
+      });
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      await user.click(screen.getByRole("button", { name: "Try again" }));
+      expect(regenerate).toHaveBeenCalled();
+      expect(sendMessage).not.toHaveBeenCalledWith({ text: "hello" });
+    });
+  });
 });

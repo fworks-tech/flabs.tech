@@ -99,4 +99,21 @@ test.describe("AI assistant", () => {
     const sendButton = page.locator('button[aria-label="Send message"]');
     await expect(sendButton).not.toBeDisabled();
   });
+
+  test("chat panel is an accessible dialog with a labeled input", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('button[aria-label="Open AI assistant"]').click();
+
+    await expect(page.getByRole("dialog", { name: "AI assistant chat" })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Ask the AI assistant" })).toBeVisible();
+  });
+
+  test("Escape closes the chat panel", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('button[aria-label="Open AI assistant"]').click();
+    await expect(page.getByRole("dialog", { name: "AI assistant chat" })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "AI assistant chat" })).not.toBeVisible();
+  });
 });

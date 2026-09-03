@@ -22,6 +22,10 @@ export interface AiEvent {
   tier: string;
   blocked: boolean;
   injection: boolean;
+  durationMs?: number;
+  steps?: number;
+  empty?: boolean;
+  error?: string;
 }
 
 export interface AiDayStats {
@@ -97,6 +101,22 @@ export async function updateAiEventTokensOut(id: string, tokens: number): Promis
   if (index === -1) return;
   events[index] = { ...events[index], tokensOut: tokens };
   await store.set('admin:ai:events', events, { ex: AI_EVENTS_TTL });
+}
+
+/** Records stream completion (duration, steps, empty flag, error). Never throws. */
+export async function updateAiEventCompletion(
+  id: string,
+  completion: Partial<Pick<AiEvent, 'durationMs' | 'steps' | 'empty' | 'error' | 'tokensOut'>>,
+): Promise<void> {
+  try {
+    const events = (await store.get<AiEvent[]>('admin:ai:events')) ?? [];
+    const index = events.findIndex((ev) => ev.id === id);
+    if (index === -1) return;
+    events[index] = { ...events[index], ...completion };
+    await store.set('admin:ai:events', events, { ex: AI_EVENTS_TTL });
+  } catch {
+    // Observability must never break the chat response.
+  }
 }
 
 export async function getAiDaySeries(days: number): Promise<AiDayStats[]> {

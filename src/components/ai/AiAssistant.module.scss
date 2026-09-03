@@ -338,6 +338,26 @@
   padding: 8px;
 }
 
+.retryRow {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
+.retryButton {
+  background: transparent;
+  border: 1px solid var(--mantine-color-dark-3);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--mantine-color-dark-0);
+
+  &:hover {
+    border-color: var(--mantine-color-violet-4);
+  }
+}
+
 .emptyResponse {
   font-size: 12px;
   font-style: italic;
@@ -486,5 +506,25 @@
   50% {
     opacity: 1;
     transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 480px) {
+  .chat {
+    width: calc(100vw - 32px);
+    right: 16px;
+    bottom: 76px;
+    max-height: calc(100dvh - 160px);
+  }
+
+  .chatExpanded {
+    width: calc(100vw - 32px);
+    right: 16px;
+    transform: translateY(0);
+    max-height: calc(100dvh - 120px);
+  }
+
+  .messages {
+    max-height: calc(100dvh - 300px);
   }
 }
