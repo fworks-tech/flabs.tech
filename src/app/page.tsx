@@ -23,7 +23,7 @@ export default function Home() {
   const hasBlogPosts = getPosts(["src", "content", "blog"]).length > 0;
 
   return (
-    <Stack maw={1024} gap="xl" py="12" mx="auto">
+    <Stack maw={1024} gap="xl" pt="6" pb="12" mx="auto">
       <Schema
         as="webPage"
         baseURL={baseURL}
