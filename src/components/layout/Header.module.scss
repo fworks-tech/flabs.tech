@@ -118,10 +118,6 @@
     transition: none;
   }
 
-  .highlight::before {
-    transition: none;
-  }
-
   .highlight::after {
     animation: none;
   }
@@ -130,26 +126,6 @@
 .highlight {
   position: relative;
   overflow: hidden;
-}
-
-.highlight::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(
-    135deg,
-    var(--mantine-color-grape-5),
-    var(--mantine-color-cyan-5),
-    var(--mantine-color-grape-5)
-  );
-  border-radius: inherit;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.highlight:hover::before {
-  opacity: 0.3;
 }
 
 .highlight::after {
