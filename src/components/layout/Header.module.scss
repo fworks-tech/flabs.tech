@@ -96,6 +96,13 @@
   .selected a::after {
     transform: scaleX(1);
   }
+
+  // The gradient underline is the hover affordance, so unselected links get
+  // no filled hover background. background-color only: the highlight link
+  // paints its label via a background gradient that must survive hover.
+  .navItem:not(.selected) a:hover {
+    background-color: transparent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

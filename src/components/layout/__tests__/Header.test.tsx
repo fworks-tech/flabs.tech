@@ -122,4 +122,22 @@ describe('Header', () => {
     fireEvent.scroll(window);
     expect(banner.className).not.toMatch(/scrolled/);
   });
+
+  it('gives the header extra top spacing over the bottom padding', () => {
+    render(<Header />, { wrapper: Wrapper });
+    const banner = screen.getByRole('banner');
+
+    expect(banner.style.paddingTop).toBe('var(--mantine-spacing-md)');
+    expect(banner.style.paddingBottom).toBe('var(--mantine-spacing-xs)');
+  });
+
+  it('renders desktop nav links as medium buttons', () => {
+    render(<Header />, { wrapper: Wrapper });
+    const mainNav = screen.getByRole('navigation', { name: /main navigation/i });
+    const homeLink = within(mainNav).getByRole('link', { name: 'Home' });
+
+    expect(homeLink.style.getPropertyValue('--button-fz')).toBe(
+      'var(--mantine-font-size-md)',
+    );
+  });
 });

@@ -114,7 +114,8 @@ export const Header = () => {
         component="header"
         style={{ zIndex: 100 }}
         px="24"
-        py="xs"
+        pb="xs"
+        pt="md"
         align="center"
         suppressHydrationWarning
         role="banner"
@@ -130,6 +131,7 @@ export const Header = () => {
                   component={Link}
                   href={item.path}
                   variant={item.selected ? 'light' : 'subtle'}
+                  size="md"
                   visibleFrom="sm"
                   className={item.highlight ? styles.tryYourself : undefined}
                 >
