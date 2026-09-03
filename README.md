@@ -13,7 +13,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **Near-black dark theme** (`#060608`) with indigo accents; adapts cleanly to light mode
 - **Animated headline** — Character-by-character stagger entrance with shimmer sweep on load
 - **Responsive layout** — Full desktop nav, mobile bottom pill nav; hero and grids collapse gracefully
-- **Theme-aware header** — Background adapts to light/dark using CSS variables
+- **Theme-aware header** — Transparent over the particle field, frosts on scroll; animated nav underlines, all CSS, no motion library
 - **WCAG 2.1 AA** — Skip-to-content link, semantic landmarks, focus-visible styles, aria-labels, keyboard nav, 44px touch targets
 
 ### Pages
