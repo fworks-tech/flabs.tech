@@ -1,0 +1,91 @@
+---
+title: 'Never Leave the Chatbox Hanging: Fixing a Silent Timeout in Our AI Assistant'
+publishedAt: '2026-09-03'
+summary: "A real visitor question about the Atlaslink project froze our portfolio AI — Thinking, then Typing, then nothing. No error, no recovery. Here's the four-layer postmortem and why every layer of an AI feature needs its own way to fail fast."
+tag: 'Engineering'
+tags: ['ai', 'nextjs', 'debugging', 'webdev']
+subtitle: 'Four missing timeouts, one frozen widget: a postmortem on the Atlaslink hang'
+shareText: |
+  Our portfolio AI froze mid-answer: Thinking… Typing… then nothing. No error, no retry.
+
+  The postmortem found four missing timeouts across four layers — and the fix that almost broke something worse.
+
+  Full breakdown on flabs.tech
+---
+
+Someone asked our portfolio assistant about the Atlaslink project. The widget showed **Thinking…**, then **Typing…**, then nothing. No answer. No error. No retry button. Just a dead chatbox and a session counter reading `1/20` — which, by the way, is not a retry counter. It's the message budget. The widget had simply given up without telling anyone.
+
+This is the worst failure mode a chat UI can have. An error message is a conversation. A spinner that never resolves is abandonment. So we did a postmortem, and it turned into a story about how many places "wait forever" can hide.
+
+---
+
+## The Crime Scene
+
+The assistant answers questions by chaining tools: `searchContent` finds the project, `fetchGitHubRepo` pulls the repo metadata, `fetchUrlContent` reads the live site. For Atlaslink, the model chained all three — and the third fetch never came back. Here is what was missing at every layer:
+
+| Layer      | What was missing                            | What the user saw                 |
+| ---------- | ------------------------------------------- | --------------------------------- |
+| Tool fetch | No timeout on GitHub fetches                | Step never resolves               |
+| Route      | No `maxDuration` on `/api/chat`             | Vercel kills it at 300s silently  |
+| Allowlist  | `atlas.flabs.tech` not in `AUTHORIZED_URLS` | Valid URL rejected, model retries |
+| Client     | No response timeout, no retry               | Infinite Thinking state           |
+
+Four layers, four ways to wait forever, zero ways to recover. The `1/20` in the corner kept counting messages while the experience had already ended.
+
+---
+
+## Principle 1: Every Layer Gets Its Own Way to Fail Fast
+
+The tempting fix is one big timeout at the top. It doesn't work — a top-level timeout tells you _that_ something hung, never _what_, and it still wastes the full budget getting there.
+
+So each layer got its own:
+
+- **Tools:** `TOOL_FETCH_TIMEOUT_MS` (10s) via `AbortSignal.timeout` on every GitHub fetch. A slow API fails in seconds, and the prompt instructs the model to answer from the static project list when tools error.
+- **Route:** `export const maxDuration = 60` plus a matching `vercel.json` functions cap. Sixty seconds, not three hundred — a chat answer that takes longer than a minute was never going to be a good answer.
+- **Client:** a 65s response timeout (just above the server cap, so the server always speaks first) with an abort and a **Try again** button that retries via `regenerate` before falling back to resend.
+
+Timeouts nest like parentheses: 10s < 60s < 65s. Each layer fails before the one above it gives up.
+
+---
+
+## Principle 2: Observe the Black Box
+
+Before the fix, a hung session left no trace — we couldn't tell a slow model from a stuck tool. The route now logs `onStepFinish`, `onFinish`, and `onError` into the existing `admin:ai:events` store, recording step count, duration, token usage, and whether the response came back empty.
+
+That last field matters. An "empty response with steps taken" is the fingerprint of exactly this bug: the model worked, the tools ran, and the user got nothing. If it ever regresses, the dashboard shows it before a visitor reports it.
+
+One hard-won detail: token aggregates are written **exactly once** in `onFinish`. Our first version also wrote them in the `usage` handler — double-counting every completion. Observability code needs the same single-writer discipline as the system it observes.
+
+---
+
+## Principle 3: Global Filters Are Time Bombs
+
+The scariest moment of the whole fix wasn't the bug — it was the fix. Our first version hardcoded draft filtering inside `getMDXData`, the shared MDX loader. Code review caught it: that one line would have hidden drafts from the **admin drafts UI** and turned draft preview into a `notFound` page. The chat fix would have shipped a CMS regression.
+
+The replacement is an `includeDrafts` parameter defaulting to `true` — every existing caller keeps its behavior, and only the chat prompt and `searchContent` pass `false`. The lesson generalizes: shared data loaders must default to the _least_ surprising behavior, and narrower views opt in explicitly. A filter that serves one consumer does not belong in infrastructure.
+
+---
+
+## Principle 4: Validate What the Model Hands You
+
+`fetchGitHubRepo` interpolates a model-supplied `owner/repo` string into the GitHub API path. The owner is hardcoded, but the repo segment comes from the model — and models are creative. It now validates against `^[A-Za-z0-9_.-]+$` and rejects `.`/`..` (which pass the charset but normalize away in URL paths). Treat model output like user input: structured, useful, and never trusted in a URL.
+
+---
+
+## What the Visitor Sees Now
+
+Ask about Atlaslink today and one of two things happens: a text answer within a minute, or a timeout notice with a **Try again** button. The widget also gained proper dialog semantics, Esc-to-close with focus return, and a mobile layout — because a recovery path you can't reach by keyboard isn't a recovery path.
+
+The full technical record lives in **ADR-004 — AI chat step-termination strategy**, including the review corrections — the draft-filter near-miss, the double-counted tokens, the over-promising Esc comment. We kept them in the ADR on purpose. A postmortem that only records the original bug teaches half the lesson.
+
+---
+
+## Try It
+
+The assistant is live at [flabs.tech](https://flabs.tech). Ask it about Atlaslink, about GraphQL experience, about anything in the portfolio — and if you ever see it hang, that's a bug report we'd genuinely want.
+
+If you're shipping any streaming AI feature, steal this checklist: timeout per layer, nested budgets, an empty-response signal in your event store, and a retry button the visitor can actually reach.
+
+---
+
+_Built with Next.js 16, Vercel AI SDK, and DeepSeek V4 Flash via OpenCode Go. Total sessions debugged at 2am: one. Total widgets left hanging since: zero._
