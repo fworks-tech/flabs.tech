@@ -6,6 +6,11 @@ test.describe("invalid slug 404s", () => {
     await expect(page.locator("text=404")).toBeVisible();
   });
 
+  test("/blog/mantine-nextjs (draft) shows not-found page", async ({ page }) => {
+    await page.goto("/blog/mantine-nextjs");
+    await expect(page.locator("text=404")).toBeVisible();
+  });
+
   test("/projects/nonexistent shows not-found page", async ({ page }) => {
     await page.goto("/projects/nonexistent");
     await expect(page.locator("text=404")).toBeVisible();
