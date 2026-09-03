@@ -7,7 +7,7 @@ import { baseURL, sameAs } from "@/config";
 import { about, blog, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ShareSection } from "@/features/blog/ShareSection";
-import { isAuthenticated } from "@/lib/auth";
+import { filterPosts, isPostVisible } from "@/lib/draft";
 import { formatDate } from "@/lib/formatDate";
 import { logger } from "@/lib/logger";
 import { getPosts } from "@/lib/mdx";
@@ -17,7 +17,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const posts = getPosts(["src", "content", "blog"]);
+  const posts = filterPosts(getPosts(["src", "content", "blog"]), false);
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -36,7 +36,7 @@ export async function generateMetadata({
   const posts = getPosts(["src", "content", "blog"]);
   const post = posts.find((post) => post.slug === slugPath);
 
-  if (!post) return {};
+  if (!post || !isPostVisible(post.metadata)) return {};
 
   const meta = generateMeta({
     title: post.metadata.title,
@@ -71,10 +71,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
     ? routeParams.slug.join("/")
     : routeParams.slug || "";
 
-  const [auth, allPosts] = await Promise.all([
-    isAuthenticated(),
-    Promise.resolve(getPosts(["src", "content", "blog"])),
-  ]);
+  const allPosts = getPosts(["src", "content", "blog"]);
   const post = allPosts.find((post) => post.slug === slugPath);
 
   if (!post) {
@@ -82,8 +79,8 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
     notFound();
   }
 
-  if (post.metadata.draft && !auth) {
-    logger.warn({ slug: slugPath }, "attempt to view draft without auth");
+  if (!isPostVisible(post.metadata)) {
+    logger.warn({ slug: slugPath }, "attempt to view hidden post without auth");
     notFound();
   }
 
@@ -122,7 +119,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
             {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
           </Text>
           <Title order={1} ta="center">
-            {post.metadata.draft && auth ? "[DRAFT] " : ""}{post.metadata.title}
+            {post.metadata.title}
           </Title>
           {post.metadata.subtitle && (
             <Text
@@ -189,7 +186,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           <Title order={2} id="recent-posts" mb="24">
             Recent posts
           </Title>
-          <Posts exclude={[post.slug]} range={[1, 2]} columns="2" direction="column" includeDrafts={auth} />
+          <Posts exclude={[post.slug]} range={[1, 2]} columns="2" direction="column" />
         </Stack>
         <ScrollToHash />
       </Stack>

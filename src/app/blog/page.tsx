@@ -3,7 +3,6 @@ import { baseURL, sameAs } from "@/config";
 import { blog, person } from "@/content";
 import ClientMailchimp from "@/components/ui/ClientMailchimp";
 import { Posts } from "@/features/blog/Posts";
-import { isAuthenticated } from "@/lib/auth";
 import { filterPosts } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
 import { generateMeta } from "@/lib/seo";
@@ -20,9 +19,8 @@ export async function generateMetadata() {
 }
 
 export default async function Blog() {
-  const auth = await isAuthenticated();
   const allPosts = getPosts(["src", "content", "blog"]);
-  const visiblePosts = filterPosts(allPosts, auth);
+  const visiblePosts = filterPosts(allPosts, false);
   const hasPosts = visiblePosts.length > 0;
   const hasEarlierPosts = visiblePosts.length > 3;
 
