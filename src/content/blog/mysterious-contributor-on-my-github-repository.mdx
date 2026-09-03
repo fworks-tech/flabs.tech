@@ -1,6 +1,6 @@
 ---
 title: 'Mysterious Contributor on my GitHub Repository: What Happened and How to Avoid It'
-publishedAt: '2026-09-08'
+publishedAt: '2026-09-03'
 summary: "A contributors pill shows three avatars, the API lists one, and git log agrees with the API. We traced a live incident on atlaslink — branch fix/issue-7-isolate-session-diagram showed fworks-tech, claude and krkshw — to a force-pushed orphan history, GitHub's two contributor graphs, and the cache that makes ghosts linger for weeks. Here is which graph to trust and how to prove it."
 tag: 'Engineering'
 tags: ['github', 'git', 'opensource', 'debugging']
@@ -14,7 +14,6 @@ shareText: |
   Here's how to hunt ghosts, which endpoint to trust, and the one-command proof.
 
   Read the breakdown on flabs.tech
-draft: true
 ---
 
 A teammate pings you: "Who is [krkshw](https://github.com/krkshw)? Why does our repo list Claude as a contributor?" The screenshot shows **Contributors 3** — `fworks-tech`, `claude`, [`krkshw`](https://github.com/krkshw) — on a repository you have touched alone for weeks. It feels like a permission leak.
@@ -27,9 +26,9 @@ We hit this on [atlaslink](https://github.com/fworks-tech/atlaslink), branch `fi
 
 *The sidebar that started it — 3 avatars while we expected 1. The highlighted [@krkshw](https://github.com/krkshw) ([Krksh](https://github.com/krkshw), public profile, kitten avatar, bio "i'am @krkshs") had never committed to `main`.*
 
-![Insights > Contributors — only fworks-tech with 153 commits appears](/images/ghost-contributors-insights.webp)
+![Insights > Contributors — only fworks-tech with 155 commits appears](/images/ghost-contributors-insights.webp)
 
-*Insights tells the truth: `fworks-tech` — 153 commits, 39,007 ++, 3,611 -- — is the sole contributor on `main` (Period: Last 3 months, Contributions: Commits). Same API that returned `[{login: "fworks-tech"}]` while the pill showed 3. The divergence is the clue.*
+*Insights tells the truth: `fworks-tech` — 155 commits, 40,082 ++, 3,708 -- — is the sole contributor on `main` (Period: All, Contributions: Commits). Same API that returned `[{login: "fworks-tech"}]` while the pill showed 3. The divergence is the clue.*
 
 ![Public profile of krkshw — the ghost avatar](/images/ghost-contributors-krkshw-profile.webp)
 
