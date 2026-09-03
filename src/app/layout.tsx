@@ -19,9 +19,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsightsWithRedaction } from "@/components/layout/SpeedInsightsWithRedaction";
 
 import type { Viewport } from "next";
-import { cookies } from "next/headers";
-import { CONSENT_COOKIE } from "@/lib/tracking";
-import { auth } from "@/auth";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -72,22 +69,11 @@ export async function generateMetadata() {
   };
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [cookieStore, session] = await Promise.all([cookies(), auth()]);
-  const initialConsent = cookieStore.get(CONSENT_COOKIE)?.value ?? null;
-  const user = session?.user?.id
-    ? {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        login: session.user.login,
-      }
-    : undefined;
-
   return (
     <html
       lang="en"
@@ -102,7 +88,7 @@ export default async function RootLayout({
       </head>
       <UnhandledErrorLogger />
       <body style={{ minHeight: "100vh", margin: 0, padding: 0 }}>
-        <Providers user={user}>
+        <Providers>
           <PostHogInit />
           <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
             <ClientParticles quantity={120} staticity={30} ease={40} />
@@ -119,7 +105,7 @@ export default async function RootLayout({
           <SocialStats />
           <Footer />
           <AiAssistant />
-          <ConsentBanner initialConsent={initialConsent} />
+          <ConsentBanner />
         </Providers>
         <TrackingProvider />
       <Analytics />
