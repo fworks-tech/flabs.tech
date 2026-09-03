@@ -1,0 +1,28 @@
+// Magnifier viewport for in-article images: the image keeps its layout size
+// while its content scales toward the cursor. Overflow stays clipped.
+.viewport {
+  overflow: hidden;
+  border-radius: var(--mantine-radius-md);
+  margin-top: 8px;
+  margin-bottom: 16px;
+  cursor: zoom-in;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+    // Inline zoom transform must lose to the reduced-motion guard.
+    transform: none !important;
+  }
+
+  .viewport {
+    cursor: default;
+  }
+}

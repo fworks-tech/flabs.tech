@@ -45,11 +45,11 @@ describe("Post", () => {
 
   it("renders thumbnail when thumbnail=true and image present", () => {
     render(<Post post={mockPost} thumbnail={true} />, { wrapper: Wrapper });
-    expect(screen.getByText("Test Post Title")).toBeInTheDocument();
+    expect(screen.getByAltText("Thumbnail of Test Post Title")).toBeInTheDocument();
   });
 
   it("does not render thumbnail when thumbnail=false", () => {
     render(<Post post={mockPost} thumbnail={false} />, { wrapper: Wrapper });
-    expect(screen.getByText("Test Post Title")).toBeInTheDocument();
+    expect(screen.queryByAltText("Thumbnail of Test Post Title")).not.toBeInTheDocument();
   });
 });

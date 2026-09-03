@@ -189,7 +189,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           <Title order={2} id="recent-posts" mb="24">
             Recent posts
           </Title>
-          <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" includeDrafts={auth} />
+          <Posts exclude={[post.slug]} range={[1, 2]} columns="2" direction="column" includeDrafts={auth} />
         </Stack>
         <ScrollToHash />
       </Stack>

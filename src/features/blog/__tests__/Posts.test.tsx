@@ -88,4 +88,25 @@ describe("Posts", () => {
       expect(screen.queryByText("Post B")).toBeInTheDocument();
     });
   });
+
+  describe("thumbnails", () => {
+    const mockPostsWithImages = mockPosts.map((post) => ({
+      ...post,
+      metadata: { ...post.metadata, image: `/images/${post.slug}.png` },
+    }));
+
+    beforeEach(() => {
+      vi.mocked(getPosts).mockReturnValue(mockPostsWithImages);
+    });
+
+    it("renders no thumbnails by default", () => {
+      render(<Posts />, { wrapper: Wrapper });
+      expect(screen.queryByAltText(/Thumbnail of/)).not.toBeInTheDocument();
+    });
+
+    it("renders thumbnails when thumbnail=true", () => {
+      render(<Posts thumbnail />, { wrapper: Wrapper });
+      expect(screen.getByAltText("Thumbnail of Post C")).toBeInTheDocument();
+    });
+  });
 });

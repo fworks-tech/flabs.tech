@@ -77,7 +77,7 @@ export default function Home() {
               View all
             </NavLink>
           </Group>
-          <Posts range={[1, 2]} columns="2" thumbnail />
+          <Posts range={[1, 2]} columns="2" />
         </Stack>
       )}
     </Stack>
