@@ -91,7 +91,7 @@ export default async function Blog() {
         </Text>
       </Stack>
       <Stack gap="40">
-        <Posts range={[1, 3]} thumbnail />
+        <Posts range={[1, 3]} />
         {hasEarlierPosts && (
           <>
             <Title order={2}>Earlier posts</Title>
