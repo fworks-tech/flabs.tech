@@ -24,20 +24,20 @@ draft: true # start here; removing it publishes on merge (§6)
 ---
 ```
 
-| Field                | Rule                                                                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `title`              | Title Case after colon (`Hanging: Fixing`, not `Hanging: fixing`) — enforced; rename sentence-case titles on next touch.                          |
-| `publishedAt`        | `YYYY-MM-DD` quoted string; must match merge week, not draft-creation date.                                                                       |
-| `summary`            | 200–280 chars; states incident + scope + payoff, no clickbait, no filler.                                                                         |
-| `tag` | Singular `tag:` with single quotes (prettier `singleQuote`); must be an existing taxonomy value (§5). |
-| `tags`               | Plural `tags:` ALWAYS present; ≤4 lowercase specific tags (Dev.to limit); drives chips, SEO keywords, and Dev.to discovery.                       |
-| `subtitle`           | Must not restate title; adds angle/stakes.                                                                                                        |
-| `shareText`          | 3–6 lines; last line is a standalone CTA — wording is per-post choice.                                                                            |
-| `image`              | Always optional; set only when the body embeds images.                                                                                            |
-| `draft`              | New posts start `draft: true`; removing it publishes on merge (§6).                                                                               |
-| `devtoId`/`devtoUrl` | Leave empty on new drafts; bot backfills after merge (§6).                                                                                        |
-| `scheduledAt`        | Optional; future date hides post via `isPostVisible()` even when `draft` is unset.                                                                |
-| Forbidden            | Never invent fields; schema is `title/subtitle/publishedAt/summary/image/images/tag/tags/team/link/shareText/draft/scheduledAt/devtoId/devtoUrl`. |
+| Field                | Rule                                                                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`              | Title Case after colon (`Hanging: Fixing`, not `Hanging: fixing`) — enforced; rename sentence-case titles on next touch.                                             |
+| `publishedAt`        | `YYYY-MM-DD` quoted string; must match merge week, not draft-creation date.                                                                                          |
+| `summary`            | 200–280 chars; states incident + scope + payoff, no clickbait, no filler.                                                                                            |
+| `tag`                | Singular `tag:` with single quotes on new/edited lines (prettier `singleQuote`); must be an existing taxonomy value (§5). Legacy double-quoted lines stay untouched. |
+| `tags`               | Plural `tags:` ALWAYS present; ≤4 lowercase specific tags (Dev.to limit); drives chips, SEO keywords, and Dev.to discovery.                                          |
+| `subtitle`           | Must not restate title; adds angle/stakes.                                                                                                                           |
+| `shareText`          | 3–6 lines; last line is a standalone CTA — wording is per-post choice.                                                                                               |
+| `image`              | Always optional; set only when the body embeds images.                                                                                                               |
+| `draft`              | New posts start `draft: true`; removing it publishes on merge (§6).                                                                                                  |
+| `devtoId`/`devtoUrl` | Leave empty on new drafts; bot backfills after merge (§6).                                                                                                           |
+| `scheduledAt`        | Optional; future date hides post via `isPostVisible()` even when `draft` is unset.                                                                                   |
+| Forbidden            | Never invent fields; schema is `title/subtitle/publishedAt/summary/image/images/tag/tags/team/link/shareText/draft/scheduledAt/devtoId/devtoUrl`.                    |
 
 Older posts without `subtitle`/`shareText` are grandfathered; all new posts include both.
 
@@ -58,16 +58,16 @@ Older posts without `subtitle`/`shareText` are grandfathered; all new posts incl
 
 Verify against code, never from memory:
 
-| #   | Rule                                                                                                                             |
-| --- | -------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | Footer model MUST equal `MODEL_ID` in `src/app/api/chat/route.ts:47` (today `mimo-v2.5`); grep before writing.                   |
-| T2  | Count claims MUST match the table and code — an allowlist gate is not a timeout.                                                 |
-| T3  | Name full timeout scope: `TOOL_FETCH_TIMEOUT_MS` (`src/lib/ai/tools.ts:19`) covers GitHub fetches AND `fetchUrlContent`.         |
-| T4  | State exactly which inputs the model controls: `fetchGitHubRepo` hardcodes `owner="fworks-tech"`; only `repo` is model-supplied. |
-| T5  | State total tool counts accurately: 4 tools (`fetchGitHubRepo`, `fetchUrlContent`, `searchContent`, `listGitHubRepos`).          |
-| T6  | Checklist (§7) MUST cover every shipped behavior in the diff/ADR, including guards (400 on empty/malformed messages).            |
-| T7  | Timeouts nest explicitly when claimed: `10s < 60s < 65s` (tool < `maxDuration` < client).                                        |
-| T8  | Soften or cite platform constants: the ~300s kill is a platform default — write `~300s platform default` or cite.                |
+| #   | Rule                                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | Footer model MUST equal `MODEL_ID` in `src/app/api/chat/route.ts:39` (today `mimo-v2.5`); grep before writing.                                                                |
+| T2  | Count claims MUST match the table and code — an allowlist gate is not a timeout.                                                                                              |
+| T3  | Name exact timeout scope: `AbortSignal.timeout(10_000)` (`src/lib/ai/tools.ts:78`) covers `fetchUrlContent` ONLY — `fetchGitHubRepo` has no timeout; never claim wider scope. |
+| T4  | State exactly which inputs the model controls: `fetchGitHubRepo` hardcodes `owner="fworks-tech"`; only `repo` is model-supplied.                                              |
+| T5  | State total tool counts accurately: 4 tools (`fetchGitHubRepo`, `fetchUrlContent`, `searchContent`, `listGitHubRepos`).                                                       |
+| T6  | Checklist (§7) MUST cover every shipped behavior in the diff/ADR, including guards (400 on empty/malformed messages).                                                         |
+| T7  | Timeouts nest explicitly when claimed: `10s < 60s < 65s` (tool < `maxDuration` < client).                                                                                     |
+| T8  | Soften or cite platform constants: the ~300s kill is a platform default — write `~300s platform default` or cite.                                                             |
 
 ## 4. Docs-fit / linking (librarian — HIGH)
 
@@ -84,15 +84,15 @@ Verify against code, never from memory:
 
 ## 5. Tag / slug conventions
 
-| Rule                                                                                                                                                                                                                             |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Slug = filename kebab-case (`never-leave-the-chatbox-hanging.mdx` → `/blog/never-leave-the-chatbox-hanging`).                                                                                                                    |
-| Canonical URL is always `https://flabs.tech/blog/<slug>` (`canonicalUrl` in `src/lib/crosspost.ts:22`).                                                                                                                          |
-| Blog `tag:` taxonomy is closed — pick one of `AI`, `Engineering`, `Architecture`, `Projects`.                                                                                                                                    |
-| Do not introduce a new tag without updating this file.                                                                                                                                                                           |
-| `tags[]` is ALWAYS set: ≤4 lowercase specific tags (Dev.to limit); they render as chips + SEO keywords on-site (`Post.tsx:62`, `[slug]/page.tsx:62`) and pass straight to Dev.to, bypassing `DEVTO_TAG_MAP` (`crosspost.ts:42`). |
-| Explore the best tags before writing: check Dev.to tag pages for follow counts and match the post's concrete stack (e.g. `nextjs`, `ai`, `agents`) over generic fillers.                                                         |
-| Headings use `##` per section, `###` only for enumerated sub-moves.                                                                                                                                                              |
+| Rule                                                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Slug = filename kebab-case (`never-leave-the-chatbox-hanging.mdx` → `/blog/never-leave-the-chatbox-hanging`).                                                                                                                                                                                        |
+| Canonical URL is always `https://flabs.tech/blog/<slug>` (`canonicalUrl` in `src/lib/crosspost.ts:22`).                                                                                                                                                                                              |
+| Blog `tag:` taxonomy is closed — pick one of `AI`, `Engineering`, `Architecture`, `Projects`.                                                                                                                                                                                                        |
+| Do not introduce a new tag without updating this file.                                                                                                                                                                                                                                               |
+| `tags[]` is ALWAYS set: ≤4 lowercase specific tags (Dev.to limit); they render as chips + SEO keywords on-site (`src/features/blog/Post.tsx:62`, `src/app/blog/[slug]/page.tsx:62`) and pass straight to Dev.to, bypassing `DEVTO_TAG_MAP` (`src/lib/crosspost.ts:35-40`) via `resolveTags` (`:42`). |
+| Explore the best tags before writing: check Dev.to tag pages for follow counts and match the post's concrete stack (e.g. `nextjs`, `ai`, `agents`) over generic fillers.                                                                                                                             |
+| Headings use `##` per section, `###` only for enumerated sub-moves.                                                                                                                                                                                                                                  |
 
 ## 6. Draft-vs-publish workflow
 

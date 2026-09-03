@@ -1,10 +1,10 @@
 ---
-title: "Mysterious Contributor on my GitHub Repository: What Happened and How to Avoid It"
-publishedAt: "2026-09-08"
+title: 'Mysterious Contributor on my GitHub Repository: What Happened and How to Avoid It'
+publishedAt: '2026-09-08'
 summary: "A contributors pill shows three avatars, the API lists one, and git log agrees with the API. We traced a live incident on atlaslink — branch fix/issue-7-isolate-session-diagram showed fworks-tech, claude and krkshw — to a force-pushed orphan history, GitHub's two contributor graphs, and the cache that makes ghosts linger for weeks. Here is which graph to trust and how to prove it."
-tag: "Engineering"
+tag: 'Engineering'
 tags: ['github', 'git', 'opensource', 'debugging']
-image: "/images/ghost-contributors-sidebar.webp"
+image: '/images/ghost-contributors-sidebar.webp'
 subtitle: "The contributors pill, the API, and git log disagree after a force-push. Here's which graph to trust and how to exorcise the ghost."
 shareText: |
   Your repo shows 3 contributors. The API lists 1. git log agrees with the API.
@@ -14,6 +14,7 @@ shareText: |
   Here's how to hunt ghosts, which endpoint to trust, and the one-command proof.
 
   Read the breakdown on flabs.tech
+draft: true
 ---
 
 A teammate pings you: "Who is [krkshw](https://github.com/krkshw)? Why does our repo list Claude as a contributor?" The screenshot shows **Contributors 3** — `fworks-tech`, `claude`, [`krkshw`](https://github.com/krkshw) — on a repository you have touched alone for weeks. It feels like a permission leak.
