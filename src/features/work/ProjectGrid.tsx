@@ -32,7 +32,7 @@ export async function ProjectGrid({ range, exclude }: ProjectGridProps) {
 
   return (
     <div className={styles.grid}>
-      {displayed.map((project) => {
+      {displayed.map((project, index) => {
         const tag = (project.tag || "").toLowerCase().replace(/[^a-z]/g, "-");
         const hasImages = project.images.length > 0;
 
@@ -60,6 +60,8 @@ export async function ProjectGrid({ range, exclude }: ProjectGridProps) {
                   src={project.images[0]}
                   alt={project.title}
                   fill
+                  priority={index === 0}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className={styles.img}
                 />
               ) : (
