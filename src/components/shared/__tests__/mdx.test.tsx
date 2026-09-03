@@ -9,11 +9,23 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next-mdx-remote/rsc", () => ({
-  MDXRemote: ({ source, components }: { source: string; components?: Record<string, React.ComponentType> }) =>
-    <div data-testid="mdx-remote">{source}{components?.h1?.({ children: null }) as unknown as React.ReactNode}</div>,
+  MDXRemote: ({ source, components }: { source: string; components?: Record<string, any> }) => (
+    <div data-testid="mdx-remote">
+      {source}
+      {components?.h1?.({ children: null }) as unknown as React.ReactNode}
+      {source === "empty-src"
+        ? (components?.img?.({ src: "" }) as unknown as React.ReactNode)
+        : (components?.img?.({ src: "/images/article.webp", alt: "Article image" }) as unknown as React.ReactNode)}
+    </div>
+  ),
+}));
+
+vi.mock("@/lib/logger", () => ({
+  logger: { error: vi.fn() },
 }));
 
 import { CustomMDX } from "@/components/shared/mdx";
+import { logger } from "@/lib/logger";
 
 function Wrapper({ children }: { children: ReactNode }) {
   return <MantineProvider>{children}</MantineProvider>;
@@ -51,5 +63,22 @@ describe("CustomMDX", () => {
       { wrapper: Wrapper },
     );
     expect(container.firstChild).toBeDefined();
+  });
+
+  it("renders article images through the zoomable image mapping", () => {
+    render(
+      <CustomMDX source="# Title" />,
+      { wrapper: Wrapper },
+    );
+    expect(screen.getByAltText("Article image")).toHaveStyle({ transform: "scale(1)" });
+  });
+
+  it("renders nothing and logs an error for images without src", () => {
+    render(
+      <CustomMDX source="empty-src" />,
+      { wrapper: Wrapper },
+    );
+    expect(screen.queryByAltText("Article image")).not.toBeInTheDocument();
+    expect(logger.error).toHaveBeenCalledWith("Media requires a valid 'src' property.");
   });
 });
