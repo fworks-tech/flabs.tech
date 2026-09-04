@@ -228,7 +228,6 @@ export function AiAssistant() {
           alt="Fabio's AI assistant"
           width={56}
           height={56}
-          priority
           className={styles.toggleAvatar}
         />
       </ActionIcon>

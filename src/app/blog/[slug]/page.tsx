@@ -1,4 +1,5 @@
-import { Anchor, Avatar, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Avatar, Divider, Group, Stack, Text, Title } from "@mantine/core";
+import Image from "next/image";
 import { NavLink } from "@/components/ui/NavLink";
 import Link from "next/link";
 import { CustomMDX, ScrollToHash } from "@/components";
@@ -141,14 +142,25 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           </Group>
         </Group>
         {post.metadata.image && (
-          <Image
-            src={post.metadata.image}
-            alt={post.metadata.title}
-            radius="lg"
-            mt="12"
-            mb="8"
-            style={{ aspectRatio: "16 / 9", objectFit: "cover" }}
-          />
+          <div
+            style={{
+              position: "relative",
+              aspectRatio: "16 / 9",
+              marginTop: 12,
+              marginBottom: 8,
+              borderRadius: "var(--mantine-radius-lg)",
+              overflow: "hidden",
+            }}
+          >
+            <Image
+              src={post.metadata.image}
+              alt={post.metadata.title}
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              style={{ objectFit: "cover" }}
+            />
+          </div>
         )}
         <Stack component="article" maw={600}>
           <CustomMDX source={post.content} />

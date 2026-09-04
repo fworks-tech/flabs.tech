@@ -90,4 +90,26 @@ describe("ProjectCard", () => {
     render(<ProjectCard {...defaultProps} images={["/img1.png", "/img2.png"]} />, { wrapper: Wrapper });
     expect(screen.getByText("Test Project")).toBeInTheDocument();
   });
+
+  it("marks the first carousel image high priority when priority is set", () => {
+    const { container } = render(
+      <ProjectCard {...defaultProps} images={["/img1.png", "/img2.png"]} priority />,
+      { wrapper: Wrapper },
+    );
+    const imgs = container.querySelectorAll('img[alt^="Screenshot of"]');
+    expect(imgs).toHaveLength(2);
+    expect(imgs[0]).toHaveAttribute("fetchpriority", "high");
+    expect(imgs[1]).toHaveAttribute("fetchpriority", "auto");
+  });
+
+  it("leaves carousel images at auto priority by default", () => {
+    const { container } = render(
+      <ProjectCard {...defaultProps} images={["/img1.png"]} />,
+      { wrapper: Wrapper },
+    );
+    expect(container.querySelector('img[alt^="Screenshot of"]')).toHaveAttribute(
+      "fetchpriority",
+      "auto",
+    );
+  });
 });

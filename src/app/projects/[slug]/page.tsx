@@ -1,4 +1,5 @@
-import { Avatar, AvatarGroup, Button, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
+import { Avatar, AvatarGroup, Button, Divider, Group, Stack, Text, Title } from "@mantine/core";
+import Image from "next/image";
 import { NavLink } from "@/components/ui/NavLink";
 import { CustomMDX, ScrollToHash } from "@/components";
 import { JsonLd } from "@/components/layout/JsonLd";
@@ -113,12 +114,23 @@ export default async function ProjectDetail({
         </Group>
       )}
       {post.metadata.images.length > 0 && (
-        <Image
-          src={post.metadata.images[0]}
-          alt="Project screenshot"
-          radius="md"
-          style={{ aspectRatio: "16 / 9", objectFit: "cover" }}
-        />
+        <div
+          style={{
+            position: "relative",
+            aspectRatio: "16 / 9",
+            borderRadius: "var(--mantine-radius-md)",
+            overflow: "hidden",
+          }}
+        >
+          <Image
+            src={post.metadata.images[0]}
+            alt="Project screenshot"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
       )}
       <Stack component="article" maw={600} mx="auto">
         <CustomMDX source={post.content} />

@@ -28,6 +28,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   avatars,
   link,
   comingSoon,
+  priority,
   tag,
   tags,
 }) => {
@@ -46,6 +47,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               <img
                 src={image}
                 alt={`Screenshot of ${title} - project showcase image`}
+                fetchPriority={priority && i === 0 ? "high" : "auto"}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </Carousel.Slide>
