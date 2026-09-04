@@ -3,17 +3,21 @@
 import { Button, Group, Paper, Text } from "@mantine/core";
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { getConsent, setConsent, subscribeConsent, track } from "@/lib/tracking";
+import type { ConsentState } from "@/lib/tracking";
 import styles from "./ConsentBanner.module.scss";
-
-interface ConsentBannerProps {
-  /** Consent cookie value read server-side (SSR-consistent initial state). */
-  initialConsent: string | null;
-}
 
 const AUTO_DISMISS_MS = 8000;
 
-export const ConsentBanner = ({ initialConsent }: ConsentBannerProps) => {
-  const consent = useSyncExternalStore(subscribeConsent, getConsent, () => initialConsent);
+const getServerSnapshot = (): ConsentState => {
+  // Unknown until hydration — assume undecided so the static prerender
+  // includes the banner. Fresh visitors (majority + e2e) see it immediately
+  // with no post-hydration insertion shift; returning visitors get a brief
+  // flash until hydration hides it.
+  return null;
+};
+
+export const ConsentBanner = () => {
+  const consent = useSyncExternalStore(subscribeConsent, getConsent, getServerSnapshot);
   const bannerRef = useRef<HTMLDivElement>(null);
   const visible = consent === null;
 

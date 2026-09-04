@@ -30,26 +30,26 @@ describe("ConsentBanner", () => {
   });
 
   it("shows the banner when no consent cookie exists", () => {
-    render(<ConsentBanner initialConsent={null} />, { wrapper: Wrapper });
+    render(<ConsentBanner />, { wrapper: Wrapper });
     expect(screen.getByTestId("consent-banner")).toBeInTheDocument();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("stays hidden when consent was already accepted", () => {
     setConsentCookie("accepted");
-    render(<ConsentBanner initialConsent="accepted" />, { wrapper: Wrapper });
+    render(<ConsentBanner />, { wrapper: Wrapper });
     expect(screen.queryByTestId("consent-banner")).not.toBeInTheDocument();
   });
 
   it("stays hidden when consent was declined", () => {
     setConsentCookie("declined");
-    render(<ConsentBanner initialConsent="declined" />, { wrapper: Wrapper });
+    render(<ConsentBanner />, { wrapper: Wrapper });
     expect(screen.queryByTestId("consent-banner")).not.toBeInTheDocument();
   });
 
   it("auto-dismisses after the window and persists accepted", () => {
     vi.useFakeTimers();
-    render(<ConsentBanner initialConsent={null} />, { wrapper: Wrapper });
+    render(<ConsentBanner />, { wrapper: Wrapper });
     expect(screen.getByTestId("consent-banner")).toBeInTheDocument();
 
     act(() => {
@@ -62,7 +62,7 @@ describe("ConsentBanner", () => {
 
   it("does not auto-dismiss before the window elapses", () => {
     vi.useFakeTimers();
-    render(<ConsentBanner initialConsent={null} />, { wrapper: Wrapper });
+    render(<ConsentBanner />, { wrapper: Wrapper });
 
     act(() => {
       vi.advanceTimersByTime(4000);
@@ -73,7 +73,7 @@ describe("ConsentBanner", () => {
 
   it("declining persists the opt-out cookie and hides the banner", async () => {
     const user = userEvent.setup();
-    render(<ConsentBanner initialConsent={null} />, { wrapper: Wrapper });
+    render(<ConsentBanner />, { wrapper: Wrapper });
 
     await user.click(screen.getByTestId("consent-decline"));
 

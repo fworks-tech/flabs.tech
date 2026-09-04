@@ -13,7 +13,10 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 110;
+  // Above the consent banner (z 1000) so the toggle stays clickable even
+  // before the banner-offset effect runs; the positional shift below still
+  // moves it clear for aesthetics.
+  z-index: 1100;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -78,7 +81,9 @@
   position: fixed;
   bottom: 80px;
   right: 24px;
-  z-index: 100;
+  // Above the consent banner (z 1000) so the panel input is never covered
+  // while the banner is visible; the overlay below stays dimming only.
+  z-index: 1100;
   width: 360px;
   max-height: 500px;
   background: var(--mantine-color-dark-5);
