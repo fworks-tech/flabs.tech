@@ -4,10 +4,12 @@ import { baseURL, routes, sameAs } from "@/config";
 import { about, home, person } from "@/content";
 import { Posts } from "@/features/blog/Posts";
 import { ProjectGrid } from "@/features/work/ProjectGrid";
+import { ProjectGridSkeleton } from "@/features/work/ProjectGridSkeleton";
 import { TrackedButton } from "@/components/ui/TrackedButton";
 import { getPosts } from "@/lib/mdx";
 import { generateMeta } from "@/lib/seo";
 import { Schema } from "@/lib/schema";
+import { Suspense } from "react";
 
 export async function generateMetadata() {
   return generateMeta({
@@ -66,7 +68,9 @@ export default function Home() {
             View all
           </NavLink>
         </Group>
-        <ProjectGrid range={[1, 3]} exclude={["flabs-tech"]} />
+        <Suspense fallback={<ProjectGridSkeleton />}>
+          <ProjectGrid range={[1, 3]} exclude={["flabs-tech"]} />
+        </Suspense>
       </Stack>
 
       {routes["/blog"] && hasBlogPosts && (

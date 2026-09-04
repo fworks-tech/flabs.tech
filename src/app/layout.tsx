@@ -19,6 +19,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsightsWithRedaction } from "@/components/layout/SpeedInsightsWithRedaction";
 
 import type { Viewport } from "next";
+import { Suspense } from "react";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -102,7 +103,9 @@ export default function RootLayout({
           >
             {children}
           </main>
-          <SocialStats />
+          <Suspense fallback={null}>
+            <SocialStats />
+          </Suspense>
           <Footer />
           <AiAssistant />
           <ConsentBanner />
