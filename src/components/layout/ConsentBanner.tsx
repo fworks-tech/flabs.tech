@@ -9,8 +9,11 @@ import styles from "./ConsentBanner.module.scss";
 const AUTO_DISMISS_MS = 8000;
 
 const getServerSnapshot = (): ConsentState => {
-  // Unknown until hydration — assume decided so static prerenders never flash the banner.
-  return "accepted";
+  // Unknown until hydration — assume undecided so the static prerender
+  // includes the banner. Fresh visitors (majority + e2e) see it immediately
+  // with no post-hydration insertion shift; returning visitors get a brief
+  // flash until hydration hides it.
+  return null;
 };
 
 export const ConsentBanner = () => {
