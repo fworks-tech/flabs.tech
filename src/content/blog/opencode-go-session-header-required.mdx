@@ -1,0 +1,169 @@
+---
+title: "OpenCode Go now requires x-opencode-session — here's why and how to fix it"
+publishedAt: "2026-09-07"
+summary: "OpenCode Go started enforcing the x-opencode-session header for routing optimization. If your chat widget or agent broke today, here's what happened and how to fix it."
+tag: "Engineering"
+tags: ['ai', 'programming', 'opensource', 'devops']
+subtitle: "A breaking change that caught many developers off-guard — and the simple fix"
+shareText: |
+  OpenCode Go now requires x-opencode-session header on every API request.
+  
+  If your AI chat widget broke today with 'Request is missing x-opencode-session', here's the fix.
+  
+  Read the breakdown on flabs.tech
+---
+
+## What happened
+
+If you're using OpenCode Go (the $10/month subscription for open coding models) and your AI assistant broke today, you're not alone. OpenCode started enforcing a previously optional header: `x-opencode-session`.
+
+Every request to the Go API now fails without it:
+
+```
+AI_APICallError: Request is missing x-opencode-session and cannot be routed efficiently.
+```
+
+This affects any client calling the OpenCode Go API — chat widgets, coding agents, custom integrations. If you build on top of OpenCode's API, this is a breaking change you need to address.
+
+---
+
+## Why the header exists
+
+The `x-opencode-session` header serves two purposes:
+
+### 1. Routing optimization
+
+OpenCode Go routes requests to different backend providers (DeepSeek, Xiaomi, Moonshot, etc.). With a stable session ID, the gateway can pin consecutive requests from the same conversation to the same provider. This improves cache hit rates — and cache is what makes Go affordable.
+
+Without the header, every request might route to a different backend, invalidating cached context and burning through your usage limits faster.
+
+### 2. Prompt caching
+
+The [official docs](https://opencode.ai/docs/go/#where-can-i-use-it) state:
+
+> Send a stable session ID in `x-opencode-session` for each conversation so we can optimize routing and prompt caching.
+
+Coding agents send highly repetitive system prompts and file contexts. With proper session affinity, OpenCode's cache hit rates reach 90-96% for popular models like DeepSeek V4 Flash. Without it, you're paying full price for tokens that could have been cached.
+
+---
+
+## Who's affected
+
+Any client that calls `https://opencode.ai/zen/go/v1` without the header. This includes:
+
+- **Custom chat widgets** built with the AI SDK
+- **Coding agents** that use OpenCode as a provider
+- **CI/CD pipelines** that invoke OpenCode models
+
+The OpenCode CLI itself always sends this header. Third-party clients didn't have to — until now.
+
+---
+
+## How to fix it
+
+The fix is straightforward: generate a stable session ID per conversation and send it as a header.
+
+### Example: Next.js API route with AI SDK
+
+```typescript
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { createHash } from 'crypto';
+
+function getClientSessionId(clientIp: string): string {
+  // Hash the IP for privacy — the header needs stability, not the raw IP
+  return createHash('sha256')
+    .update(`my-app-${clientIp}`)
+    .digest('hex')
+    .slice(0, 32);
+}
+
+const zen = (sessionId: string) =>
+  createOpenAICompatible({
+    name: 'zen',
+    baseURL: 'https://opencode.ai/zen/go/v1',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
+      'x-opencode-session': sessionId,
+    },
+  });
+
+// In your request handler:
+const sessionId = getClientSessionId(clientIp);
+const model = zen(sessionId).chatModel('mimo-v2.5');
+```
+
+### Example: curl with a fixed session ID
+
+```bash
+curl -X POST https://opencode.ai/zen/go/v1/chat/completions \
+  -H "Authorization: Bearer $OPENCODE_API_KEY" \
+  -H "x-opencode-session: my-session-123" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "mimo-v2.5", "messages": [...]}'
+```
+
+### Key requirements
+
+- **Stable per conversation**: the same session ID across all turns of a conversation
+- **Unique per user/session**: different users or sessions should use different IDs
+- **Opaque**: OpenCode doesn't parse the value — any string works
+
+---
+
+## What other agents are doing
+
+This change has rippled through the coding agent ecosystem. Here's how some projects have adapted:
+
+- **Hermes Agent** — [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) adds the header on main and auxiliary OpenCode requests
+- **Claude Code** — sends the header natively, no changes needed
+- **Codex** — sends the header natively, but some proxy setups strip it
+- **Pi** — [issue #4847](https://github.com/earendil-works/pi/issues/4847) tracks the fix, now implemented
+- **jcode** — fixed in [v0.81.6](https://github.com/1jehuang/jcode/issues/1167)
+- **Kilo Code CLI** — [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) restores the header
+
+If you maintain a client that calls OpenCode's API, check whether you're sending this header.
+
+---
+
+## What we did
+
+Our AI chat widget (the assistant on every page of this site) broke this morning. The fix was a 17-line change to our Next.js API route:
+
+1. Import `createHash` from Node's crypto module
+2. Generate a stable session ID per client IP (SHA-256, truncated to 32 chars)
+3. Pass it as the `x-opencode-session` header in the OpenCode client config
+
+The session ID is deterministic per IP — same visitor always gets the same ID, enabling routing optimization without storing state. The IP is hashed for privacy (we never send raw IPs to third parties).
+
+Full PR: [fworks-tech/flabs.tech#306](https://github.com/fworks-tech/flabs.tech/pull/306)
+
+---
+
+## Lessons learned
+
+### Breaking changes happen at the infrastructure layer
+
+OpenCode Go is infrastructure. When infrastructure changes its contract, every consumer breaks simultaneously. There was no deprecation period, no email warning — just an error in the response.
+
+If you depend on a third-party API, monitor for new error messages. Our Vercel logs caught this immediately because we log stream errors with the full error string.
+
+### Headers are the new config
+
+The `x-opencode-session` header is essentially a routing hint that used to be optional. As AI platforms optimize for cost (cache hit rates, provider affinity), expect more routing metadata to become mandatory.
+
+### Keep your session IDs stable and opaque
+
+The header value doesn't need to be a UUID or follow any format. Any stable, unique string works. Hashing the client IP is a simple approach that provides stability without storing session state.
+
+---
+
+## References
+
+- [OpenCode Go documentation](https://opencode.ai/docs/go/) — official requirements
+- [Where can I use it?](https://opencode.ai/docs/go/#where-can-i-use-it) — header requirements and validated clients
+- [Hermes Agent PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) — session header fix
+- [Pi issue #4847](https://github.com/earendil-works/pi/issues/4847) — session header bug report
+
+---
+
+*This site's AI assistant runs on OpenCode Go with the MiMo-V2.5 model. The session header fix is live.*
