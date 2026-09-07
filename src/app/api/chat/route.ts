@@ -31,22 +31,25 @@ import {
   updateAiEventCompletion,
 } from '@/lib/ai-stats';
 import { type NextRequest } from 'next/server';
+import { createHash } from 'crypto';
 
 // Vercel serverless bound: fail fast instead of hanging the widget until the
 // platform kills the stream (previously a 300s timeout with no client error).
 export const maxDuration = 60;
 
-const zen = createOpenAICompatible({
-  name: 'zen',
-  baseURL: 'https://opencode.ai/zen/go/v1',
-  headers: {
-    Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
-  },
-});
+const zen = (sessionId: string) =>
+  createOpenAICompatible({
+    name: 'zen',
+    baseURL: 'https://opencode.ai/zen/go/v1',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
+      'x-opencode-session': sessionId,
+    },
+  });
 
 const MODEL_ID = 'mimo-v2.5';
 
-const model = zen.chatModel(MODEL_ID);
+const model = (sessionId: string) => zen(sessionId).chatModel(MODEL_ID);
 
 // The system prompt is built from content files on disk; cache it per process
 // (serverless cold starts re-run it anyway, so staleness is bounded by deploy).
@@ -356,7 +359,11 @@ export async function POST(req: NextRequest) {
     return jsonResponse(500, { error: 'Server configuration error. Please try again later.' });
   }
 
-  const key = resolveKey(resolveClientIp(req));
+  const clientIp = resolveClientIp(req);
+  const key = resolveKey(clientIp);
+
+  // Stable session ID for OpenCode Go routing optimization (hashed, not raw IP).
+  const sessionId = createHash('sha256').update(`flabs-chat-${clientIp}`).digest('hex').slice(0, 32);
 
   // 1. Pre-flight: already quarantined/blocked?
   const tier = await effectiveTier(key);
@@ -501,7 +508,7 @@ export async function POST(req: NextRequest) {
   try {
     const streamStart = Date.now();
     const result = streamText({
-      model,
+      model: model(sessionId),
       messages: normalized,
       system: systemPrompt,
       tools: aiTools,
