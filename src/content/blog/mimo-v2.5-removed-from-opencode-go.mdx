@@ -179,7 +179,7 @@ When requests route through a multi-provider gateway, a passing local curl prove
 
 ### Docs drift is normal; alerts are the answer
 
-This is the third MiMo-related routing incident in recent memory on this endpoint ([here's the first](/blog/opencode-go-session-header-required)). Infra providers rotate models and routing preferences without deprecation windows. The only sustainable defense is server-side error logging plus a health check that hits your real model periodically — a bare 200 on `/` tells you nothing about whether your *model* still exists.
+This is the third MiMo-related routing incident in recent memory on this endpoint ([here's the first](https://flabs.tech/blog/opencode-go-session-header-required)). Infra providers rotate models and routing preferences without deprecation windows. The only sustainable defense is server-side error logging plus a health check that hits your real model periodically — a bare 200 on `/` tells you nothing about whether your *model* still exists.
 
 ---
 
@@ -190,7 +190,7 @@ This is the third MiMo-related routing incident in recent memory on this endpoin
 - [models.opencode.ai — Go models & pricing](https://models.opencode.ai/providers/opencode-go/) — `glm-5.3-flash` at $0.07/$0.25 per 1M
 - [Issue #45996](https://github.com/anomalyco/opencode/issues/45996) — `provider.only: tencent` breaks mimo-v2.5 routing on Go
 - [Issue #45132](https://github.com/anomalyco/opencode/issues/45132) — free models 403 outside the OpenCode client for weeks
-- [Previous post: x-opencode-session now required](/blog/opencode-go-session-header-required) — the last time the Go router broke this widget
+- [Previous post: x-opencode-session now required](https://flabs.tech/blog/opencode-go-session-header-required) — the last time the Go router broke this widget
 
 ---
 
