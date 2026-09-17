@@ -4,23 +4,26 @@ publishedAt: "2026-07-06"
 summary: "How a value-first migration strategy shipped analytics, WhatsApp, social feeds, SEO, sitemap fixes, and a draft system in a single sprint — without touching a single component of the existing design system."
 tag: "Architecture"
 tags: ['architecture', 'webdev', 'programming', 'productivity']
-draft: true
+subtitle: "Ship visible value on day one, refactor with real data on day thirty"
 shareText: |
   Most rebuilds start with foundation work — months of invisible refactoring before anything ships. We tried the opposite: ship visible value on day one, then refactor with real data.
 
-  Here's how the firehose approach works, why it breaks conventional wisdom, and what we learned shipping PostHog, WhatsApp, social ISR feeds, JSON-LD schemas, sitemap fixes, and a draft system in a single sprint — without touching a single Once UI import.
+  Here's how the firehose approach works, why it breaks conventional wisdom, and what we learned shipping seven features in a single sprint.
+
+  Read the full breakdown on flabs.tech
+draft: true
 ---
 
 ## The conventional wisdom
 
 Every migration guide says the same thing:
 
-> Lay the foundation first. Install Tailwind. Set up `cn()`. Generate your shadcn components. Then — *then* — start replacing.
+> Lay the foundation first. Install `@mantine/core`. Set up the PostCSS preset. Create the theme. Then — *then* — start replacing.
 
 This is the **foundation-first** approach. It's tidy. It's predictable. And it delays visible value by weeks or months.
 
 When you're refactoring a production site with 42 files importing a design system, foundation-first means:
-- Week 1–2: Tailwind init, shadcn init, `next-themes`, font migration — zero user-facing changes
+- Week 1–2: Mantine install, PostCSS preset, theme tokens, font migration — zero user-facing changes
 - Week 3–6: Replace 33 components, one PR at a time — still looks the same
 - Month 2+: *Finally* add features people can see
 
@@ -39,12 +42,12 @@ Phase 1 of the firehose shipped **seven features in one sprint**, all visible to
 | 1 | **PostHog analytics** (Cloud Free, 1M events/mo) | Real-time pageviews, dashboards, session tracking | No |
 | 2 | **WhatsApp share button** | Direct messaging from every blog post | No (already in config) |
 | 3 | **Social live stats** (Dev.to, GitHub, SO, npm via ISR) | Freshness in the footer, 1h–24h revalidation | No |
-| 4 | **Expanded share buttons** (Dev.to, Hacker News) | 6 platforms + copy link — viral distribution | No |
+| 4 | **Expanded share buttons** (X, LinkedIn, Facebook, WhatsApp, Reddit, Telegram, Email + copy link) | 7 platforms, config-toggled — social distribution | No |
 | 5 | **Canonical URLs + JSON-LD** (Person, WebSite, BreadcrumbList) | SEO baseline — every page canonical, Google rich results | No |
-| 6 | **Sitemap fix** (work detail pages now indexed) | 4+ work case studies visible to search engines | No |
+| 6 | **Sitemap fix** (work detail pages now indexed) | Work case studies visible to search engines | No |
 | 7 | **Draft + scheduling system** (`draft` flag, `scheduledAt`, auth-gated) | Write ahead, publish when ready, only author sees drafts | No |
 
-**Zero Once UI components changed. Zero Tailwind config written. Zero foundation work.**
+**Zero Once UI components changed. Zero Mantine theme code written. Zero foundation work.**
 
 ## Deep dive: each feature
 
@@ -61,7 +64,7 @@ The dashboard went live the same day the code merged. No Docker, no PostgreSQL, 
 
 ### 2. WhatsApp share — one boolean flip
 
-The `ShareSection` component already had WhatsApp coded — `https://wa.me/?text=...` with proper encoding. It was just disabled in config. One line change: `whatsapp: true`.
+The `ShareSection` component already had WhatsApp coded — `https://wa.me/?text=...` with proper encoding. It was disabled in config. One line change: `whatsapp: true`.
 
 This is the purest firehose win: the feature was already built, tested, and sitting dormant. It cost zero engineering time to ship.
 
@@ -76,18 +79,15 @@ The `SocialStats.tsx` server component fetches from four APIs using Next.js ISR:
 | Stack Overflow | `GET /2.3/users/...` | 24 hours | Reputation score |
 | npm | `GET /-/v1/search?text=maintainer:...` | 24 hours | Package count |
 
-Each API call is wrapped in a try/catch with `logger.warn` fallback. The entire component is wrapped in `<Suspense fallback={null}>` so API failures are invisible to users. No loading spinners, no broken layout — just graceful absence.
+Each API call is wrapped in a try/catch with `logger.warn` fallback. The entire component is wrapped in `<Suspense fallback={null}>` so API failures are invisible to users. No loading spinners, no broken layout — graceful absence.
 
 The same `SameAsConfig` type was extended with 5 new fields (`devto`, `stackoverflow`, `npm`, `hashnode`, `youtube`) so adding new platforms in the future is a type-safe config change.
 
-### 4. Expanded share buttons — Dev.to + Hacker News
+### 4. Expanded share buttons — config-driven, zero new deps
 
-Two new platforms added to the social sharing ecosystem:
+The `ShareSection` component renders share targets for X, LinkedIn, Facebook, WhatsApp, Reddit, Telegram, and Email, plus a copy-link button — each a Mantine `ActionIcon` with a Tabler icon, each URL built by a `generateUrl` function per platform.
 
-- **Dev.to**: `https://dev.to/new?prefill=...` — pre-fills the Dev.to editor with the article title and original URL, making cross-posting effortless.
-- **Hacker News**: `https://news.ycombinator.com/submitlink?u=...&t=...` — standard HN submission with URL + title.
-
-The `SocialSharingConfig` type and `once-ui.config.ts` were updated in lockstep, and `SiDevdotto` + `FaHackerNews` icons were added to the icon library.
+The whole system is driven by boolean flags in `socialSharing.platforms` (`src/config/app.config.ts`): enabling a platform is a config change, not a code change. That's exactly how WhatsApp shipped — the `wa.me/?text=...` URL builder was already coded; one line (`whatsapp: true`) turned it on.
 
 ### 5. Canonical URLs + JSON-LD — SEO in 10 lines per page
 
@@ -103,7 +103,7 @@ Plus: `og:locale: en_US` and `twitter:site: @fritzelborges` were missing and are
 
 ### 6. Sitemap fix — work details now indexed
 
-The sitemap was only generating entries for blog posts and project pages — work case studies were invisible to search engines. One change added `getPosts(["src", "content", "work"])` to the sitemap generator, making 4+ work entries discoverable.
+The sitemap was only generating entries for blog posts and project pages — work case studies were invisible to search engines. One change added `getPosts(["src", "content", "work"])` to the sitemap generator, making every work entry discoverable.
 
 ### 7. Draft + scheduling system — write ahead, publish on your terms
 
@@ -146,7 +146,7 @@ ISR-fetched GitHub repo counts and Dev.to article numbers in the footer make the
 
 ### WhatsApp is free (literally)
 
-`https://wa.me/?text=...` costs nothing. No API key, no Twilio setup, no monthly bill. It was already coded — just needed one boolean flip.
+`https://wa.me/?text=...` costs nothing. No API key, no Twilio setup, no monthly bill. It was already coded — one boolean flip.
 
 ### The draft system future-proofs content
 
@@ -158,7 +158,7 @@ Firehose is not free. The trade-offs are real:
 
 | Foundation-first | Firehose |
 |-----------------|----------|
-| Clean code from day one | Temporary code duality (Once UI + Tailwind both loaded) |
+| Clean code from day one | Temporary code duality (Once UI + Mantine both loaded) |
 | No tech debt accumulation | Tech debt pays down later |
 | Predictable timeline | Parallelism adds coordination cost |
 | Boring but safe | Exciting but requires discipline |
@@ -206,9 +206,9 @@ The key discipline: **never add new Once UI code**. Every new feature in the fir
 The firehose approach works when:
 
 - **You have a working production site** (not a greenfield project)
-- **The migration target is a different stack** (Once UI → Tailwind, not a bugfix)
+- **The migration target is a different stack** (Once UI → Mantine, not a bugfix)
 - **You can add features without touching the old stack**
-- **You have clear analytics goals** (LCP < 2.5s, CLS < 0.05, TBT < 200ms)
+- **You have clear analytics goals** (LCP ≤ 3s, CLS ≤ 0.1, TBT ≤ 300ms — the Lighthouse budgets in `lighthouserc.json`)
 - **Your team can hold the discipline** of "no new old-stack code"
 
 It does not work when:
@@ -220,7 +220,7 @@ It does not work when:
 
 Foundation-first is the right choice when you're building from scratch. Firehose is the right choice when you're evolving a production system and want to ship value *while* you refactor, not *after*.
 
-We shipped seven features — analytics, WhatsApp sharing, live social stats, expanded share buttons, full SEO structured data, sitemap fixes, and a draft scheduling system — in a single sprint. Zero Once UI components changed. Zero Tailwind written. Zero downtime.
+We shipped seven features — analytics, WhatsApp sharing, live social stats, expanded share buttons, full SEO structured data, sitemap fixes, and a draft scheduling system — in a single sprint. Zero Once UI components changed. Zero Mantine written. Zero downtime.
 
 The refactor starts next week. But the analytics are already running.
 
