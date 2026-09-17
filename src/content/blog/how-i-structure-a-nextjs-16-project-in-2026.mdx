@@ -10,6 +10,8 @@ shareText: |
   I rebuilt a flat Next.js template into a structured, fully-tested codebase with features/, layered components, Vitest + Playwright + Storybook, and an MDX-first blog strategy.
 
   Here's exactly how — milestone by milestone — and what I'd do differently next time.
+
+  Read the full breakdown on flabs.tech
 ---
 
 ## Introduction
@@ -28,11 +30,13 @@ The structure that survived was:
 
 ```text
 src/
-  app/           # Next.js App Router pages (about, blog, projects, work, quiz, admin)
+  app/           # Next.js App Router pages (about, blog, projects, work, quiz, admin) + api/
   components/     # Shared component libraries
     layout/       # Header, Footer, Providers, ThemeToggle
     ui/           # NavLink, ProjectCard, Mailchimp, HeadingLink
     shared/       # MDX rendering, blog-links, mdx-table styles
+    ai/           # AiAssistant chat widget
+    admin/        # Admin dashboard charts
   config/         # Theme + site config (Once UI / Mantine theme, routes, sameAs)
   content/        # MDX source for blog, projects, work entries
   features/       # Feature modules (about, blog, projects, work, quiz)
