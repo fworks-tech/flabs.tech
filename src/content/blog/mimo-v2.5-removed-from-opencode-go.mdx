@@ -1,0 +1,197 @@
+---
+title: "mimo-v2.5 vanished from OpenCode Go's router — anatomy of a production AI outage"
+publishedAt: "2026-09-17"
+summary: "OpenCode stopped serving mimo-v2.5 on the Go router, and the -free variant rejects server calls outright. Our chat widget died at stream start. Here's the debugging trail, why 'works from my machine' misled me, and the fix."
+tag: "Engineering"
+tags: ['ai', 'news', 'programming', 'devops']
+subtitle: "When the model list and the docs disagree, trust the model list"
+shareText: |
+  OpenCode's mimo-v2.5 stopped routing on the Go endpoint, and mimo-v2.5-free rejects server-side calls with a 403.
+
+  Our chat widget broke at stream start. Here's the debugging trail, the misleading curl test, and the fix.
+
+  Read the breakdown on flabs.tech
+---
+
+## What happened
+
+The AI assistant on every page of this site started failing. The widget would accept a message, show "Thinking" for a beat, then fall back to a red "Something went wrong. Please try again."
+
+On the client, the stream looked like this — a start, then an immediate, opaque error:
+
+```
+data: {"type":"start"}
+
+data: {"type":"error","errorText":"An error occurred."}
+
+data: [DONE]
+```
+
+That error message is the AI SDK deliberately hiding upstream details from browsers. The real error lives in server logs. If you're debugging one of these right now: go read the logs first. The client will tell you nothing.
+
+What we eventually found was not one bug but a stack of three: a retired model, a free tier that doesn't exist for servers, and an account with no balance. Here's the trail.
+
+---
+
+## The debugging trail
+
+### Step 1: the server logs
+
+Our chat route logs stream errors with the full error string. From Vercel's runtime logs:
+
+```
+AI_APICallError: Error from provider (Console):
+OpenCode's free tier can only be used from within OpenCode
+```
+
+That message was the trailhead — and also the first trap.
+
+### Step 2: the obvious fix that wasn't
+
+We had recently switched the assistant to `mimo-v2.5-free` on the `zen/v1` endpoint, chasing zero-cost responses. The logs said "free tier", so the revert seemed obvious: go back to `mimo-v2.5` on the `zen/go/v1` endpoint, which had been running for months.
+
+I reverted, deployed, hit the endpoint again. Same error.
+
+### Step 3: works from my machine
+
+Then came the part that cost the most time. From a local terminal, the exact same request succeeded:
+
+```bash
+curl -X POST https://opencode.ai/zen/go/v1/chat/completions \
+  -H "Authorization: Bearer $OPENCODE_API_KEY" \
+  -H "x-opencode-session: test-session" \
+  -d '{"model": "mimo-v2.5", "messages": [{"role": "user", "content": "Say hi"}]}'
+
+# 200 OK — a real completion
+```
+
+Same key, same model, same endpoint. It worked locally and failed from Vercel. Classic infrastructure gaslighting.
+
+Two things were going on:
+
+**First, the model was already gone.** The `go/v1` gateway is a **router**, not a single model server: it picks an upstream provider (gmicloud, deepinfra, xiaomi, parasail, streamlake, novita, tencent…) per request. `mimo-v2.5` had been dropped from its model list, so requests through the router landed on inconsistent paths — one attempt from my edge got lucky and routed somewhere that still served it; the same request from Vercel's egress failed deterministically.
+
+**Second — the bigger one — the account itself.** Keep reading.
+
+### Step 4: check the model list, not the docs
+
+The definitive check is OpenCode's own models endpoint:
+
+```bash
+curl https://opencode.ai/zen/go/v1/models \
+  -H "Authorization: Bearer $OPENCODE_API_KEY"
+```
+
+`mimo-v2.5` is **not in the response**. The live list contains `glm-5.3-flash`, `glm-5.3`, `kimi-k3`, `deepseek-v4-flash`, `minimax-m3`, `longcat-2.0`, and others — no MiMo at all.
+
+Meanwhile, the [official Go docs page](https://opencode.ai/docs/go/) still advertises MiMo-V2.5 as included. The docs and the router disagree. When that happens, trust the router: it's the thing actually serving your requests.
+
+This isn't a one-off, either. There's a long history of MiMo-model routing breakage on the Console Go endpoint — for example [issue #45996](https://github.com/anomalyco/opencode/issues/45996) and [issue #45990](https://github.com/anomalyco/opencode/issues/45990), where a backend routing preference (`provider.only: tencent`) made `mimo-v2.5` 404 for *every* client, because Tencent's upstream doesn't serve that model. Multiple outages, same root shape: the router points at a provider that can't serve the model, and the docs never move.
+
+---
+
+## The free-tier trap (and the real root cause)
+
+Worth a separate section, because this is the part that actually killed the widget.
+
+OpenCode's free-tier usage is gated by **where the request comes from**. With the same API key and the same request payload:
+
+- From a residential IP, `go/v1` completed normally.
+- From a datacenter IP (Vercel's serverless egress), every request got `FreeTierError: OpenCode's free tier can only be used from within OpenCode`.
+
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "FreeTierError",
+    "message": "Error from provider (Console): OpenCode's free tier can only be used from within OpenCode"
+  },
+  "status": 403
+}
+```
+
+The message reads like a client-identity check ("within OpenCode"), but the practical gate is IP reputation: cloud/datacenter ASNs are treated as non-OpenCode callers, so free-tier keys get rejected from your serverless functions. There have been weeks of related reports on the free models more broadly — [issue #45132](https://github.com/anomalyco/opencode/issues/45132) tracks `mimo-v2.5-free` and other free models returning 403s.
+
+And there was one more layer waiting underneath. The direct Zen endpoint (`zen/v1`, pay-per-credit) rejected the same key with a different error entirely:
+
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "CreditsError",
+    "message": "Insufficient balance. Manage your billing here: ..."
+  }
+}
+```
+
+So the key we had configured was a **Zen credits key with a zero balance** — good enough to probe the free pool from a lucky edge, never enough for a server. The widget was never going to run on it reliably.
+
+The takeaway: **free tiers that gate on the client can't be used from a server, period.** A server-side chat widget needs a funded account — an OpenCode Go subscription (built for external agents) or Zen credits for the pay-per-token endpoint. There is no free tier for your backend.
+
+---
+
+## The fix
+
+Switch to a model that's actually in the router's list. We picked `glm-5.3-flash`:
+
+- **In the live model list** (unlike `mimo-v2.5`)
+- **Tool calling: yes** — our assistant runs four tools (GitHub repo lookups, URL fetching, content search), verified with a direct API call before deploying
+- **1M context**, plenty for a portfolio chat
+- **$0.07 in / $0.25 out per 1M tokens** ([models.opencode.ai](https://models.opencode.ai/providers/opencode-go/)) — actually cheaper than our previous cost budget assumed for `mimo-v2.5`
+
+The production change is two lines:
+
+```diff
+ const zen = (sessionId: string) =>
+   createOpenAICompatible({
+     name: 'zen',
+-    baseURL: 'https://opencode.ai/zen/v1',
++    baseURL: 'https://opencode.ai/zen/go/v1',
+     headers: {
+       Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
+       'x-opencode-session': sessionId,
+     },
+   });
+
+-const MODEL_ID = 'mimo-v2.5-free';
++const MODEL_ID = 'glm-5.3-flash';
+```
+
+Full PR: [fworks-tech/flabs.tech#311](https://github.com/fworks-tech/flabs.tech/pull/311).
+
+One thing the diff can't show: the code fix is necessary but not sufficient. The assistant stays up only because the account behind `OPENCODE_API_KEY` is funded — Go subscription or Zen credits. Code fixed the model; billing fixed the outage.
+
+---
+
+## Lessons learned
+
+### The model list is the contract
+
+Marketing pages and docs lag behind the router. If OpenCode (or any gateway) is in your stack, your deploy pipeline should be able to answer "is my model still in `GET /v1/models`?" — ideally with an automated check, because a retired model looks exactly like a random 403/404 from inside a serverless function.
+
+### Free tiers that check the client can't be used from a server
+
+Any "free tier can only be used from within X" error is a statement about **caller identity**, not quota. Don't build a server integration on it; it will 403 the moment you deploy. And when a different endpoint answers with `CreditsError: Insufficient balance`, that's the honest one — read it before burning hours on routing theories.
+
+### Routers make "works on my machine" meaningless
+
+When requests route through a multi-provider gateway, a passing local curl proves almost nothing about the server path. Reproduce failures from an environment as close to production as possible — or better, instrument production so the error you read is the real one (stream errors logged with full upstream strings saved this investigation from being guesswork).
+
+### Docs drift is normal; alerts are the answer
+
+This is the third MiMo-related routing incident in recent memory on this endpoint ([here's the first](https://flabs.tech/blog/opencode-go-session-header-required)). Infra providers rotate models and routing preferences without deprecation windows. The only sustainable defense is server-side error logging plus a health check that hits your real model periodically — a bare 200 on `/` tells you nothing about whether your *model* still exists.
+
+---
+
+## References
+
+- [OpenCode Go documentation](https://opencode.ai/docs/go/) — official model list and endpoints (still advertising MiMo-V2.5 as of writing)
+- [Models endpoint](https://opencode.ai/zen/go/v1/models) — the live source of truth (requires a key)
+- [models.opencode.ai — Go models & pricing](https://models.opencode.ai/providers/opencode-go/) — `glm-5.3-flash` at $0.07/$0.25 per 1M
+- [Issue #45996](https://github.com/anomalyco/opencode/issues/45996) — `provider.only: tencent` breaks mimo-v2.5 routing on Go
+- [Issue #45132](https://github.com/anomalyco/opencode/issues/45132) — free models 403 outside the OpenCode client for weeks
+- [Previous post: x-opencode-session now required](https://flabs.tech/blog/opencode-go-session-header-required) — the last time the Go router broke this widget
+
+---
+
+*This site's AI assistant now runs on `glm-5.3-flash` via OpenCode Go. The fix is live.*
