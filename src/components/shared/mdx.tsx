@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import { slugify as transliterate } from "transliteration";
 import { BlogLinks } from "@/components/shared/blog-links";
+import { CustomLink } from "@/components/shared/CustomLink";
 import { logger } from "@/lib/logger";
 
 import {
@@ -19,40 +20,10 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import Link from "next/link";
 
 import tableStyles from "./mdx-table.module.scss";
 import { HeadingLink } from "@/components/ui/HeadingLink";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
-
-type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-  href: string;
-  children: ReactNode;
-};
-
-function CustomLink({ href, children, ...props }: CustomLinkProps) {
-  if (href.startsWith("/")) {
-    return (
-      <Anchor component={Link} href={href} {...props}>
-        {children}
-      </Anchor>
-    );
-  }
-
-  if (href.startsWith("#")) {
-    return (
-      <Anchor href={href} {...props}>
-        {children}
-      </Anchor>
-    );
-  }
-
-  return (
-    <Anchor href={href} target="_blank" rel="noopener noreferrer" {...props}>
-      {children}
-    </Anchor>
-  );
-}
 
 function createImage({ alt, src, ...props }: { alt?: string; src: string } & React.ImgHTMLAttributes<HTMLImageElement>) {
   if (!src) {
