@@ -60,9 +60,9 @@ Verify against code, never from memory:
 
 | #   | Rule                                                                                                                                                                          |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | Footer model MUST equal `MODEL_ID` in `src/app/api/chat/route.ts:39` (today `mimo-v2.5`); grep before writing.                                                                |
+| T1  | Footer model MUST equal `MODEL_ID` in `src/app/api/chat/route.ts:50` (today `glm-5.3-flash`); grep before writing.                                                               |
 | T2  | Count claims MUST match the table and code — an allowlist gate is not a timeout.                                                                                              |
-| T3  | Name exact timeout scope: `AbortSignal.timeout(10_000)` (`src/lib/ai/tools.ts:78`) covers `fetchUrlContent` ONLY — `fetchGitHubRepo` has no timeout; never claim wider scope. |
+| T3  | Name exact timeout scope: `AbortSignal.timeout(10_000)` (`src/lib/ai/tools.ts:19`) covers `fetchUrlContent`, `fetchGitHubRepo`, and `listGitHubRepos` — never claim wider scope. |
 | T4  | State exactly which inputs the model controls: `fetchGitHubRepo` hardcodes `owner="fworks-tech"`; only `repo` is model-supplied.                                              |
 | T5  | State total tool counts accurately: 4 tools (`fetchGitHubRepo`, `fetchUrlContent`, `searchContent`, `listGitHubRepos`).                                                       |
 | T6  | Checklist (§7) MUST cover every shipped behavior in the diff/ADR, including guards (400 on empty/malformed messages).                                                         |

@@ -18,12 +18,12 @@ Live at **[flabs.tech](https://flabs.tech)**
 
 ### Pages
 - **Home** — Split hero with animated headline + CTAs, 3-column project grid, recent posts section
-- **Work** — Professional experience timeline: 7 roles across 6 companies in the USA, Europe, and Brazil, plus education
-- **Projects** — Featured projects with MDX detail pages and GitHub links, sourced from the fworks-tech GitHub profile: Agenthood, Agenthood Site, ArXiv Manager, atlaslink (coming soon), HashEyes, LogRoute, flabs.tech
+- **Work** — Professional experience timeline: 8 roles across 7 companies in the USA, Europe, and Brazil, plus education
+- **Projects** — Featured projects with MDX detail pages and GitHub links, sourced from the fworks-tech GitHub profile: Agenthood, Agenthood Site, ArXiv Manager, atlaslink, HashEyes, LogRoute, flabs.tech
 - **Blog** — Engineering blog with MDX posts on GraphQL Federation, multi-agent AI, and skills registries
 - **About** — Full professional bio, location, social links, and skill tags across Frontend · Backend & APIs · AI & Agents
 - **Quiz (DevSprint)** — Timed dev-trivia game: 20s per question, streaks, achievements, weekly leaderboard (Upstash Redis), referral sharing
-- **AI Assistant** — Chat widget on every page; answers about the site's content and author via OpenCode Zen (`mimo-v2.5`). Equipped with tools: GitHub repo stats, authorized URL fetching, and content search across blog/projects
+- **AI Assistant** — Chat widget on every page; answers about the site's content and author via OpenCode Go (`glm-5.3-flash`). Equipped with tools: GitHub repo stats, authorized URL fetching, and content search across blog/projects
 
 ### Technical
 - **Next.js 16** App Router with full TypeScript
@@ -32,6 +32,7 @@ Live at **[flabs.tech](https://flabs.tech)**
 - **Dynamic OG images** via `next/og` — auto-generated for every page with 1200×630 (1.91:1)
 - **Profile photo favicon** generated server-side via `icon.tsx`, plus a static `favicon.ico` built from the same avatar photo (what Google/browsers fetch at `/favicon.ico`)
 - **Abuse prevention** for the AI chat endpoint — deterministic pipeline (`src/lib/abuse/`): signal scoring → quarantine tiers → shadow/enforce modes; privacy-first HMAC keyed identities
+- **Dev.to cross-posting** — `npm run crosspost:devto` + `crosspost.yml` workflow backfills article ids into MDX frontmatter after merge
 - **AGENTS.md** — AI agent instructions (build/test commands, conventions, git workflow)
 - Deployed on **Vercel** with PR preview deployments
 
@@ -46,12 +47,12 @@ Live at **[flabs.tech](https://flabs.tech)**
 | Language | TypeScript |
 | Content | MDX + gray-matter |
 | Styling | SCSS Modules |
-| AI Runtime | Vercel AI SDK v7 + OpenCode Zen (OpenAI-compatible, `mimo-v2.5`) |
+| AI Runtime | Vercel AI SDK v7 + OpenCode Go (OpenAI-compatible, `glm-5.3-flash`) |
 | Storage | Upstash Redis (leaderboard, sessions, abuse signals) |
-| Observability | PostHog · pino + OpenTelemetry logs |
+| Observability | PostHog · pino + OpenTelemetry (OTLP log export to PostHog) |
 | Linting | ESLint 9 (flat config) + Prettier |
 | Bundler | Turbopack |
-| Type Checking | TypeScript 5.8 (`tsc --noEmit`) |
+| Type Checking | TypeScript 5 (`tsc --noEmit`) |
 | Testing | Vitest 4 · Playwright · axe-core · Lighthouse CI |
 | Storybook | Storybook 10 |
 | Bundle Audit | @next/bundle-analyzer |
@@ -65,24 +66,29 @@ Live at **[flabs.tech](https://flabs.tech)**
 ```
 src/
 ├── app/              # Next.js App Router (routes, API, layout)
-│   ├── api/          #   chat, quiz/*, authenticate, analytics, og, rss, auth
+│   ├── admin/        #   GitHub-SSO admin area (analytics, AI stats, drafts, publishing)
+│   ├── api/          #   chat, quiz/*, authenticate, analytics, og, rss, auth, crosspost, check-auth
 │   └── quiz/         #   DevSprint quiz game
 ├── components/       # Presentational components by role
+│   ├── admin/        #   Admin dashboard charts
+│   ├── ai/           #   AiAssistant chat widget
 │   ├── layout/       #   Header, Footer, Providers, RouteGuard
 │   ├── ui/           #   Mailchimp, HeadingLink, ProjectCard
 │   └── shared/       #   MDX renderer, shared utilities
-├── config/           # App configuration (Once UI, icons, barrel)
+├── config/           # App configuration (app config, Mantine theme, projects, icons, barrel)
 ├── content/          # Editorial data (bio, experience, MDX posts)
 │   ├── blog/         #   Blog post MDX files
 │   ├── work/         #   Work experience MDX files
 │   └── projects/     #   Project detail MDX files
-├── features/         # Domain-specific components (by page)
+├── features/         # Domain-specific components (about, blog, projects, work, quiz)
 ├── hooks/            # Custom React hooks
 ├── lib/              # Pure utility functions
 │   ├── abuse/        #   AI chat abuse-prevention pipeline
 │   └── ai/           #   Chat tool definitions + web search
 ├── styles/           # Global SCSS/CSS
-└── types/            # Shared TypeScript types
+├── types/            # Shared TypeScript types
+├── proxy.ts          # Request-logging middleware (+ Server-Timing header)
+└── auth.ts           # NextAuth 5 config (GitHub SSO, Upstash Redis sessions)
 ```
 
 Layered dependency rule: inner layers (`lib/`, `config/`) never import from outer layers (`features/`, `app/`).
@@ -106,9 +112,11 @@ npm run storybook       # Start at http://localhost:6006
 npm run build-storybook # Static build
 ```
 
+Stories cover `AnimatedHeadline`, `HeadingLink`, `ProjectCard`, `ScrollToHash`, `ZoomableImage`, `Post`, and `ShareSection`.
+
 ### Env vars
 
-Required: `OPENCODE_API_KEY`, `UPSTASH_REDIS_REST_URL/TOKEN`, `POSTHOG_API_KEY`; optional: `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL`, `ABUSE_KEY_SECRET`, `ABUSE_RESPONSE_MODE`, `ABUSE_TRACK_IP`, `ABUSE_RETENTION_MS` (see `.env.example`).
+Required: `OPENCODE_API_KEY`, `UPSTASH_REDIS_REST_URL/TOKEN`, `POSTHOG_API_KEY`; optional: `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL`, `ABUSE_KEY_SECRET`, `ABUSE_RESPONSE_MODE`, `ABUSE_TRACK_IP`, `ABUSE_RETENTION_MS`. See `.env.example` for the full list with descriptions.
 
 ---
 
@@ -122,7 +130,7 @@ Required: `OPENCODE_API_KEY`, `UPSTASH_REDIS_REST_URL/TOKEN`, `POSTHOG_API_KEY`;
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with v8 coverage report |
 
-**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 514 tests across 81 test files
+**Stack:** Vitest 4 · React Testing Library · jsdom · v8 coverage · 725 tests across 103 test files
 
 **Convention:** Tests live in `__tests__/` directories next to the files they cover.
 
@@ -148,7 +156,7 @@ src/features/about/TableOfContents.tsx → src/features/about/__tests__/TableOfC
 
 **Stack:** Playwright 1.x · axe-core · navigation, pages, a11y, visual snapshots, API routes, responsive, AI assistant, sign-in
 
-**Browsers:** Chromium + WebKit (local) · Chromium only (CI)
+**Browsers:** Chromium + WebKit + mobile-chrome (Pixel 5, local) · Chromium only (CI)
 
 **Structure:**
 ```
@@ -164,6 +172,7 @@ e2e/
 ├── signin.spec.ts           # Auth redirect flow
 ├── ai-assistant.spec.ts     # Chat open/send/tool responses
 ├── ai-assistant.screenshots.spec.ts  # Chat visual snapshots
+├── admin.spec.ts            # Admin area (auth-gated)
 ├── pages/
 │   ├── home.spec.ts         # Title, favicon, OG meta
 │   ├── about.spec.ts        # Title, social links
@@ -171,6 +180,8 @@ e2e/
 │   ├── work.spec.ts         # Timeline
 │   ├── work-detail.spec.ts  # Case study pages
 │   └── projects.spec.ts     # Grid, detail nav
+├── fixtures.ts              # Shared Playwright fixtures
+├── global-setup.ts          # Playwright global setup
 └── screenshots/
     └── pages.spec.ts        # Full-page desktop snapshots
 ```
@@ -179,6 +190,7 @@ e2e/
 
 ```
 push/PR to main
+  ├── secrets job:    gitleaks secret scanning
   ├── test job:       npm install → npm run lint → npm run typecheck → vitest
   ├── e2e job:        npm install → playwright install chromium → playwright test
   └── lighthouse job: npm install → npm run build → lhci autorun (needs: test)
@@ -197,6 +209,7 @@ push/PR to main
 - **Rate limiting** on all public APIs — `/api/authenticate` (5 req/60s/IP), `/api/chat` (10–30 req/60s/IP), `/api/analytics/event`, and quiz endpoints
 - **Session auth** — NextAuth 5 with Upstash Redis sessions; httpOnly, SameSite: strict, Secure cookies
 - **AI abuse pipeline** (`src/lib/abuse/`) — deterministic logistic scoring over a decaying feature vector (30-min half-life, actors auto-recover); two-tier prompt-injection detection (block vs. signal); quarantine tiers throttle → soft-quarantine → hard-block; `ABUSE_RESPONSE_MODE=shadow` (observe, default) or `enforce` (block)
+- **Admin area** (`/admin`) — GitHub SSO (NextAuth 5, Upstash Redis sessions); analytics and AI-stats dashboards, quiz management, draft preview, publishing tools
 - **Privacy** — `ABUSE_TRACK_IP=false` → HMAC-keyed identities (`ABUSE_KEY_SECRET`); alert recipients (PostHog/webhooks) only see masked keys; client IP read from the rightmost `X-Forwarded-For` entry to defeat spoofing
 
 ---
@@ -216,7 +229,7 @@ push/PR to main
 | `npm run lhci` | Run Lighthouse CI locally |
 | `npm run analyze` | Bundle analyzer (opens HTML report) |
 
-Budgets: performance ≥0.8, a11y ≥0.9, best-practices ≥0.9, SEO ≥0.9 · LCP ≤3000ms, CLS ≤0.1
+Budgets: performance ≥0.8, a11y ≥0.9, best-practices ≥0.9, SEO ≥0.9 · LCP ≤3000ms, CLS ≤0.1, TBT ≤300ms, FCP ≤1800ms
 
 ---
 
@@ -224,7 +237,7 @@ Budgets: performance ≥0.8, a11y ≥0.9, best-practices ≥0.9, SEO ≥0.9 · L
 
 | File | Purpose |
 |------|---------|
-| `src/config/once-ui.config.ts` | Theme, colors, routes, SEO schema, newsletter |
+| `src/config/app.config.ts` | Theme, colors, routes, SEO schema, newsletter |
 | `src/config/icons.ts` | Icon registry |
 | `src/content/index.tsx` | Bio, work experience, skills, social links |
 | `src/content/blog/*.mdx` | Blog posts |
