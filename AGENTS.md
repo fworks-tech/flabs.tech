@@ -1,6 +1,6 @@
 # flabs.tech — portfolio site
 
-Next.js 16 App Router with TypeScript, SCSS Modules, Once UI design system.
+Next.js 16 App Router with TypeScript, SCSS Modules, Once UI + Mantine.
 
 ## Commands
 
@@ -15,12 +15,15 @@ npm test             # vitest run
 npm run test:watch   # vitest (watch mode)
 npm run test:coverage # vitest with v8 coverage
 npm run test:e2e     # playwright test (all browsers)
+npm run test:e2e:ui   # playwright interactive UI mode
+npm run test:e2e:chrome # playwright chromium only (local)
 npm run test:e2e:ci  # playwright chromium only, no visual snapshots
 npm run test:e2e:update-snapshots  # update visual baselines
 npm run storybook    # Storybook dev server
 npm run build-storybook  # static Storybook export
 npm run analyze     # bundle analyzer
 npm run lhci        # local Lighthouse CI run
+npm run crosspost:devto  # cross-post blog MDX to Dev.to
 ```
 
 ## Verification order (CI)
@@ -37,13 +40,13 @@ Run all three (lint → typecheck → test) before committing.
 
 ```
 src/
-  app/           Next.js App Router pages (about, blog, projects, work)
-  components/    Shared components (layout/, ui/, shared/)
-  config/        Once UI theme and site config
+  app/           Next.js App Router pages (about, blog, projects, work, quiz) + admin/ + api/
+  components/    Shared components (layout/, ui/, shared/, ai/, admin/)
+  config/        App config, Mantine theme, projects, icons
   content/       MDX source for blog, projects, work entries
-  features/      Feature modules (about, blog, projects, work)
+  features/      Feature modules (about, blog, projects, work, quiz)
   hooks/         Custom React hooks
-  lib/           Utilities (mdx, formatDate, rateLimiter, abuse/)
+  lib/           Utilities (mdx, formatDate, rateLimiter, abuse/, ai/)
   styles/        Global SCSS variables and breakpoints
   test/          Vitest setup (jsdom, RTL)
   types/         TypeScript type definitions
@@ -71,14 +74,14 @@ Required env vars: `OPENCODE_API_KEY`, `UPSTASH_REDIS_REST_URL/TOKEN`, `POSTHOG_
 - SCSS Modules for styling (`.module.scss`), global styles in `src/styles/`
 - Tests co-located in `__tests__/` dirs next to source files
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `ci:`, `perf:`
-- No pre-commit hooks; CI enforces quality gates
+- Git hooks (`.githooks/`) enforce conventional commits (commitlint) and block direct commits to `main`; CI enforces quality gates
 - PRs require CI to pass (lint → typecheck → test → e2e)
 
 ## Testing
 
 - **Unit:** Vitest + React Testing Library, jsdom environment
   - `npm test` to run all, `npx vitest run -t "test name"` for a single test
-- **E2E:** Playwright with chromium + webkit (locally), chromium only (CI)
+- **E2E:** Playwright with chromium + webkit + mobile-chrome (locally), chromium only (CI)
   - E2E tests in `e2e/`, a11y via axe-core, visual snapshots in `e2e/screenshots/`
 - Coverage tracked for `src/lib/`, `src/hooks/`, `src/components/`, `src/features/`
 
