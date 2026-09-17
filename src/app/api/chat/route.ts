@@ -40,14 +40,14 @@ export const maxDuration = 60;
 const zen = (sessionId: string) =>
   createOpenAICompatible({
     name: 'zen',
-    baseURL: 'https://opencode.ai/zen/v1',
+    baseURL: 'https://opencode.ai/zen/go/v1',
     headers: {
       Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
       'x-opencode-session': sessionId,
     },
   });
 
-const MODEL_ID = 'mimo-v2.5-free';
+const MODEL_ID = 'glm-5.3-flash';
 
 const model = (sessionId: string) => zen(sessionId).chatModel(MODEL_ID);
 
