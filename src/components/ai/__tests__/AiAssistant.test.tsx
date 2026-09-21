@@ -829,5 +829,74 @@ describe("AiAssistant", () => {
       expect(dialog).not.toHaveClass("chatOpen");
       expect(screen.getByLabelText("Open AI assistant")).toHaveFocus();
     });
+
+    it("renders expanded chat as a modal dialog with its own overlay", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      expect(screen.getByTestId("chat-overlay")).toBeInTheDocument();
+      await user.click(screen.getByLabelText("Expand chat"));
+      expect(screen.queryByTestId("chat-overlay")).not.toBeInTheDocument();
+      expect(screen.getByTestId("chat-modal-overlay")).toBeInTheDocument();
+      const dialog = screen.getByRole("dialog", { name: "AI assistant chat" });
+      expect(dialog).toHaveAttribute("aria-modal", "true");
+    });
+
+    it("dismisses expanded chat when the modal overlay is clicked", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      await user.click(screen.getByLabelText("Expand chat"));
+      expect(screen.getByTestId("chat-modal-overlay")).toBeInTheDocument();
+      await user.click(screen.getByTestId("chat-modal-overlay"));
+      expect(screen.queryByTestId("chat-modal-overlay")).not.toBeInTheDocument();
+      expect(screen.getByRole("dialog", { name: "AI assistant chat" })).not.toHaveClass(
+        "chatOpen",
+      );
+    });
+
+    it("returns focus to the toggle when Escape closes expanded chat", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      await user.click(screen.getByLabelText("Expand chat"));
+      const dialog = screen.getByRole("dialog", { name: "AI assistant chat" });
+      expect(dialog).toHaveClass("chatOpen");
+      await user.keyboard("{Escape}");
+      expect(dialog).not.toHaveClass("chatOpen");
+      expect(screen.getByLabelText("Open AI assistant")).toHaveFocus();
+    });
+
+    it("wraps Tab from the last to the first focusable element when expanded", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      await user.click(screen.getByLabelText("Expand chat"));
+      const dialog = screen.getByRole("dialog", { name: "AI assistant chat" });
+      const items = dialog.querySelectorAll("button:not([disabled]), textarea:not([disabled])");
+      const first = items[0] as HTMLElement;
+      const last = items[items.length - 1] as HTMLElement;
+      expect(first).not.toBe(last);
+      last.focus();
+      expect(last).toHaveFocus();
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(first).toHaveFocus();
+    });
+
+    it("wraps Shift+Tab from the first to the last focusable element when expanded", async () => {
+      const user = userEvent.setup();
+      render(<AiAssistant />, { wrapper: Wrapper });
+      await user.click(screen.getByLabelText("Open AI assistant"));
+      await user.click(screen.getByLabelText("Expand chat"));
+      const dialog = screen.getByRole("dialog", { name: "AI assistant chat" });
+      const items = dialog.querySelectorAll("button:not([disabled]), textarea:not([disabled])");
+      const first = items[0] as HTMLElement;
+      const last = items[items.length - 1] as HTMLElement;
+      expect(first).not.toBe(last);
+      first.focus();
+      expect(first).toHaveFocus();
+      fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+      expect(last).toHaveFocus();
+    });
   });
 });

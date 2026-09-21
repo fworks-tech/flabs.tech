@@ -113,18 +113,51 @@ export function AiAssistant() {
     }
   }, [isOpen]);
 
-  // Esc closes, and focus returns to the toggle for keyboard users.
+  // Every close path returns focus to the toggle (the dialog trigger).
+  const handleClose = useCallback(() => {
+    trackEvent('ai_assistant_close');
+    setIsOpen(false);
+    toggleRef.current?.focus();
+  }, []);
+
+  // Esc closes the panel in either mode.
   useEffect(() => {
     if (!isOpen) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        toggleRef.current?.focus();
-      }
+      if (e.key === 'Escape') handleClose();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
+
+  // Expanded mode behaves as a modal: keep Tab cycling inside the panel.
+  // Docked mode stays modeless so the page behind remains reachable.
+  useEffect(() => {
+    if (!isOpen || !expanded) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      const panel = chatRef.current;
+      if (!panel) return;
+      const items = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), textarea:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !panel.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, expanded]);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -204,59 +237,16 @@ export function AiAssistant() {
     stop();
   }
 
-  return (
+  const dockedClassName = `${styles.chat} ${isOpen ? styles.chatOpen : ''} ${
+    expanded ? styles.chatExpanded : ''
+  } ${isDragging ? styles.chatDragging : ''}`;
+  const dockedStyle =
+    !expanded && (position.x !== 0 || position.y !== 0)
+      ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
+      : undefined;
+
+  const panelContent = (
     <>
-      <ActionIcon
-        ref={toggleRef}
-        className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ''}`}
-        onClick={() => {
-          trackEvent('ai_assistant_open');
-          setIsOpen(true);
-        }}
-        aria-label="Open AI assistant"
-        variant="filled"
-        size="xl"
-        radius="xl"
-        style={
-          !isOpen && (position.x !== 0 || position.y !== 0)
-            ? { right: 'auto', bottom: 'auto', left: position.x + 312, top: position.y + 448 }
-            : undefined
-        }
-      >
-        <Image
-          src="/images/ai-avatar.png"
-          alt="Fabio's AI assistant"
-          width={56}
-          height={56}
-          className={styles.toggleAvatar}
-        />
-      </ActionIcon>
-
-      {isOpen && (
-        <div
-          className={styles.overlay}
-          onClick={() => {
-            trackEvent('ai_assistant_close');
-            setIsOpen(false);
-          }}
-          data-testid="chat-overlay"
-        />
-      )}
-
-      <div
-        ref={chatRef}
-        className={`${styles.chat} ${isOpen ? styles.chatOpen : ''} ${
-          expanded ? styles.chatExpanded : ''
-        } ${isDragging ? styles.chatDragging : ''}`}
-        style={
-          !expanded && (position.x !== 0 || position.y !== 0)
-            ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
-            : undefined
-        }
-        role="dialog"
-        aria-modal="false"
-        aria-label="AI assistant chat"
-      >
         <div className={styles.header} onMouseDown={handleDragStart} onTouchStart={handleDragStart}>
           <div className={styles.headerLeft}>
             <Image src="/images/ai-avatar.png" alt="" width={20} height={20} className={styles.headerAvatar} />
@@ -281,14 +271,7 @@ export function AiAssistant() {
                 <IconSquare size={16} />
               </ActionIcon>
             )}
-            <ActionIcon
-              variant="subtle"
-              onClick={() => {
-                trackEvent('ai_assistant_close');
-                setIsOpen(false);
-              }}
-              aria-label="Close AI assistant"
-            >
+            <ActionIcon variant="subtle" onClick={handleClose} aria-label="Close AI assistant">
               <IconX size={16} />
             </ActionIcon>
           </div>
@@ -411,6 +394,58 @@ export function AiAssistant() {
             )}
           </form>
         )}
+    </>
+  );
+
+  return (
+    <>
+      <ActionIcon
+        ref={toggleRef}
+        className={`${styles.toggle} ${isOpen ? styles.toggleHidden : ''}`}
+        onClick={() => {
+          trackEvent('ai_assistant_open');
+          setIsOpen(true);
+        }}
+        aria-label="Open AI assistant"
+        variant="filled"
+        size="xl"
+        radius="xl"
+        style={
+          !isOpen && (position.x !== 0 || position.y !== 0)
+            ? { right: 'auto', bottom: 'auto', left: position.x + 312, top: position.y + 448 }
+            : undefined
+        }
+      >
+        <Image
+          src="/images/ai-avatar.png"
+          alt="Fabio's AI assistant"
+          width={56}
+          height={56}
+          className={styles.toggleAvatar}
+        />
+      </ActionIcon>
+
+      {isOpen && !expanded && (
+        <div className={styles.overlay} onClick={handleClose} data-testid="chat-overlay" />
+      )}
+
+      {isOpen && expanded && (
+        <div
+          className={styles.overlay}
+          onClick={handleClose}
+          data-testid="chat-modal-overlay"
+        />
+      )}
+
+      <div
+        ref={chatRef}
+        className={dockedClassName}
+        style={dockedStyle}
+        role="dialog"
+        aria-modal={expanded ? 'true' : undefined}
+        aria-label="AI assistant chat"
+      >
+        {panelContent}
       </div>
     </>
   );
