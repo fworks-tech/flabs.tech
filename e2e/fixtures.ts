@@ -11,7 +11,7 @@ export const test = base.extend({
   page: async ({ page }, use) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
 
-    await page.route("**/zen/go/v1/chat/completions", (route) =>
+    await page.route("**/zen/v1/chat/completions", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
