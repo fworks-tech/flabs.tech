@@ -40,7 +40,7 @@ export const maxDuration = 60;
 const zen = (sessionId: string) =>
   createOpenAICompatible({
     name: 'zen',
-    baseURL: 'https://opencode.ai/zen/go/v1',
+    baseURL: 'https://opencode.ai/zen/v1',
     headers: {
       Authorization: `Bearer ${process.env.OPENCODE_API_KEY}`,
       'x-opencode-session': sessionId,
