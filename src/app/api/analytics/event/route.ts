@@ -14,14 +14,15 @@ const MAX_EVENTS_PER_MINUTE = 120;
  * Ingest endpoint for the self-hosted analytics. Receives a JSON array of
  * events via `sendBeacon`. Validates and aggregates into Redis.
  *
- * Privacy: no IPs are stored; visitor ids are pseudonymous UUIDs.
+ * Privacy: visitor ids are pseudonymous UUIDs and the client IP is never
+ * persisted or logged — it is hashed into the rate-limit key only.
  */
 export async function POST(request: NextRequest) {
   const xff = request.headers.get("x-forwarded-for");
   const ip = xff ? (xff.split(",").pop() ?? "").trim() : "unknown";
   const limited = rateLimit(`analytics:${ip}`, MAX_EVENTS_PER_MINUTE, 60_000);
   if (!limited.allowed) {
-    logger.warn({ ip, retryAfter: limited.retryAfter }, "analytics ingest rate-limited");
+    logger.warn({ retryAfter: limited.retryAfter }, "analytics ingest rate-limited");
     return NextResponse.json(
       { error: "Too many requests" },
       { status: 429, headers: { "Retry-After": String(limited.retryAfter) } },
@@ -32,11 +33,11 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    logger.warn({ ip }, "analytics ingest invalid JSON");
+    logger.warn({}, "analytics ingest invalid JSON");
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   if (!Array.isArray(body)) {
-    logger.warn({ ip }, "analytics ingest expected array");
+    logger.warn({}, "analytics ingest expected array");
     return NextResponse.json({ error: "Expected an array of events" }, { status: 400 });
   }
 
@@ -79,5 +80,6 @@ function validateEvent(raw: unknown): TrackedEvent | null {
     b: typeof r.b === "string" ? r.b.slice(0, 20) : undefined,
     r: typeof r.r === "string" ? r.r.slice(0, MAX_REFERRER_LEN) : undefined,
     v: typeof r.v === "number" && Number.isFinite(r.v) ? r.v : undefined,
+    l: typeof r.l === "string" ? r.l.slice(0, MAX_STRING_LEN) : undefined,
   };
 }

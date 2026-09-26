@@ -54,6 +54,13 @@ describe("analytics", () => {
     expect(capture).not.toHaveBeenCalled();
   });
 
+  it("does not call vercel track when consent is declined", async () => {
+    const { trackEvent } = await import("@/lib/analytics");
+    setConsentCookie("declined");
+    trackEvent("cta_click", { label: "View Projects" });
+    expect(track).not.toHaveBeenCalled();
+  });
+
   it("does not capture to posthog when consent is missing", async () => {
     const { trackEvent } = await import("@/lib/analytics");
     setConsentCookie(null);
@@ -69,10 +76,21 @@ describe("analytics", () => {
     spy.mockRestore();
   });
 
-  it("passes path and value through to the self-hosted tracker", async () => {
+  it("passes path, value and label through to the self-hosted tracker", async () => {
     const { trackEvent } = await import("@/lib/analytics");
     trackEvent("cta_click", { label: "View Projects", path: "/projects", value: 1 });
 
-    expect(selfHostedTrack).toHaveBeenCalledWith("cta_click", { path: "/projects", value: 1 });
+    expect(selfHostedTrack).toHaveBeenCalledWith("cta_click", {
+      label: "View Projects",
+      path: "/projects",
+      value: 1,
+    });
+  });
+
+  it("drops non-scalar properties before the self-hosted beacon", async () => {
+    const { trackEvent } = await import("@/lib/analytics");
+    trackEvent("cta_click", { label: 42, path: "/projects" });
+
+    expect(selfHostedTrack).toHaveBeenCalledWith("cta_click", { label: undefined, path: "/projects", value: undefined });
   });
 });

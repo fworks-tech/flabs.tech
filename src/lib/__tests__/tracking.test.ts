@@ -112,6 +112,17 @@ describe("tracking client", () => {
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
   });
 
+  it("buffers the label so cta_click stays segmentable", async () => {
+    const { track } = await import("@/lib/tracking");
+
+    track("cta_click", { path: "/projects", label: "View Projects" });
+    window.dispatchEvent(new Event("pagehide"));
+
+    const blob = sendBeaconMock.mock.calls[0][1] as Blob;
+    const events = JSON.parse(await blob.text()) as Array<{ ty: string; l?: string }>;
+    expect(events[0]).toMatchObject({ ty: "cta_click", l: "View Projects" });
+  });
+
   it("startTrackingSession emits session_start and page_view by default", async () => {
     const { startTrackingSession } = await import("@/lib/tracking");
 

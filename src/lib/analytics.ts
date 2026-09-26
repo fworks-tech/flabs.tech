@@ -29,12 +29,17 @@ type EventProperties = Record<string, string | number | boolean>;
 
 export function trackEvent(name: EventName, properties?: EventProperties) {
   if (typeof window === 'undefined') return;
-  track(name, properties);
-  if (process.env.NEXT_PUBLIC_POSTHOG_KEY && getConsent() !== 'declined') {
-    posthog.capture(name, properties ?? {});
+  // Vercel Analytics is a third party too — it inherits the same opt-out as
+  // PostHog and the self-hosted tracker, otherwise declining leaks anyway.
+  if (getConsent() !== 'declined') {
+    track(name, properties);
+    if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+      posthog.capture(name, properties ?? {});
+    }
   }
   trackSelfHosted(name, {
     path: typeof properties?.path === 'string' ? properties.path : undefined,
     value: typeof properties?.value === 'number' ? properties.value : undefined,
+    label: typeof properties?.label === 'string' ? properties.label : undefined,
   });
 }

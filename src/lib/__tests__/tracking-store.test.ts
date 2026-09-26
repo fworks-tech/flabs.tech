@@ -126,6 +126,23 @@ describe("tracking-store", () => {
     expect(topPages).toEqual([["/blog", 1]]);
   });
 
+  it("exposes the browser split and the engagement funnel", async () => {
+    const { recordEvent, getEngagement } = await import("@/lib/tracking-store");
+
+    await recordEvent({ t: Date.now(), ty: "session_start", uid: "u1", sid: "s1", b: "safari" });
+    await recordEvent({ t: Date.now(), ty: "page_view", uid: "u1", sid: "s1", b: "safari" });
+    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", v: 25 });
+    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", v: 50 });
+    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", v: 100 });
+    await recordEvent({ t: Date.now(), ty: "quiz_start", uid: "u1", sid: "s1" });
+    await recordEvent({ t: Date.now(), ty: "quiz_complete", uid: "u1", sid: "s1" });
+
+    const engagement = await getEngagement(1);
+    expect(engagement.browsers.safari).toBe(2);
+    expect(engagement.scrollDepth).toEqual({ 25: 1, 50: 1, 75: 0, 100: 1 });
+    expect(engagement.quiz).toEqual({ starts: 1, completes: 1 });
+  });
+
   it("taxonomy is consistent — every client-emitted name is ingest-accepted", async () => {
     const { EVENT_TYPES, EVENT_TYPES_SET } = await import("@/lib/tracking-store");
     expect(EVENT_TYPES_SET.size).toBe(EVENT_TYPES.length);
