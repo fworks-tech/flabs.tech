@@ -10,6 +10,8 @@
  * - No PII is collected: ids are random UUIDs, no IPs are stored.
  */
 
+import { BROWSER_KEYS } from './tracking-store';
+
 export type ConsentState = "accepted" | "declined" | null;
 
 export const CONSENT_COOKIE = "_fa_consent";

@@ -229,11 +229,14 @@ export async function getTotals(days: number): Promise<{
   return totals;
 }
 
-/** Shared keys for browser counters — kept in sync with `detectEnvironment` in `tracking.ts`. */
+/** Shared keys for browser counters — single source of truth for analytics. */
 export const BROWSER_KEYS = ['chrome', 'firefox', 'safari', 'edge', 'other'] as const;
 
 /** Scroll depth thresholds emitted by `usePageTracking`. */
 export const SCROLL_THRESHOLDS = [25, 50, 75, 100] as const;
+
+/** Scroll depth map with all known thresholds initialized to 0. */
+export type ScrollDepthMap = { [K in (typeof SCROLL_THRESHOLDS)[number]]: number };
 
 /**
  * The signal already collected but never displayed: browser split (mirrored
@@ -242,7 +245,7 @@ export const SCROLL_THRESHOLDS = [25, 50, 75, 100] as const;
  */
 export async function getEngagement(days: number): Promise<{
   browsers: Record<string, number>;
-  scrollDepth: { [K in (typeof SCROLL_THRESHOLDS)[number]]: number };
+  scrollDepth: ScrollDepthMap;
   quiz: { starts: number; completes: number };
 }> {
   const out = {
