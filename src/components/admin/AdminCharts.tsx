@@ -78,3 +78,17 @@ export function DevicePie({ data }: { data: { name: string; value: number }[] })
     </ResponsiveContainer>
   );
 }
+
+export function FunnelChart({ data }: { data: { stage: string; value: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(120, data.length * 36)}>
+      <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 16 }}>
+        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} horizontal={false} />
+        <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+        <YAxis type="category" dataKey="stage" tick={{ fontSize: 11 }} width={96} />
+        <Tooltip />
+        <Bar dataKey="value" fill={COLORS.teal} radius={[0, 4, 4, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}

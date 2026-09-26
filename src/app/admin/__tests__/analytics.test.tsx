@@ -8,6 +8,7 @@ const trackingStoreMock = vi.hoisted(() => ({
   getTotals: vi.fn(),
   getTopPages: vi.fn(),
   getRecentEvents: vi.fn(),
+  getEngagement: vi.fn(),
 }));
 
 const storeMock = vi.hoisted(() => ({ storageBackend: "memory" as "redis" | "memory" }));
@@ -19,6 +20,9 @@ vi.mock("@/components/admin/AdminCharts", () => ({
   TrafficChart: () => <div data-testid="traffic-chart" />,
   TopPagesChart: () => <div data-testid="top-pages-chart" />,
   DevicePie: () => <div data-testid="device-pie" />,
+  FunnelChart: ({ data }: { data: { stage: string; value: number }[] }) => (
+    <div data-testid="funnel-chart">{data.map((d) => `${d.stage}:${d.value}`).join(",")}</div>
+  ),
 }));
 
 function Wrapper({ children }: { children: ReactNode }) {
@@ -47,6 +51,11 @@ beforeEach(() => {
   trackingStoreMock.getRecentEvents.mockResolvedValue([
     { t: Date.now(), ty: "page_view", p: "/blog", d: "mobile", b: "chrome" },
   ]);
+  trackingStoreMock.getEngagement.mockResolvedValue({
+    browsers: { chrome: 10, safari: 4 },
+    scrollDepth: { 25: 8, 50: 6, 75: 4, 100: 2 },
+    quiz: { starts: 5, completes: 3 },
+  });
 });
 
 describe("admin analytics page", () => {
@@ -60,8 +69,20 @@ describe("admin analytics page", () => {
     expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByTestId("traffic-chart")).toBeInTheDocument();
     expect(screen.getByTestId("top-pages-chart")).toBeInTheDocument();
-    expect(screen.getByTestId("device-pie")).toBeInTheDocument();
+    expect(screen.getAllByTestId("device-pie")).toHaveLength(2);
     expect(screen.getByText("page_view")).toBeInTheDocument();
+  });
+
+  it("surfaces the browser split, scroll funnel and quiz funnel", async () => {
+    const { default: Page } = await import("@/app/admin/analytics/page");
+    render(await Page(), { wrapper: Wrapper });
+
+    expect(screen.getByText("Browsers (7d)")).toBeInTheDocument();
+    expect(screen.getByText("Scroll depth (7d)")).toBeInTheDocument();
+
+    const funnels = screen.getAllByTestId("funnel-chart").map((el) => el.textContent);
+    expect(funnels).toContain("25%:8,50%:6,75%:4,100%:2");
+    expect(funnels).toContain("Started:5,Completed:3");
   });
 
   it("shows the storage backend badge", async () => {

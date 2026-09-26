@@ -84,6 +84,7 @@ interface PendingEvent {
   b?: string;
   r?: string;
   v?: number;
+  l?: string;
 }
 
 let buffer: PendingEvent[] = [];
@@ -91,7 +92,7 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function track(
   type: string,
-  props?: { path?: string; value?: number; referrer?: string },
+  props?: { path?: string; value?: number; referrer?: string; label?: string },
   opts?: { force?: boolean },
 ): void {
   if (typeof window === "undefined") return;
@@ -114,6 +115,7 @@ export function track(
     b: browser,
     r: props?.referrer,
     v: props?.value,
+    l: props?.label,
   });
 
   if (buffer.length >= FLUSH_BATCH_SIZE) {

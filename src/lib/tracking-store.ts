@@ -66,6 +66,7 @@ export interface TrackedEvent {
   b?: string;
   r?: string;
   v?: number;
+  l?: string;
 }
 
 export function dayKey(date: Date = new Date()): string {
@@ -100,6 +101,14 @@ export async function recordEvent(ev: TrackedEvent): Promise<void> {
 
   if (ev.ty === 'page_view' && ev.p) {
     await bumpPage(`analytics:pages:${day}`, ev.p, ttl);
+  }
+
+  // Scroll milestones arrive as one event per threshold; the funnel needs them
+  // split per threshold, so mirror them into `scroll:<pct>` counters.
+  // Only record known thresholds to avoid arbitrary keys from malformed events.
+  const thresholds = SCROLL_THRESHOLDS as readonly number[];
+  if (ev.ty === 'scroll_depth' && typeof ev.v === 'number' && thresholds.includes(ev.v)) {
+    await bumpCounter(countersKey, `scroll:${ev.v}`, ttl);
   }
 
   if (ev.ty === 'session_start' && ev.uid) {
@@ -211,11 +220,49 @@ export async function getTotals(days: number): Promise<{
       const n = counters[`device:${key}`] ?? 0;
       if (n > 0) totals.devices[key] = (totals.devices[key] ?? 0) + n;
     }
-    for (const key of ['chrome', 'firefox', 'safari', 'edge', 'other']) {
+    for (const key of BROWSER_KEYS) {
       const n = counters[`browser:${key}`] ?? 0;
       if (n > 0) totals.browsers[key] = (totals.browsers[key] ?? 0) + n;
     }
     totals.uniques += await store.pfcount(`analytics:uv:${day}`);
   }
   return totals;
+}
+
+/** Shared keys for browser counters — kept in sync with `detectEnvironment` in `tracking.ts`. */
+export const BROWSER_KEYS = ['chrome', 'firefox', 'safari', 'edge', 'other'] as const;
+
+/** Scroll depth thresholds emitted by `usePageTracking`. */
+export const SCROLL_THRESHOLDS = [25, 50, 75, 100] as const;
+
+/**
+ * The signal already collected but never displayed: browser split (mirrored
+ * into `getTotals` for the existing cards) plus the scroll and quiz funnels.
+ * Reads the same daily counters — no new collection, no new keys to migrate.
+ */
+export async function getEngagement(days: number): Promise<{
+  browsers: Record<string, number>;
+  scrollDepth: { [K in (typeof SCROLL_THRESHOLDS)[number]]: number };
+  quiz: { starts: number; completes: number };
+}> {
+  const out = {
+    browsers: {} as Record<string, number>,
+    scrollDepth: Object.fromEntries(SCROLL_THRESHOLDS.map((t) => [t, 0])) as { [K in (typeof SCROLL_THRESHOLDS)[number]]: number },
+    quiz: { starts: 0, completes: 0 },
+  };
+  const now = Date.now();
+  for (let i = days - 1; i >= 0; i--) {
+    const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
+    const counters = (await store.get<Record<string, number>>(`analytics:counters:${day}`)) ?? {};
+    for (const key of BROWSER_KEYS) {
+      const n = counters[`browser:${key}`] ?? 0;
+      if (n > 0) out.browsers[key] = (out.browsers[key] ?? 0) + n;
+    }
+    for (const threshold of SCROLL_THRESHOLDS) {
+      out.scrollDepth[threshold] = (out.scrollDepth[threshold] ?? 0) + (counters[`scroll:${threshold}`] ?? 0);
+    }
+    out.quiz.starts += counters.quiz_start ?? 0;
+    out.quiz.completes += counters.quiz_complete ?? 0;
+  }
+  return out;
 }

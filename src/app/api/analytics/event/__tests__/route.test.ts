@@ -3,16 +3,25 @@ import { NextRequest } from "next/server";
 
 const rateLimitMock = vi.hoisted(() => vi.fn(() => ({ allowed: true, retryAfter: 0 })));
 const recordEventMock = vi.hoisted(() => vi.fn(async () => {}));
+const loggerMock = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+}));
 
 vi.mock("@/lib/rateLimiter", () => ({
   rateLimit: rateLimitMock,
 }));
+
+vi.mock("@/lib/logger", () => ({ logger: loggerMock }));
 
 vi.mock("@/lib/tracking-store", () => ({
   EVENT_TYPES_SET: new Set([
     "session_start",
     "page_view",
     "nav_click",
+    "cta_click",
     "scroll_depth",
     "ai_assistant_generation_stopped",
     "protected_route_access_granted",
@@ -80,6 +89,44 @@ describe("analytics event route", () => {
 
     expect(res.status).toBe(200);
     expect(recordEventMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the cta label and rejects an over-long one", async () => {
+    const { POST } = await import("@/app/api/analytics/event/route");
+
+    const res = await POST(
+      createRequest([
+        { t: Date.now(), ty: "cta_click", uid: "u1", sid: "s1", l: "View Projects" },
+        { t: Date.now(), ty: "cta_click", uid: "u1", sid: "s1", l: "x".repeat(500) },
+      ]),
+    );
+
+    expect(res.status).toBe(200);
+    const first = recordEventMock.mock.calls[0][0];
+    const second = recordEventMock.mock.calls[1][0];
+    expect(first.l).toBe("View Projects");
+    expect(second.l).toHaveLength(200);
+  });
+
+  it("does not write the client ip to the log stream", async () => {
+    const { POST } = await import("@/app/api/analytics/event/route");
+    const warn = vi.spyOn(loggerMock, "warn");
+
+    const req = new NextRequest("http://localhost:3000/api/analytics/event", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "203.0.113.7, 70.41.3.18",
+      },
+      body: JSON.stringify("not-json"),
+    });
+    await POST(req);
+
+    expect(warn).toHaveBeenCalled();
+    const logged = JSON.stringify(warn.mock.calls);
+    expect(logged).not.toContain("203.0.113.7");
+    expect(logged).not.toContain("70.41.3.18");
+    warn.mockRestore();
   });
 
   it("rejects non-array bodies", async () => {
