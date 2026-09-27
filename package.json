@@ -102,5 +102,18 @@
     "typescript": "^5.8.3",
     "tzdata": "^1.0.44",
     "vitest": "^4.1.8"
-  }
+  },
+  "onlyBuiltDependencies": [
+    "@parcel/watcher",
+    "agenthood",
+    "core-js",
+    "core-js-pure",
+    "esbuild",
+    "tree-sitter",
+    "tree-sitter-go",
+    "tree-sitter-javascript",
+    "tree-sitter-python",
+    "tree-sitter-typescript",
+    "unrs-resolver"
+  ]
 }
