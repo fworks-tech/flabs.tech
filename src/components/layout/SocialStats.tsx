@@ -1,25 +1,6 @@
 import { Anchor } from "@mantine/core";
-import { baseURL, sameAs } from "@/config";
-import { person } from "@/content";
+import { sameAs } from "@/config";
 import { logger } from "@/lib/logger";
-
-export const getDevToStats = async (): Promise<{ articles: number } | null> => {
-  try {
-    const devtoUrl = sameAs.devto;
-    if (!devtoUrl) return null;
-    const username = new URL(devtoUrl).pathname.split("/").filter(Boolean).pop();
-    if (!username) return null;
-    const res = await fetch(`https://dev.to/api/articles?username=${username}&per_page=1000`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return { articles: data.length };
-  } catch (err) {
-    logger.warn(err, "failed to fetch Dev.to stats");
-    return null;
-  }
-};
 
 export const getGitHubStats = async (): Promise<{ repos: number } | null> => {
   try {
@@ -37,56 +18,12 @@ export const getGitHubStats = async (): Promise<{ repos: number } | null> => {
   }
 };
 
-export const getStackOverflowStats = async (): Promise<{ reputation: number } | null> => {
-  try {
-    if (!sameAs.stackoverflow) return null;
-    const id = sameAs.stackoverflow.split("/").filter(Boolean).pop();
-    if (!id || isNaN(Number(id))) return null;
-    const res = await fetch(
-      `https://api.stackexchange.com/2.3/users/${id}?order=desc&sort=reputation&site=stackoverflow&filter=total`,
-      { next: { revalidate: 86400 } },
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return { reputation: data.items?.[0]?.reputation ?? 0 };
-  } catch (err) {
-    logger.warn(err, "failed to fetch Stack Overflow stats");
-    return null;
-  }
-};
-
-export const getNpmStats = async (): Promise<{ packages: number } | null> => {
-  try {
-    if (!sameAs.npm) return null;
-    const username = sameAs.npm.split("/").filter(Boolean).pop();
-    if (!username) return null;
-    const res = await fetch(
-      `https://registry.npmjs.org/-/v1/search?text=maintainer:${username}&size=0`,
-      { next: { revalidate: 86400 } },
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return { packages: data.total ?? 0 };
-  } catch (err) {
-    logger.warn(err, "failed to fetch npm stats");
-    return null;
-  }
-};
-
 export async function SocialStats() {
-  const [devto, github, stackoverflow, npm] = await Promise.all([
-    getDevToStats(),
-    getGitHubStats(),
-    getStackOverflowStats(),
-    getNpmStats(),
-  ]);
+  const github = await getGitHubStats();
 
   const items = [];
 
   if (github && sameAs.github) items.push({ platform: "github", label: "GitHub repos", value: github.repos, url: sameAs.github });
-  if (devto && sameAs.devto) items.push({ platform: "devto", label: "Dev.to articles", value: devto.articles, url: sameAs.devto });
-  if (stackoverflow && sameAs.stackoverflow) items.push({ platform: "stackoverflow", label: "Stack Overflow rep", value: stackoverflow.reputation.toLocaleString("en-US"), url: sameAs.stackoverflow });
-  if (npm && sameAs.npm) items.push({ platform: "npm", label: "npm packages", value: npm.packages, url: sameAs.npm });
 
   if (items.length === 0) return null;
 

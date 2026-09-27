@@ -39,16 +39,11 @@
     "@mantine/notifications": "^9.4.1",
     "@mdx-js/loader": "^3.1.0",
     "@next/mdx": "^16.0.10",
-    "@opentelemetry/api-logs": "^0.221.0",
-    "@opentelemetry/exporter-logs-otlp-http": "^0.221.0",
-    "@opentelemetry/resources": "^2.10.0",
-    "@opentelemetry/sdk-logs": "^0.221.0",
     "@tabler/icons-react": "^3.44.0",
     "@upstash/redis": "^1.38.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.15",
-    "classnames": "^2.5.1",
     "cookie": "^1.0.2",
     "gray-matter": "^4.0.3",
     "next": "^16.0.10",
@@ -66,8 +61,7 @@
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
     "sass": "^1.86.3",
-    "transliteration": "^2.3.5",
-    "use-debounce": "^10.1.1"
+    "transliteration": "^2.3.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
