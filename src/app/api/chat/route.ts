@@ -47,7 +47,7 @@ const zen = (sessionId: string) =>
     },
   });
 
-const MODEL_ID = 'gpt-6-luna';
+const MODEL_ID = 'deepseek-v4-flash';
 
 const model = (sessionId: string) => zen(sessionId).chatModel(MODEL_ID);
 
