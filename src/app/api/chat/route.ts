@@ -47,7 +47,7 @@ const zen = (sessionId: string) =>
     },
   });
 
-const MODEL_ID = 'glm-5.3-flash';
+const MODEL_ID = 'gpt-6-luna';
 
 const model = (sessionId: string) => zen(sessionId).chatModel(MODEL_ID);
 

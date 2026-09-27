@@ -66,10 +66,6 @@ const fonts: FontsConfig = {
 const sameAs: SameAsConfig = {
   github: "https://github.com/fworks-tech",
   linkedin: "https://www.linkedin.com/in/fabiorborges/",
-  devto: undefined,
-  stackoverflow: undefined,
-  npm: undefined,
-  hashnode: undefined,
 };
 
 const socialSharing = {
@@ -89,13 +85,6 @@ const socialSharing = {
 
 const mailchimp = {
   action: "",
-  effects: {
-    mask: { x: 0, y: 0, radius: 0, cursor: true },
-    gradient: { display: false, opacity: 100, x: 0, y: 0, width: 0, height: 0, tilt: 0, colorStart: "", colorEnd: "" },
-    dots: { display: false, opacity: 100, size: 0, color: "" },
-    grid: { display: false, opacity: 100, color: "", width: 0, height: 0 },
-    lines: { display: false, opacity: 100, size: 0, thickness: 0, angle: 0, color: "" },
-  },
 };
 
 /**
@@ -104,13 +93,11 @@ const mailchimp = {
  * deploy; `display: false` hides the card entirely.
  */
 const referral = {
-  default: {
-    url: process.env.NEXT_PUBLIC_REFERRAL_URL || "https://example.com",
-    headline: "Score 80%+? Put your skills to work.",
-    body: "You've proven your JS fundamentals. Create a free account and get matched with top companies.",
-    cta: "Get started",
-    display: false,
-  },
+  url: process.env.NEXT_PUBLIC_REFERRAL_URL || "https://example.com",
+  headline: "Score 80%+? Put your skills to work.",
+  body: "You've proven your JS fundamentals. Create a free account and get matched with top companies.",
+  cta: "Get started",
+  display: false,
 };
 
 export {

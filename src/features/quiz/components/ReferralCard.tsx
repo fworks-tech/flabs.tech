@@ -26,7 +26,7 @@ export function ReferralCard({ score, accuracy }: ReferralCardProps) {
     return window.localStorage.getItem(DISMISS_KEY) === "1";
   });
 
-  const config = referral.default;
+  const config = referral;
 
   useEffect(() => {
     if (config.display && !dismissed) {
