@@ -11,8 +11,8 @@ describe('estimateTokens', () => {
 
 describe('calculateCost', () => {
   it('scales tokens to USD', () => {
-    expect(calculateCost(1_000_000)).toBeCloseTo(0.28);
-    expect(calculateCost(500_000)).toBeCloseTo(0.14);
+    expect(calculateCost(1_000_000)).toBeCloseTo(0.47);
+    expect(calculateCost(500_000)).toBeCloseTo(0.235);
   });
 });
 

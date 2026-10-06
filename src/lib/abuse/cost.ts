@@ -8,7 +8,7 @@
 
 export const MAX_TOKENS_PER_REQUEST = 4000;
 const MAX_COST_PER_HOUR_USD = 0.5; // ~$0.50/hour budget
-const TOKEN_COST_PER_1M = 0.28; // deepseek-v4-flash on OpenCode Zen (output upper bound)
+const TOKEN_COST_PER_1M = 0.47; // qwen3.8-flash on OpenCode Zen (output upper bound)
 const USAGE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const CLEANUP_INTERVAL_MS = 300_000; // 5 min
 

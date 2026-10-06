@@ -47,7 +47,7 @@ const zen = (sessionId: string) =>
     },
   });
 
-const MODEL_ID = 'deepseek-v4-flash';
+const MODEL_ID = 'qwen3.8-flash';
 
 const model = (sessionId: string) => zen(sessionId).chatModel(MODEL_ID);
 
