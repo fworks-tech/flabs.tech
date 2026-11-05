@@ -1,8 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const storeMock = vi.hoisted(() => {
   const memory = new Map<string, string>();
   const sets = new Map<string, Set<string>>();
+  const hashes = new Map<string, Map<string, number>>();
+  const lists = new Map<string, unknown[]>();
   const ttl = new Map<string, number>();
 
   return {
@@ -26,12 +28,17 @@ const storeMock = vi.hoisted(() => {
       ttl.delete(key);
     }),
     incr: vi.fn(async (key: string) => {
-      const next = (Number(memory.get(key) ?? "0") || 0) + 1;
+      const next = (Number(memory.get(key) ?? '0') || 0) + 1;
       memory.set(key, String(next));
       return next;
     }),
     keys: vi.fn(async (pattern: string) => {
-      const regex = new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".")}$`);
+      const regex = new RegExp(
+        `^${pattern
+          .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+          .replace(/\*/g, '.*')
+          .replace(/\?/g, '.')}$`,
+      );
       return Array.from(memory.keys()).filter((k) => regex.test(k));
     }),
     pfadd: vi.fn(async (key: string, value: string) => {
@@ -40,15 +47,45 @@ const storeMock = vi.hoisted(() => {
       sets.set(key, set);
     }),
     pfcount: vi.fn(async (key: string) => sets.get(key)?.size ?? 0),
+    hincrby: vi.fn(async (key: string, field: string, increment: number) => {
+      const hash = hashes.get(key) ?? new Map<string, number>();
+      const next = (hash.get(field) ?? 0) + increment;
+      hash.set(field, next);
+      hashes.set(key, hash);
+      return next;
+    }),
+    hgetall: vi.fn(async (key: string) => Object.fromEntries(hashes.get(key) ?? [])),
+    hlen: vi.fn(async (key: string) => hashes.get(key)?.size ?? 0),
+    rpush: vi.fn(async (key: string, value: unknown) => {
+      const list = lists.get(key) ?? [];
+      list.push(value);
+      lists.set(key, list);
+      return list.length;
+    }),
+    ltrim: vi.fn(async (key: string, start: number, stop: number) => {
+      const list = lists.get(key);
+      if (!list) return;
+      const from = start < 0 ? Math.max(0, list.length + start) : Math.min(start, list.length);
+      const to = stop < 0 ? list.length + stop + 1 : Math.min(stop + 1, list.length);
+      lists.set(key, to <= from ? [] : list.slice(from, to));
+    }),
+    lrange: vi.fn(async (key: string, start: number, stop: number) => {
+      const list = lists.get(key) ?? [];
+      const from = start < 0 ? Math.max(0, list.length + start) : Math.min(start, list.length);
+      const to = stop < 0 ? list.length + stop + 1 : Math.min(stop + 1, list.length);
+      return to <= from ? [] : list.slice(from, to);
+    }),
     __clear: () => {
       memory.clear();
       sets.clear();
+      hashes.clear();
+      lists.clear();
       ttl.clear();
     },
   };
 });
 
-vi.mock("@/lib/abuse/store", () => ({ store: storeMock }));
+vi.mock('@/lib/abuse/store', () => ({ store: storeMock }));
 
 beforeEach(() => {
   storeMock.__clear();
@@ -60,16 +97,38 @@ beforeEach(() => {
   storeMock.pfcount.mockClear();
 });
 
-describe("tracking-store", () => {
-  it("aggregates daily counters, pages and uniques", async () => {
-    const { recordEvent, getTotals, getTopPages, getDaySeries } = await import(
-      "@/lib/tracking-store"
-    );
+describe('tracking-store', () => {
+  it('aggregates daily counters, pages and uniques', async () => {
+    const { recordEvent, getTotals, getTopPages, getDaySeries } =
+      await import('@/lib/tracking-store');
 
-    await recordEvent({ t: Date.now(), ty: "session_start", uid: "u1", sid: "s1", d: "mobile", b: "chrome" });
-    await recordEvent({ t: Date.now(), ty: "page_view", uid: "u1", sid: "s1", p: "/blog", d: "mobile", b: "chrome" });
-    await recordEvent({ t: Date.now(), ty: "page_view", uid: "u1", sid: "s1", p: "/blog", d: "mobile", b: "chrome" });
-    await recordEvent({ t: Date.now(), ty: "nav_click", uid: "u1", sid: "s1", p: "/about" });
+    await recordEvent({
+      t: Date.now(),
+      ty: 'session_start',
+      uid: 'u1',
+      sid: 's1',
+      d: 'mobile',
+      b: 'chrome',
+    });
+    await recordEvent({
+      t: Date.now(),
+      ty: 'page_view',
+      uid: 'u1',
+      sid: 's1',
+      p: '/blog',
+      d: 'mobile',
+      b: 'chrome',
+    });
+    await recordEvent({
+      t: Date.now(),
+      ty: 'page_view',
+      uid: 'u1',
+      sid: 's1',
+      p: '/blog',
+      d: 'mobile',
+      b: 'chrome',
+    });
+    await recordEvent({ t: Date.now(), ty: 'nav_click', uid: 'u1', sid: 's1', p: '/about' });
 
     const totals = await getTotals(1);
     expect(totals.pageviews).toBe(2);
@@ -81,7 +140,7 @@ describe("tracking-store", () => {
     expect(totals.browsers.chrome).toBe(3);
 
     const topPages = await getTopPages(1);
-    expect(topPages[0]).toEqual(["/blog", 2]);
+    expect(topPages[0]).toEqual(['/blog', 2]);
 
     const series = await getDaySeries(1);
     expect(series).toHaveLength(1);
@@ -89,11 +148,11 @@ describe("tracking-store", () => {
     expect(series[0].chatMessages).toBe(0);
   });
 
-  it("detects returning visitors on a later session", async () => {
-    const { recordEvent, getTotals } = await import("@/lib/tracking-store");
+  it('detects returning visitors on a later session', async () => {
+    const { recordEvent, getTotals } = await import('@/lib/tracking-store');
 
-    await recordEvent({ t: Date.now(), ty: "session_start", uid: "u1", sid: "s1" });
-    await recordEvent({ t: Date.now(), ty: "session_start", uid: "u1", sid: "s2" });
+    await recordEvent({ t: Date.now(), ty: 'session_start', uid: 'u1', sid: 's1' });
+    await recordEvent({ t: Date.now(), ty: 'session_start', uid: 'u1', sid: 's2' });
 
     const totals = await getTotals(1);
     expect(totals.newVisitors).toBe(1);
@@ -101,41 +160,47 @@ describe("tracking-store", () => {
     expect(totals.uniques).toBe(1);
   });
 
-  it("keeps recent events bounded and newest-last", async () => {
-    const { recordEvent, getRecentEvents, MAX_RECENT_EVENTS } = await import(
-      "@/lib/tracking-store"
-    );
+  it('keeps recent events bounded and newest-last', async () => {
+    const { recordEvent, getRecentEvents, MAX_RECENT_EVENTS } =
+      await import('@/lib/tracking-store');
 
     for (let i = 0; i < MAX_RECENT_EVENTS + 5; i++) {
-      await recordEvent({ t: Date.now() + i, ty: "page_view", uid: "u1", sid: "s1", p: "/" });
+      await recordEvent({ t: Date.now() + i, ty: 'page_view', uid: 'u1', sid: 's1', p: '/' });
     }
 
     const recent = await getRecentEvents(10);
     expect(recent).toHaveLength(10);
-    const events = await storeMock.get<unknown[]>("analytics:events");
-    expect((events as unknown[]).length).toBe(MAX_RECENT_EVENTS);
+    const events = await storeMock.lrange('analytics:events', 0, -1);
+    expect(events as unknown[]).toHaveLength(MAX_RECENT_EVENTS);
   });
 
-  it("only counts page_view events into top pages", async () => {
-    const { recordEvent, getTopPages } = await import("@/lib/tracking-store");
+  it('only counts page_view events into top pages', async () => {
+    const { recordEvent, getTopPages } = await import('@/lib/tracking-store');
 
-    await recordEvent({ t: Date.now(), ty: "page_view", uid: "u1", sid: "s1", p: "/blog" });
-    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", p: "/blog", v: 50 });
+    await recordEvent({ t: Date.now(), ty: 'page_view', uid: 'u1', sid: 's1', p: '/blog' });
+    await recordEvent({
+      t: Date.now(),
+      ty: 'scroll_depth',
+      uid: 'u1',
+      sid: 's1',
+      p: '/blog',
+      v: 50,
+    });
 
     const topPages = await getTopPages(1);
-    expect(topPages).toEqual([["/blog", 1]]);
+    expect(topPages).toEqual([['/blog', 1]]);
   });
 
-  it("exposes the browser split and the engagement funnel", async () => {
-    const { recordEvent, getEngagement } = await import("@/lib/tracking-store");
+  it('exposes the browser split and the engagement funnel', async () => {
+    const { recordEvent, getEngagement } = await import('@/lib/tracking-store');
 
-    await recordEvent({ t: Date.now(), ty: "session_start", uid: "u1", sid: "s1", b: "safari" });
-    await recordEvent({ t: Date.now(), ty: "page_view", uid: "u1", sid: "s1", b: "safari" });
-    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", v: 25 });
-    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", v: 50 });
-    await recordEvent({ t: Date.now(), ty: "scroll_depth", uid: "u1", sid: "s1", v: 100 });
-    await recordEvent({ t: Date.now(), ty: "quiz_start", uid: "u1", sid: "s1" });
-    await recordEvent({ t: Date.now(), ty: "quiz_complete", uid: "u1", sid: "s1" });
+    await recordEvent({ t: Date.now(), ty: 'session_start', uid: 'u1', sid: 's1', b: 'safari' });
+    await recordEvent({ t: Date.now(), ty: 'page_view', uid: 'u1', sid: 's1', b: 'safari' });
+    await recordEvent({ t: Date.now(), ty: 'scroll_depth', uid: 'u1', sid: 's1', v: 25 });
+    await recordEvent({ t: Date.now(), ty: 'scroll_depth', uid: 'u1', sid: 's1', v: 50 });
+    await recordEvent({ t: Date.now(), ty: 'scroll_depth', uid: 'u1', sid: 's1', v: 100 });
+    await recordEvent({ t: Date.now(), ty: 'quiz_start', uid: 'u1', sid: 's1' });
+    await recordEvent({ t: Date.now(), ty: 'quiz_complete', uid: 'u1', sid: 's1' });
 
     const engagement = await getEngagement(1);
     expect(engagement.browsers.safari).toBe(2);
@@ -143,38 +208,38 @@ describe("tracking-store", () => {
     expect(engagement.quiz).toEqual({ starts: 1, completes: 1 });
   });
 
-  it("taxonomy is consistent — every client-emitted name is ingest-accepted", async () => {
-    const { EVENT_TYPES, EVENT_TYPES_SET } = await import("@/lib/tracking-store");
+  it('taxonomy is consistent — every client-emitted name is ingest-accepted', async () => {
+    const { EVENT_TYPES, EVENT_TYPES_SET } = await import('@/lib/tracking-store');
     expect(EVENT_TYPES_SET.size).toBe(EVENT_TYPES.length);
 
     const clientNames = [
-      "session_start",
-      "page_view",
-      "scroll_depth",
-      "nav_click",
-      "external_link",
-      "cta_click",
-      "project_view",
-      "post_click",
-      "social_link",
-      "ai_assistant_open",
-      "ai_assistant_close",
-      "ai_assistant_send",
-      "ai_assistant_error",
-      "ai_assistant_generation_stopped",
-      "protected_route_access_granted",
-      "consent_accepted",
-      "consent_declined",
-      "quiz_start",
-      "quiz_answer",
-      "quiz_complete",
-      "quiz_daily_answer",
-      "quiz_score_saved",
-      "quiz_feedback_submit",
-      "quiz_rating_submit",
-      "quiz_referral_cta_shown",
-      "quiz_referral_click",
-      "quiz_share",
+      'session_start',
+      'page_view',
+      'scroll_depth',
+      'nav_click',
+      'external_link',
+      'cta_click',
+      'project_view',
+      'post_click',
+      'social_link',
+      'ai_assistant_open',
+      'ai_assistant_close',
+      'ai_assistant_send',
+      'ai_assistant_error',
+      'ai_assistant_generation_stopped',
+      'protected_route_access_granted',
+      'consent_accepted',
+      'consent_declined',
+      'quiz_start',
+      'quiz_answer',
+      'quiz_complete',
+      'quiz_daily_answer',
+      'quiz_score_saved',
+      'quiz_feedback_submit',
+      'quiz_rating_submit',
+      'quiz_referral_cta_shown',
+      'quiz_referral_click',
+      'quiz_share',
     ];
     for (const name of clientNames) {
       expect(EVENT_TYPES_SET.has(name)).toBe(true);

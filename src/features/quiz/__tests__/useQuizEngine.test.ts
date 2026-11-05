@@ -20,6 +20,7 @@ function runningState(overrides: Partial<Extract<EngineState, { phase: "running"
     lives: MAX_LIVES,
     answers: [],
     startedAt: 1000,
+    runId: "run-1",
     ...overrides,
   } as Extract<EngineState, { phase: "running" }>;
 }
@@ -27,7 +28,12 @@ function runningState(overrides: Partial<Extract<EngineState, { phase: "running"
 describe("quizReducer", () => {
   it("starts a game from idle", () => {
     const deck = buildDeck(42);
-    const next = quizReducer(initialState(), { type: "start", deck, now: 1000 });
+    const next = quizReducer(initialState(), {
+      type: "start",
+      deck,
+      runId: "run-1",
+      now: 1000,
+    });
     expect(next.phase).toBe("running");
     if (next.phase !== "running") return;
     expect(next.deck).toBe(deck);
@@ -38,7 +44,12 @@ describe("quizReducer", () => {
 
   it("ignores start when not idle", () => {
     const state = runningState();
-    const next = quizReducer(state, { type: "start", deck: buildDeck(1), now: 2000 });
+    const next = quizReducer(state, {
+      type: "start",
+      deck: buildDeck(1),
+      runId: "run-2",
+      now: 2000,
+    });
     expect(next).toBe(state);
   });
 

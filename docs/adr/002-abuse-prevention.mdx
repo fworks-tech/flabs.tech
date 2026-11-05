@@ -17,11 +17,11 @@ Key decisions:
 
 1. **Deterministic "ML-style" scoring** — a logistic model `score = σ(Σ wᵢ·xᵢ + b)` over a fixed feature vector (rate violation, injection, cost spike, oversized message, malformed payload, high frequency, PII). Deterministic by construction — no external model calls — so behavior is auditable, testable, and tunable via the documented weight constants.
 
-2. **Evidence decay** — features decay with a 30-minute half-life per signal, so legitimate users who triggered a false positive (or stopped misbehaving) naturally auto-recover to low severity. One signal never locks a user out; the chat route only rejects injection matches once the case severity is above `low` (repeated offenses).
+2. **Evidence decay** — features decay with a 30-minute half-life per signal, so legitimate users who triggered a false positive (or stopped misbehaving) naturally auto-recover to low severity. One signal never locks a user out: containment (quarantine and rejection) starts on the second recorded signal.
 
 3. **Two-tier injection detection** — `BLOCK_PATTERNS` (unambiguous extraction/jailbreak) vs `SUSPICIOUS_PATTERNS` (role-play like "act as a recruiter"), which only accumulate evidence. A single false positive can never block a legitimate visitor.
 
-4. **Upstash Redis persistence** (`UPSTASH_REDIS_REST_URL`/`TOKEN`) with an in-memory fallback — abuse state (cases, quarantines, escalation cooldowns) survives cold starts and is shared across serverless instances.
+4. **Upstash Redis persistence** (`UPSTASH_REDIS_REST_URL`/`TOKEN`) with an in-memory fallback — abuse state (cases, quarantines, escalation cooldowns) survives cold starts and is shared across serverless instances. The chat rate limiter and hourly cost budget use the same adapter, so both limits are shared across instances instead of resetting per process.
 
 5. **Shadow mode by default** (`ABUSE_RESPONSE_MODE=shadow`) — the pipeline observes, scores, and alerts without blocking; `enforce` actually rejects quarantined actors. Safe rollout.
 
@@ -29,7 +29,7 @@ Key decisions:
 
 7. **Privacy-preserving alerting** — raw IPs never leave the server: PostHog `distinctId` and Slack/Discord webhook text use a masked key (last octet).
 
-8. **Client identity from the trusted proxy** — the *rightmost* `X-Forwarded-For` entry is used (the proxy-appended one). Leftmost entries are client-controllable and would allow rotating identities to bypass rate limits and quarantine. Trust boundary: Vercel overwrites `X-Forwarded-For`.
+8. **Client identity from the trusted proxy** — the _rightmost_ `X-Forwarded-For` entry is used (the proxy-appended one). Leftmost entries are client-controllable and would allow rotating identities to bypass rate limits and quarantine. Trust boundary: Vercel overwrites `X-Forwarded-For`.
 
 ## Alternatives considered
 

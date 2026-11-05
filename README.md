@@ -67,12 +67,12 @@ Live at **[flabs.tech](https://flabs.tech)**
 src/
 ├── app/              # Next.js App Router (routes, API, layout)
 │   ├── admin/        #   GitHub-SSO admin area (analytics, AI stats, drafts, publishing)
-│   ├── api/          #   chat, quiz/*, authenticate, analytics, og, rss, auth, crosspost, check-auth
+│   ├── api/          #   chat, quiz/*, analytics, og, rss, auth, crosspost
 │   └── quiz/         #   DevSprint quiz game
 ├── components/       # Presentational components by role
 │   ├── admin/        #   Admin dashboard charts
 │   ├── ai/           #   AiAssistant chat widget
-│   ├── layout/       #   Header, Footer, Providers, RouteGuard
+│   ├── layout/       #   Header, Footer, Providers, ConsentBanner
 │   ├── ui/           #   Mailchimp, HeadingLink, ProjectCard
 │   └── shared/       #   MDX renderer, shared utilities
 ├── config/           # App configuration (app config, Mantine theme, projects, icons, barrel)
@@ -206,7 +206,7 @@ push/PR to main
 ## Security
 
 - **Security headers** via `vercel.json` — CSP, HSTS (preload), X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy
-- **Rate limiting** on all public APIs — `/api/authenticate` (5 req/60s/IP), `/api/chat` (10–30 req/60s/IP), `/api/analytics/event`, and quiz endpoints
+- **Rate limiting** on all public APIs — `/api/chat` (10–30 req/60s/IP), `/api/analytics/event`, and quiz endpoints; counters live in Redis, so limits are shared across serverless instances
 - **Session auth** — NextAuth 5 with Upstash Redis sessions; httpOnly, SameSite: strict, Secure cookies
 - **AI abuse pipeline** (`src/lib/abuse/`) — deterministic logistic scoring over a decaying feature vector (30-min half-life, actors auto-recover); two-tier prompt-injection detection (block vs. signal); quarantine tiers throttle → soft-quarantine → hard-block; `ABUSE_RESPONSE_MODE=shadow` (observe, default) or `enforce` (block)
 - **Admin area** (`/admin`) — GitHub SSO (NextAuth 5, Upstash Redis sessions); analytics and AI-stats dashboards, quiz management, draft preview, publishing tools

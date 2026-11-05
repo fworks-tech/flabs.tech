@@ -1,14 +1,14 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { LeaderboardEntry } from "@/features/quiz/lib/leaderboard";
-import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
+import type { LeaderboardEntry } from '@/features/quiz/lib/leaderboard';
+import { useLeaderboard } from '@/features/quiz/hooks/useLeaderboard';
 
 const entries: LeaderboardEntry[] = [
   {
-    id: "a",
+    id: 'a',
     rank: 0,
-    displayName: "Zara",
+    displayName: 'Zara',
     score: 3400,
     accuracy: 0.85,
     maxStreak: 9,
@@ -17,15 +17,15 @@ const entries: LeaderboardEntry[] = [
 ];
 
 function mockFetchOnce(body: unknown, ok = true) {
-  return vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+  return vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
     new Response(JSON.stringify(body), {
       status: ok ? 200 : 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     }),
   );
 }
 
-describe("useLeaderboard", () => {
+describe('useLeaderboard', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -34,7 +34,7 @@ describe("useLeaderboard", () => {
     vi.restoreAllMocks();
   });
 
-  it("fetches the current week board on mount", async () => {
+  it('fetches the current week board on mount', async () => {
     const fetchMock = mockFetchOnce({ entries });
     const { result } = renderHook(() => useLeaderboard());
 
@@ -43,10 +43,10 @@ describe("useLeaderboard", () => {
     });
     expect(result.current.entries).toEqual(entries);
     expect(result.current.error).toBe(false);
-    expect(fetchMock).toHaveBeenCalledWith("/api/quiz/leaderboard?week=current");
+    expect(fetchMock).toHaveBeenCalledWith('/api/quiz/leaderboard?week=current');
   });
 
-  it("re-fetches when the week changes", async () => {
+  it('re-fetches when the week changes', async () => {
     mockFetchOnce({ entries });
     const fetchMock = mockFetchOnce({ entries: [] });
     const { result } = renderHook(() => useLeaderboard());
@@ -55,14 +55,14 @@ describe("useLeaderboard", () => {
       expect(result.current.loading).toBe(false);
     });
     act(() => {
-      result.current.switchWeek("all");
+      result.current.switchWeek('all');
     });
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/quiz/leaderboard?week=all");
+      expect(fetchMock).toHaveBeenCalledWith('/api/quiz/leaderboard?week=all');
     });
   });
 
-  it("surfaces failures as error without throwing", async () => {
+  it('surfaces failures as error without throwing', async () => {
     mockFetchOnce(null, false);
     const { result } = renderHook(() => useLeaderboard());
 
@@ -73,36 +73,54 @@ describe("useLeaderboard", () => {
     expect(result.current.entries).toEqual([]);
   });
 
-  it("saves a score and returns its rank", async () => {
+  const submission = {
+    displayName: 'Zara',
+    runId: 'run-1',
+    answers: [0, 1, 2],
+    durationMs: 180_000,
+  };
+
+  it('saves a run and returns its rank', async () => {
     mockFetchOnce({ entries });
-    const saveMock = mockFetchOnce({ ok: true, id: "uuid-9", rank: 2 });
+    const saveMock = mockFetchOnce({ ok: true, id: 'uuid-9', rank: 2 });
     const { result } = renderHook(() => useLeaderboard());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
-    let rank: number | null = null;
+    let saved: Awaited<ReturnType<typeof result.current.saveScore>> = null;
     await act(async () => {
-      rank = await result.current.saveScore({
-        displayName: "Zara",
-        score: 3400,
-        correct: 17,
-        total: 20,
-        maxStreak: 9,
-        durationMs: 180_000,
-      });
+      saved = await result.current.saveScore(submission);
     });
 
-    expect(rank).toBe(2);
-    expect(result.current.saved).toEqual({ id: "uuid-9", rank: 2 });
+    expect(saved).toEqual({ id: 'uuid-9', rank: 2 });
+    expect(result.current.saved).toEqual({ id: 'uuid-9', rank: 2 });
     expect(saveMock).toHaveBeenCalledWith(
-      "/api/quiz/score",
-      expect.objectContaining({ method: "POST" }),
+      '/api/quiz/score',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(submission) }),
     );
   });
 
-  it("returns null when saving fails", async () => {
+  it('returns a saved result even when the score misses the top 100', async () => {
+    mockFetchOnce({ entries });
+    mockFetchOnce({ ok: true, id: 'uuid-10', rank: null });
+    const { result } = renderHook(() => useLeaderboard());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    let saved: Awaited<ReturnType<typeof result.current.saveScore>> = null;
+    await act(async () => {
+      saved = await result.current.saveScore(submission);
+    });
+
+    expect(saved).toEqual({ id: 'uuid-10', rank: null });
+    expect(result.current.saved).toEqual({ id: 'uuid-10', rank: null });
+  });
+
+  it('returns null when saving fails', async () => {
     mockFetchOnce({ entries });
     mockFetchOnce(null, false);
     const { result } = renderHook(() => useLeaderboard());
@@ -111,17 +129,13 @@ describe("useLeaderboard", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    let rank: number | null = 7;
+    let saved: Awaited<ReturnType<typeof result.current.saveScore>> = {
+      id: 'stale',
+      rank: 7,
+    };
     await act(async () => {
-      rank = await result.current.saveScore({
-        displayName: "Zara",
-        score: 100,
-        correct: 5,
-        total: 20,
-        maxStreak: 2,
-        durationMs: 60_000,
-      });
+      saved = await result.current.saveScore(submission);
     });
-    expect(rank).toBeNull();
+    expect(saved).toBeNull();
   });
 });

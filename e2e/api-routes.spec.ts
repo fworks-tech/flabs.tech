@@ -15,10 +15,11 @@ test.describe("API routes", () => {
     expect(contentType).toContain("image");
   });
 
-  test("/api/check-auth returns valid JSON", async ({ page }) => {
-    const response = await page.goto("/api/check-auth");
-    expect(response?.status()).toBe(200);
-    const body = await response?.json();
-    expect(body).toHaveProperty("authenticated");
+  test("/api/quiz/start issues a run", async ({ request }) => {
+    const response = await request.post("/api/quiz/start");
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(typeof body.runId).toBe("string");
+    expect(typeof body.seed).toBe("number");
   });
 });

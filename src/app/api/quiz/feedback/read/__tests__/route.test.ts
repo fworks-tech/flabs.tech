@@ -21,6 +21,9 @@ const storeMock = vi.hoisted(() => {
 
 vi.mock('@/lib/abuse/store', () => ({ store: storeMock }));
 
+const authMock = vi.hoisted(() => vi.fn(async () => true));
+vi.mock('@/lib/auth', () => ({ isAuthenticated: authMock }));
+
 import { POST } from '../route';
 
 function request(body: unknown, ip = '1.2.3.4') {
@@ -37,18 +40,33 @@ beforeEach(() => {
   vi.clearAllMocks();
   storeMock.__clear();
   storeMock.incr.mockResolvedValue(1);
+  authMock.mockResolvedValue(true);
   storeMock.set.mockImplementation(async (key: string, value: unknown) => {
     // no-op; assertions inspect call args
   });
   storeMock.get.mockImplementation(async <T = unknown>(key: string): Promise<T | null> => {
     if (key === 'quiz:feedback') {
-      return REAL_IDS.map((id) => ({ id, questionId: 'q1', reason: 'typo', message: '', at: 0, uid: 'u' })) as T;
+      return REAL_IDS.map((id) => ({
+        id,
+        questionId: 'q1',
+        reason: 'typo',
+        message: '',
+        at: 0,
+        uid: 'u',
+      })) as T;
     }
     return null;
   });
 });
 
 describe('POST /api/quiz/feedback/read', () => {
+  it('rejects unauthenticated callers', async () => {
+    authMock.mockResolvedValue(false);
+    const res = await POST(request({ id: 'fb-1' }));
+    expect(res.status).toBe(401);
+    expect(storeMock.set).not.toHaveBeenCalled();
+  });
+
   it('marks a single feedback entry as read with a TTL', async () => {
     const res = await POST(request({ id: 'fb-1' }));
     expect(res.status).toBe(200);

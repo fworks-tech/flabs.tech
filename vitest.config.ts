@@ -7,6 +7,9 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // The full suite runs 100+ jsdom files in parallel; 15s per test was too
+    // tight on a laptop (two files timed out while passing in isolation).
+    testTimeout: 30_000,
     setupFiles: ["./src/test/setup.ts"],
     css: { modules: { classNameStrategy: "non-scoped" } },
     exclude: ["e2e/**", "node_modules/**", "dist/**", ".opencode/**", ".next/**"],

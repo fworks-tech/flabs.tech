@@ -44,7 +44,7 @@ function recordDevtoIds(slug: string, id: number, url: string): void {
 }
 
 async function main(): Promise<void> {
-  if (!dryRun && !process.env.DEVTO_API_KEY && !process.env.OPENCODE_API_KEY) {
+  if (!dryRun && !process.env.DEVTO_API_KEY) {
     console.error("DEVTO_API_KEY is not set; nothing to do.");
     process.exitCode = 1;
     return;

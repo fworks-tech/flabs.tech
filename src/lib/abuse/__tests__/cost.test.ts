@@ -1,5 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { _resetUsage, calculateCost, checkCostLimit, estimateTokens, recordActualUsage } from '@/lib/abuse/cost';
+import { describe, expect, it } from 'vitest';
+
+import { calculateCost, checkCostLimit, estimateTokens, recordActualUsage } from '@/lib/abuse/cost';
+
+let seq = 0;
+/** Unique actor per test so the durable store cannot leak state between cases. */
+const actor = () => `cost-test-${Date.now()}-${seq++}`;
 
 describe('estimateTokens', () => {
   it('approximates tokens at ~4 chars each', () => {
@@ -17,50 +22,52 @@ describe('calculateCost', () => {
 });
 
 describe('checkCostLimit', () => {
-  afterEach(() => {
-    _resetUsage();
-    vi.useRealTimers();
-  });
-
-  it('allows requests under the hourly budget', () => {
-    const result = checkCostLimit('u1', 10_000);
+  it('allows requests under the hourly budget', async () => {
+    const result = await checkCostLimit(actor(), 10_000);
     expect(result.allowed).toBe(true);
   });
 
-  it('rejects requests that exceed the hourly budget', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-    for (let i = 0; i < 6; i++) {
-      checkCostLimit('u1', 300_000); // ~$0.15 each
+  it('rejects requests that exceed the hourly budget', async () => {
+    const key = actor();
+    for (let i = 0; i < 3; i++) {
+      await expect(checkCostLimit(key, 300_000)).resolves.toMatchObject({ allowed: true });
     }
-    const result = checkCostLimit('u1', 300_000);
+    const result = await checkCostLimit(key, 300_000);
     expect(result.allowed).toBe(false);
     expect(result.retryAfter).toBeGreaterThan(0);
   });
 
-  it('tracks actors independently', () => {
-    checkCostLimit('u1', 1_000_000);
-    expect(checkCostLimit('u2', 1_000_000).allowed).toBe(true);
+  it('does not bill denied requests', async () => {
+    const key = actor();
+    for (let i = 0; i < 3; i++) {
+      await checkCostLimit(key, 300_000);
+    }
+    await expect(checkCostLimit(key, 300_000)).resolves.toMatchObject({ allowed: false });
+    // 900k tokens counted, 100k still fits inside the ~1.06M token budget.
+    await expect(checkCostLimit(key, 100_000)).resolves.toMatchObject({ allowed: true });
+  });
+
+  it('tracks actors independently', async () => {
+    await checkCostLimit(actor(), 1_000_000);
+    await expect(checkCostLimit(actor(), 1_000_000)).resolves.toMatchObject({ allowed: true });
   });
 });
 
 describe('recordActualUsage', () => {
-  afterEach(() => {
-    _resetUsage();
-  });
-
-  it('corrects the last estimate with actual usage', () => {
-    checkCostLimit('u1', 40_000);
-    recordActualUsage('u1', 10_000);
-    // ~$0.005 spent (actual) + next estimate must still fit — verifies the
+  it('adjusts the request estimate down to the actual usage', async () => {
+    const key = actor();
+    const check = await checkCostLimit(key, 40_000);
+    await recordActualUsage(check.usageKey, 10_000 - check.estimatedTokens);
+    // Actual (10k) + next estimate (900k) must still fit — verifies the
     // estimate was replaced, not appended.
-    const result = checkCostLimit('u1', 900_000);
-    expect(result.allowed).toBe(true);
+    await expect(checkCostLimit(key, 900_000)).resolves.toMatchObject({ allowed: true });
   });
 
-  it('records actual usage when no estimate exists', () => {
-    recordActualUsage('u1', 5_000);
-    // 2M tokens ≈ $0.56 exceeds the $0.50 hourly budget.
-    expect(checkCostLimit('u1', 2_000_000).allowed).toBe(false);
+  it('clamps an over-correction at zero instead of granting credit', async () => {
+    const key = actor();
+    const check = await checkCostLimit(key, 5000);
+    await recordActualUsage(check.usageKey, -50_000);
+    await expect(checkCostLimit(key, 1_000_000)).resolves.toMatchObject({ allowed: true });
+    await expect(recordActualUsage(check.usageKey, 0)).resolves.toBeUndefined();
   });
 });

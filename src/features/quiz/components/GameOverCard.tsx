@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { IconExternalLink, IconRefresh } from "@tabler/icons-react";
+import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { IconExternalLink, IconRefresh } from '@tabler/icons-react';
 
-import { useHighScore } from "@/features/quiz/hooks/useHighScore";
-import { useLeaderboard } from "@/features/quiz/hooks/useLeaderboard";
-import { rankMeta } from "@/features/quiz/lib/ranking";
-import { Celebration } from "./Celebration";
-import { LeaderboardPanel } from "./LeaderboardPanel";
-import { RatingCard } from "./RatingCard";
-import { ReferralCard } from "./ReferralCard";
-import { SaveScoreForm } from "./SaveScoreForm";
-import styles from "./GameOverCard.module.scss";
+import { useHighScore } from '@/features/quiz/hooks/useHighScore';
+import { useLeaderboard } from '@/features/quiz/hooks/useLeaderboard';
+import type { AnswerRecord } from '@/features/quiz/hooks/useQuizEngine';
+import { rankMeta } from '@/features/quiz/lib/ranking';
+import { Celebration } from './Celebration';
+import { LeaderboardPanel } from './LeaderboardPanel';
+import { RatingCard } from './RatingCard';
+import { ReferralCard } from './ReferralCard';
+import { SaveScoreForm } from './SaveScoreForm';
+import styles from './GameOverCard.module.scss';
 
 export interface GameOverStats {
   score: number;
@@ -20,6 +21,8 @@ export interface GameOverStats {
   maxStreak: number;
   livesLeft: number;
   durationMs: number;
+  answers: AnswerRecord[];
+  runId: string;
 }
 
 interface GameOverCardProps {
@@ -41,7 +44,7 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
 
   return (
     <Paper withBorder p="xl" radius="md" className={styles.card} role="status" aria-live="polite">
-      <Celebration active={accuracy >= 0.75} type={accuracy >= 0.9 ? "sparkle" : "confetti"} />
+      <Celebration active={accuracy >= 0.75} type={accuracy >= 0.9 ? 'sparkle' : 'confetti'} />
       <Stack align="center" gap="md">
         <Title order={2}>Sprint complete</Title>
 
@@ -98,10 +101,8 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
 
         <SaveScoreForm
           defaultName={playerName}
-          score={stats.score}
-          correct={stats.correctCount}
-          total={stats.total}
-          maxStreak={stats.maxStreak}
+          runId={stats.runId}
+          answers={stats.answers.map((answer) => answer.selectedIndex)}
           durationMs={stats.durationMs}
           onNameChange={setPlayerName}
           onSave={leaderboard.saveScore}
@@ -120,9 +121,7 @@ export function GameOverCard({ stats, onRetry }: GameOverCardProps) {
           </Button>
         )}
 
-        {accuracy >= 0.8 && (
-          <ReferralCard score={stats.score} accuracy={accuracy} />
-        )}
+        {accuracy >= 0.8 && <ReferralCard score={stats.score} accuracy={accuracy} />}
 
         <LeaderboardPanel
           entries={leaderboard.entries}

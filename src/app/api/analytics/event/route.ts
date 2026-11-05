@@ -20,7 +20,7 @@ const MAX_EVENTS_PER_MINUTE = 120;
 export async function POST(request: NextRequest) {
   const xff = request.headers.get("x-forwarded-for");
   const ip = xff ? (xff.split(",").pop() ?? "").trim() : "unknown";
-  const limited = rateLimit(`analytics:${ip}`, MAX_EVENTS_PER_MINUTE, 60_000);
+  const limited = await rateLimit(`analytics:${ip}`, MAX_EVENTS_PER_MINUTE, 60);
   if (!limited.allowed) {
     logger.warn({ retryAfter: limited.retryAfter }, "analytics ingest rate-limited");
     return NextResponse.json(
@@ -42,17 +42,13 @@ export async function POST(request: NextRequest) {
   }
 
   const incoming = body.slice(0, MAX_BATCH);
-  let stored = 0;
-  let rejected = 0;
-  for (const raw of incoming) {
-    const event = validateEvent(raw);
-    if (event) {
-      await recordEvent(event);
-      stored++;
-    } else {
-      rejected++;
-    }
-  }
+  // Counters are atomic hash increments, so the batch can write in parallel.
+  const valid = incoming
+    .map(validateEvent)
+    .filter((event): event is TrackedEvent => event !== null);
+  await Promise.all(valid.map((event) => recordEvent(event)));
+  const stored = valid.length;
+  const rejected = incoming.length - stored;
 
   logger.info({ stored, rejected, total: incoming.length }, "analytics ingest");
   return NextResponse.json({ ok: true, stored });

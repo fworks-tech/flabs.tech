@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Group, Stack, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AchievementToast } from '@/features/quiz/components/AchievementToast';
@@ -204,12 +205,26 @@ export default function QuizPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
-  const handleStart = useCallback(() => {
-    dispatch({
-      type: 'start',
-      deck: buildDeck(Math.floor(Math.random() * 2 ** 31)),
-      now: Date.now(),
-    });
+  const handleStart = useCallback(async () => {
+    try {
+      const res = await fetch('/api/quiz/start', { method: 'POST' });
+      if (!res.ok) throw new Error(`start ${res.status}`);
+      const data = (await res.json()) as { runId?: unknown; seed?: unknown };
+      if (typeof data.runId !== 'string' || typeof data.seed !== 'number') {
+        throw new Error('invalid start response');
+      }
+      dispatch({
+        type: 'start',
+        deck: buildDeck(data.seed),
+        runId: data.runId,
+        now: Date.now(),
+      });
+    } catch {
+      notifications.show({
+        message: 'Could not start the sprint. Please try again.',
+        color: 'red',
+      });
+    }
   }, [dispatch]);
 
   const handleRetry = useCallback(() => {

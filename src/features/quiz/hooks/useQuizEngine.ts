@@ -1,26 +1,27 @@
-"use client";
+'use client';
 
-import { useReducer } from "react";
+import { useReducer } from 'react';
 
-import type { QuizQuestion } from "@/features/quiz/data/questions";
+import type { QuizQuestion } from '@/features/quiz/data/questions';
+import { TIME_BONUS_MS, multiplierFor } from '@/features/quiz/lib/scoring';
 
-/** Cap on the streak multiplier so scores stay in the 0–10000 range. */
-export const MAX_MULTIPLIER = 5;
+export { MAX_MULTIPLIER, TIME_BONUS_MS, multiplierFor } from '@/features/quiz/lib/scoring';
+
 export const MAX_LIVES = 3;
-/** Time bonus (ms) granted per correct answer. */
-export const TIME_BONUS_MS = 2000;
 
 export interface AnswerRecord {
   questionId: string;
   correct: boolean;
   timeMs: number;
   points: number;
+  /** Picked answer index; -1 for a timeout. Replayed by the score API. */
+  selectedIndex: number;
 }
 
 export type EngineState =
-  | { phase: "idle" }
+  | { phase: 'idle' }
   | {
-      phase: "running";
+      phase: 'running';
       deck: QuizQuestion[];
       index: number;
       score: number;
@@ -30,9 +31,10 @@ export type EngineState =
       answers: AnswerRecord[];
       startedAt: number;
       bonusMs: number;
+      runId: string;
     }
   | {
-      phase: "answered";
+      phase: 'answered';
       deck: QuizQuestion[];
       index: number;
       score: number;
@@ -46,9 +48,10 @@ export type EngineState =
       timeMs: number;
       points: number;
       bonusMs: number;
+      runId: string;
     }
   | {
-      phase: "gameover";
+      phase: 'gameover';
       deck: QuizQuestion[];
       score: number;
       streak: number;
@@ -56,33 +59,30 @@ export type EngineState =
       lives: number;
       answers: AnswerRecord[];
       durationMs: number;
+      runId: string;
     };
 
 export type EngineAction =
-  | { type: "start"; deck: QuizQuestion[]; now: number }
-  | { type: "answer"; index: number; timeMs: number }
-  | { type: "timeout" }
-  | { type: "advance"; now: number }
-  | { type: "retry" };
-
-export function multiplierFor(streakBeforeAnswer: number): number {
-  return Math.min(streakBeforeAnswer + 1, MAX_MULTIPLIER);
-}
+  | { type: 'start'; deck: QuizQuestion[]; runId: string; now: number }
+  | { type: 'answer'; index: number; timeMs: number }
+  | { type: 'timeout' }
+  | { type: 'advance'; now: number }
+  | { type: 'retry' };
 
 export function initialState(): EngineState {
-  return { phase: "idle" };
+  return { phase: 'idle' };
 }
 
 export function isRunning(state: EngineState): boolean {
-  return state.phase === "running";
+  return state.phase === 'running';
 }
 
 export function isAnswered(state: EngineState): boolean {
-  return state.phase === "answered";
+  return state.phase === 'answered';
 }
 
 export function gameOverStats(state: EngineState) {
-  if (state.phase === "gameover") {
+  if (state.phase === 'gameover') {
     const correctCount = state.answers.filter((a) => a.correct).length;
     return {
       score: state.score,
@@ -92,23 +92,24 @@ export function gameOverStats(state: EngineState) {
       total: state.deck.length,
       durationMs: state.durationMs,
       answers: state.answers,
+      runId: state.runId,
     };
   }
   return null;
 }
 
 function answeredBase(
-  state: Extract<EngineState, { phase: "running" }>,
+  state: Extract<EngineState, { phase: 'running' }>,
   correct: boolean,
   selectedIndex: number,
   timeMs: number,
-): Extract<EngineState, { phase: "answered" }> {
+): Extract<EngineState, { phase: 'answered' }> {
   const question = state.deck[state.index];
   const streakBefore = state.streak;
   const points = correct ? 100 * multiplierFor(streakBefore) : 0;
   return {
     ...state,
-    phase: "answered",
+    phase: 'answered',
     selectedIndex,
     correct,
     timeMs,
@@ -120,17 +121,17 @@ function answeredBase(
     bonusMs: correct ? TIME_BONUS_MS : 0,
     answers: [
       ...state.answers,
-      { questionId: question.id, correct, timeMs, points },
+      { questionId: question.id, correct, timeMs, points, selectedIndex },
     ],
   };
 }
 
 export function quizReducer(state: EngineState, action: EngineAction): EngineState {
   switch (action.type) {
-    case "start":
-      if (state.phase !== "idle") return state;
+    case 'start':
+      if (state.phase !== 'idle') return state;
       return {
-        phase: "running",
+        phase: 'running',
         deck: action.deck,
         index: 0,
         score: 0,
@@ -140,10 +141,11 @@ export function quizReducer(state: EngineState, action: EngineAction): EngineSta
         answers: [],
         startedAt: action.now,
         bonusMs: 0,
+        runId: action.runId,
       };
 
-    case "answer":
-      if (state.phase !== "running") return state;
+    case 'answer':
+      if (state.phase !== 'running') return state;
       return answeredBase(
         state,
         state.deck[state.index].correctIndex === action.index,
@@ -151,15 +153,15 @@ export function quizReducer(state: EngineState, action: EngineAction): EngineSta
         Math.max(0, action.timeMs),
       );
 
-    case "timeout":
-      if (state.phase !== "running") return state;
+    case 'timeout':
+      if (state.phase !== 'running') return state;
       return answeredBase(state, false, -1, 0);
 
-    case "advance":
-      if (state.phase !== "answered") return state;
+    case 'advance':
+      if (state.phase !== 'answered') return state;
       if (state.lives <= 0 || state.index + 1 >= state.deck.length) {
         return {
-          phase: "gameover",
+          phase: 'gameover',
           deck: state.deck,
           score: state.score,
           streak: state.streak,
@@ -167,12 +169,13 @@ export function quizReducer(state: EngineState, action: EngineAction): EngineSta
           lives: state.lives,
           answers: state.answers,
           durationMs: Math.max(0, action.now - state.startedAt),
+          runId: state.runId,
         };
       }
-      return { ...state, phase: "running", index: state.index + 1, bonusMs: 0 };
+      return { ...state, phase: 'running', index: state.index + 1, bonusMs: 0 };
 
-    case "retry":
-      return { phase: "idle" };
+    case 'retry':
+      return { phase: 'idle' };
 
     default:
       return state;

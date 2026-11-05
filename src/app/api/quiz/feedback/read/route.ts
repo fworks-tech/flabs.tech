@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { isRateLimited } from '@/features/quiz/lib/rateLimit';
+import { isAuthenticated } from '@/lib/auth';
 import { listFeedback, markFeedbackRead, MAX_FEEDBACK } from '@/features/quiz/lib/feedback';
 
 export const runtime = 'nodejs';
@@ -9,8 +10,12 @@ const MAX_ID = 64;
 const MAX_IDS = MAX_FEEDBACK;
 const MAX_READS_PER_MINUTE = 30;
 
-/** Marks feedback entries as reviewed (admin only by route placement). */
+/** Marks feedback entries as reviewed (admin only). */
 export async function POST(request: NextRequest) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const limited = await isRateLimited('fb-read', request, MAX_READS_PER_MINUTE);
   if (limited) return limited;
 

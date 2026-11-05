@@ -135,7 +135,9 @@ export async function GET(request: Request) {
     return devSprintCard(searchParams);
   }
 
-  const title = searchParams.get("title") || person.name;
+  // Cap the (public, unauthenticated) title so a huge query string cannot
+  // force Satori to lay out a giant card.
+  const title = (searchParams.get("title") || person.name).slice(0, 120);
 
   return new ImageResponse(
     <div
@@ -257,7 +259,8 @@ export async function GET(request: Request) {
       width: 1200,
       height: 630,
       headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
+        // The default card only depends on the static site identity.
+        "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
       },
     },
   );

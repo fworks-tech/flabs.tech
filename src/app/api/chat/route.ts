@@ -25,11 +25,7 @@ import {
   type SignalInput,
 } from '@/lib/abuse';
 import { logger } from '@/lib/logger';
-import {
-  addAiTokensOut,
-  recordAiEvent,
-  updateAiEventCompletion,
-} from '@/lib/ai-stats';
+import { addAiTokensOut, recordAiEvent, updateAiEventCompletion } from '@/lib/ai-stats';
 import { type NextRequest } from 'next/server';
 import { createHash } from 'crypto';
 
@@ -168,9 +164,7 @@ function normalizeMessages(raw: any[]): Array<{ role: 'user' | 'assistant'; cont
       return {
         role,
         content: m.content
-          .map((p: any) =>
-            typeof p === 'string' ? p : typeof p?.text === 'string' ? p.text : '',
-          )
+          .map((p: any) => (typeof p === 'string' ? p : typeof p?.text === 'string' ? p.text : ''))
           .join(''),
       };
     }
@@ -178,7 +172,8 @@ function normalizeMessages(raw: any[]): Array<{ role: 'user' | 'assistant'; cont
   });
 }
 
-const MAX_MESSAGES_PER_REQUEST = 20;
+// 20 user turns + 20 assistant replies — matches MAX_SESSION_MESSAGES in the widget.
+const MAX_MESSAGES_PER_REQUEST = 40;
 const MAX_INPUT_LENGTH = 500;
 
 /**
@@ -252,23 +247,27 @@ async function handleAbuseSignal(
 ): Promise<InvestigationCase> {
   const incident = await recordSignal(key, { kind, detail, at: Date.now() }, input);
 
-  const tier = tierForScore(incident.severity, incident.trust);
-  if (tier !== 'none') {
-    await applyQuarantine(key, tier, `${kind}: ${detail}`, incident.severity, incident.trust);
-    const fired = await maybeEscalate({ kind, key, detail, at: Date.now() });
-    if (fired) {
-      await notify(
-        {
-          name: 'abuse.escalation',
-          key,
-          tier,
-          severity: incident.severity,
-          score: incident.score,
-          confidence: incident.confidence,
-          detail: `${kind}: ${detail}`,
-        },
-        incident,
-      );
+  // Containment starts on the second offense: a single signal (including a
+  // false-positive injection match) is recorded, never acted on.
+  if (incident.signals.length > 1) {
+    const tier = tierForScore(incident.severity, incident.trust);
+    if (tier !== 'none') {
+      await applyQuarantine(key, tier, `${kind}: ${detail}`, incident.severity, incident.trust);
+      const fired = await maybeEscalate({ kind, key, detail, at: Date.now() });
+      if (fired) {
+        await notify(
+          {
+            name: 'abuse.escalation',
+            key,
+            tier,
+            severity: incident.severity,
+            score: incident.score,
+            confidence: incident.confidence,
+            detail: `${kind}: ${detail}`,
+          },
+          incident,
+        );
+      }
     }
   }
   return incident;
@@ -363,7 +362,10 @@ export async function POST(req: NextRequest) {
   const key = resolveKey(clientIp);
 
   // Stable session ID for OpenCode Go routing optimization (hashed, not raw IP).
-  const sessionId = createHash('sha256').update(`flabs-chat-${clientIp}`).digest('hex').slice(0, 32);
+  const sessionId = createHash('sha256')
+    .update(`flabs-chat-${clientIp}`)
+    .digest('hex')
+    .slice(0, 32);
 
   // 1. Pre-flight: already quarantined/blocked?
   const tier = await effectiveTier(key);
@@ -376,9 +378,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2. Rate limiting (IP-based)
+  // 2. Rate limiting (IP-based, shared by every serverless instance)
   const maxAttempts = tier === 'throttle' ? 10 : 30;
-  const { allowed: rateAllowed, retryAfter: rateRetryAfter } = rateLimit(key, maxAttempts, 60_000);
+  const { allowed: rateAllowed, retryAfter: rateRetryAfter } = await rateLimit(
+    key,
+    maxAttempts,
+    60,
+  );
   if (!rateAllowed) {
     await handleAbuseSignal(key, 'rate', `rate limit hit (${rateRetryAfter}s)`, {
       rateViolated: true,
@@ -420,6 +426,7 @@ export async function POST(req: NextRequest) {
     await handleAbuseSignal(key, 'malformed', 'invalid message format', { malformed: true });
     return jsonResponse(400, { error: 'Invalid message format' });
   }
+  const normalized = normalizeMessages(messages);
   const rawText = lastMsg.parts
     ? lastMsg.parts
         .filter((p: any) => !p.type || p.type === 'text')
@@ -444,7 +451,18 @@ export async function POST(req: NextRequest) {
   }
 
   // Detect prompt injection (two-tier: unambiguous attacks vs role-play).
-  const injection = detectInjection(text);
+  // Scan every user turn: the client controls the whole history, so a payload
+  // in an earlier turn would otherwise reach the model unscanned.
+  const injection = normalized
+    .filter((m) => m.role === 'user')
+    .map((m) => detectInjection(m.content))
+    .reduce(
+      (acc, result) => ({
+        blocked: acc.blocked || result.blocked,
+        suspicious: acc.suspicious || result.suspicious,
+      }),
+      { blocked: false, suspicious: false },
+    );
   if (injection.blocked || injection.suspicious) {
     logger.warn(
       { key, blocked: injection.blocked, scope: 'abuse' },
@@ -464,7 +482,7 @@ export async function POST(req: NextRequest) {
     );
     // First offenses are recorded, not rejected — a single false positive
     // must never lock a legitimate visitor out.
-    if (injection.blocked && incident.severity !== 'low') {
+    if (injection.blocked && incident.signals.length > 1) {
       return jsonResponse(400, {
         error: "Invalid request. Please ask a relevant question about Fabio's portfolio.",
       });
@@ -473,7 +491,6 @@ export async function POST(req: NextRequest) {
 
   // Estimate tokens for cost checking
   const systemPrompt = buildSystemPrompt();
-  const normalized = normalizeMessages(messages);
   const conversationText = normalized.map((m) => m.content).join('\n');
   const estimatedTokens = estimateTokens(systemPrompt + conversationText + text);
 
@@ -484,14 +501,14 @@ export async function POST(req: NextRequest) {
     return jsonResponse(400, { error: 'Conversation too long. Please start a new chat.' });
   }
 
-  // Cost limit check
-  const { allowed: costAllowed, retryAfter: costRetryAfter } = checkCostLimit(key, estimatedTokens);
-  if (!costAllowed) {
+  // Cost limit check (durable hourly bucket, shared across instances)
+  const cost = await checkCostLimit(key, estimatedTokens);
+  if (!cost.allowed) {
     await handleAbuseSignal(key, 'cost', `hourly cost budget exceeded`, {
       costUsd: calculateCost(estimatedTokens),
     });
     return jsonResponse(429, {
-      error: `Cost limit exceeded. Try again in ${costRetryAfter} seconds.`,
+      error: `Cost limit exceeded. Try again in ${cost.retryAfter} seconds.`,
     });
   }
 
@@ -529,13 +546,13 @@ export async function POST(req: NextRequest) {
     );
 
     // Correct the cost estimate with actual usage once the stream completes.
-    // `totalTokens` includes input tokens (already counted via `tokensIn`),
-    // so only output tokens belong in the output counter.
-    // Note: per-event/token aggregates are written once in onFinish above;
-    // this handler only feeds the abuse cost budget to avoid double counting.
+    // This only feeds the abuse cost budget; the per-event/token aggregates
+    // are written once in onFinish above.
     void Promise.resolve(result.usage)
       .then(async (usage) => {
-        if (usage?.totalTokens) recordActualUsage(key, usage.totalTokens);
+        if (usage?.totalTokens) {
+          await recordActualUsage(cost.usageKey, usage.totalTokens - cost.estimatedTokens);
+        }
       })
       .catch(() => undefined);
 

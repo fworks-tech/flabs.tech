@@ -1,20 +1,19 @@
-"use client";
+'use client';
 
-import { Button, Group, Text, TextInput } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
-import { useState } from "react";
+import { Button, Group, Text, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { useState } from 'react';
 
-import type { ScorePayload } from "@/features/quiz/lib/leaderboard";
+import type { SaveResult } from '@/features/quiz/hooks/useLeaderboard';
+import type { ScoreSubmission } from '@/features/quiz/lib/leaderboard';
 
 interface SaveScoreFormProps {
   defaultName: string;
-  score: number;
-  correct: number;
-  total: number;
-  maxStreak: number;
+  runId: string;
+  answers: number[];
   durationMs: number;
   onNameChange: (name: string) => void;
-  onSave: (payload: ScorePayload) => Promise<number | null>;
+  onSave: (submission: ScoreSubmission) => Promise<SaveResult | null>;
 }
 
 /**
@@ -24,20 +23,18 @@ interface SaveScoreFormProps {
  */
 export function SaveScoreForm({
   defaultName,
-  score,
-  correct,
-  total,
-  maxStreak,
+  runId,
+  answers,
   durationMs,
   onNameChange,
   onSave,
 }: SaveScoreFormProps) {
   const [name, setName] = useState(defaultName);
   const [saving, setSaving] = useState(false);
-  const [rank, setRank] = useState<number | null>(null);
+  const [savedRank, setSavedRank] = useState<number | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
 
-  const canSave = name.trim().length > 0 && !saving;
+  const canSave = name.trim().length > 0 && !saving && savedRank === undefined;
 
   async function handleSave() {
     if (!canSave) return;
@@ -46,23 +43,21 @@ export function SaveScoreForm({
     onNameChange(trimmed);
     setSaving(true);
     setFailed(false);
-    const result = await onSave({
-      displayName: trimmed,
-      score,
-      correct,
-      total,
-      maxStreak,
-      durationMs,
-    });
+    const result = await onSave({ displayName: trimmed, runId, answers, durationMs });
     setSaving(false);
     if (result === null) {
       setFailed(true);
       return;
     }
-    setRank(result);
+    setSavedRank(result.rank);
     notifications.show({
-      message: result === 0 ? "You're #1!" : `Score saved — rank #${result + 1}`,
-      color: "green",
+      message:
+        result.rank === null
+          ? 'Score saved — outside the top 100.'
+          : result.rank === 0
+            ? "You're #1!"
+            : `Score saved — rank #${result.rank + 1}`,
+      color: 'green',
       autoClose: 3000,
     });
   }
@@ -78,7 +73,7 @@ export function SaveScoreForm({
           setFailed(false);
         }}
         onKeyDown={(event) => {
-          if (event.key === "Enter") handleSave();
+          if (event.key === 'Enter') handleSave();
         }}
         aria-label="Display name"
         w={180}
@@ -87,9 +82,9 @@ export function SaveScoreForm({
       <Button onClick={handleSave} loading={saving} disabled={!canSave} data-testid="save-score">
         Save score
       </Button>
-      {rank !== null && (
+      {savedRank !== undefined && (
         <Text size="sm" fw={600} data-testid="save-rank">
-          You&apos;re #{rank + 1}
+          {savedRank === null ? 'Saved — outside the top 100' : `You're #${savedRank + 1}`}
         </Text>
       )}
       {failed && (

@@ -1,46 +1,36 @@
+import { store } from './store';
+
 /**
  * Per-actor cost budgeting for the chat endpoint.
  *
- * Approximate accounting (estimates before the stream, corrected to actual
- * usage once it completes). Sweeps stale entries periodically so the in-memory
- * map cannot grow without bound — same pattern as the rate limiter.
+ * Counters live in the store adapter (Upstash Redis in production), so the
+ * budget is shared by every serverless instance instead of resetting per
+ * process. Accounting is approximate: the request estimate is added up front
+ * and corrected with the provider's actual usage when the stream completes.
  */
 
 export const MAX_TOKENS_PER_REQUEST = 4000;
 const MAX_COST_PER_HOUR_USD = 0.5; // ~$0.50/hour budget
 const TOKEN_COST_PER_1M = 0.47; // qwen3.8-flash on OpenCode Zen (output upper bound)
-const USAGE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const CLEANUP_INTERVAL_MS = 300_000; // 5 min
+const BUCKET_MS = 60 * 60 * 1000; // 1 hour
+const BUCKET_TTL_SECONDS = 2 * 60 * 60; // keep the bucket readable past its window
 
-interface UsageEntry {
-  tokens: number;
-  timestamp: number;
-  cost: number;
+export interface CostCheck {
+  allowed: boolean;
+  retryAfter: number;
+  /** Hour bucket to adjust once the provider reports actual usage. */
+  usageKey: string;
+  /** Tokens already counted for this request (0 when denied). */
+  estimatedTokens: number;
 }
 
-const usageMap = new Map<string, UsageEntry[]>();
-
-let cleanupTimer: ReturnType<typeof setInterval> | null = null;
-function ensureCleanup() {
-  if (cleanupTimer) return;
-  cleanupTimer = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entries] of usageMap) {
-      const recent = entries.filter((e) => now - e.timestamp < USAGE_WINDOW_MS);
-      if (recent.length === 0) {
-        usageMap.delete(key);
-      } else if (recent.length !== entries.length) {
-        usageMap.set(key, recent);
-      }
-    }
-    if (usageMap.size === 0 && cleanupTimer) {
-      clearInterval(cleanupTimer);
-      cleanupTimer = null;
-    }
-  }, CLEANUP_INTERVAL_MS);
+function bucketKey(identifier: string, now = Date.now()): string {
+  return `abuse:cost:${identifier}:${Math.floor(now / BUCKET_MS)}`;
 }
 
-ensureCleanup();
+function secondsToNextBucket(now = Date.now()): number {
+  return Math.max(1, Math.ceil(((Math.floor(now / BUCKET_MS) + 1) * BUCKET_MS - now) / 1000));
+}
 
 /** Rough approximation: ~4 chars per token for English. */
 export function estimateTokens(text: string): number {
@@ -51,60 +41,34 @@ export function calculateCost(tokens: number): number {
   return (tokens / 1_000_000) * TOKEN_COST_PER_1M;
 }
 
-export function checkCostLimit(
+export async function checkCostLimit(
   identifier: string,
   estimatedTokens: number,
-): { allowed: boolean; retryAfter: number } {
-  const now = Date.now();
-  const entries = usageMap.get(identifier) || [];
+): Promise<CostCheck> {
+  const usageKey = bucketKey(identifier);
+  const used = (await store.get<number>(usageKey)) ?? 0;
 
-  // Filter to current window
-  const recentEntries = entries.filter((e) => now - e.timestamp < USAGE_WINDOW_MS);
-
-  const totalCost = recentEntries.reduce((sum, e) => sum + e.cost, 0);
-  const estimatedCost = calculateCost(estimatedTokens);
-
-  if (totalCost + estimatedCost > MAX_COST_PER_HOUR_USD) {
-    // Find when oldest entry expires
-    const oldestEntry = recentEntries[0];
-    const retryAfter = oldestEntry
-      ? Math.ceil((oldestEntry.timestamp + USAGE_WINDOW_MS - now) / 1000)
-      : 3600;
-    return { allowed: false, retryAfter };
+  if (calculateCost(used + estimatedTokens) > MAX_COST_PER_HOUR_USD) {
+    return { allowed: false, retryAfter: secondsToNextBucket(), usageKey, estimatedTokens: 0 };
   }
 
-  // Add estimated usage (corrected to actual after the response completes)
-  recentEntries.push({ tokens: estimatedTokens, timestamp: now, cost: estimatedCost });
-  usageMap.set(identifier, recentEntries);
-
-  return { allowed: true, retryAfter: 0 };
+  await store.incrby(usageKey, estimatedTokens, BUCKET_TTL_SECONDS);
+  return { allowed: true, retryAfter: 0, usageKey, estimatedTokens };
 }
 
 /**
- * Replace the latest estimated entry with the provider's actual usage.
- *
- * Known limitation: under concurrent requests from the same actor, this may
- * overwrite the estimate of a different request. In practice this is benign
- * because the 30 req/min rate limit makes true concurrency rare, and the
- * worst case is slightly inaccurate cost accounting (not a security bypass).
+ * Correct the request estimate with the provider's actual token usage.
+ * `deltaTokens` may be negative when the estimate overshot; the counter is
+ * clamped at zero so one overestimate cannot buy a free request later.
  */
-export function recordActualUsage(identifier: string, actualTokens: number): void {
-  const now = Date.now();
-  const entries = usageMap.get(identifier) || [];
-  const recentEntries = entries.filter((e) => now - e.timestamp < USAGE_WINDOW_MS);
-
-  if (recentEntries.length > 0) {
-    const lastEntry = recentEntries[recentEntries.length - 1];
-    lastEntry.tokens = actualTokens;
-    lastEntry.cost = calculateCost(actualTokens);
-  } else {
-    recentEntries.push({ tokens: actualTokens, timestamp: now, cost: calculateCost(actualTokens) });
+export async function recordActualUsage(usageKey: string, deltaTokens: number): Promise<void> {
+  if (!Number.isFinite(deltaTokens) || deltaTokens === 0) return;
+  if (deltaTokens < 0) {
+    const used = (await store.get<number>(usageKey)) ?? 0;
+    if (used + deltaTokens <= 0) {
+      await store.del(usageKey);
+      return;
+    }
   }
-
-  usageMap.set(identifier, recentEntries);
-}
-
-/** For tests: reset all tracked usage. */
-export function _resetUsage(): void {
-  usageMap.clear();
+  await store.incrby(usageKey, deltaTokens, BUCKET_TTL_SECONDS);
 }
