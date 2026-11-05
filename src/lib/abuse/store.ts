@@ -291,7 +291,12 @@ export const store = {
   /** Returns every field/value pair of a hash (empty object when absent). */
   async hgetall(key: string): Promise<Record<string, number>> {
     if (redis) {
-      return (await redis.hgetall<Record<string, number>>(key)) ?? {};
+      const raw = (await redis.hgetall<Record<string, string | number>>(key)) ?? {};
+      // Upstash returns hash fields as strings; coerce to numbers so callers
+      // (analytics) can do arithmetic without string concatenation.
+      return Object.fromEntries(
+        Object.entries(raw).map(([field, value]) => [field, Number(value)]),
+      );
     }
     return memoryHashOps.hgetall(key);
   },
