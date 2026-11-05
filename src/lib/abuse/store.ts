@@ -24,6 +24,10 @@ const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 const memory = new Map<string, { value: string; expiresAt: number }>();
 const memorySets = new Map<string, Set<string>>();
 const memoryZsets = new Map<string, Map<string, number>>();
+const memoryHashes = new Map<string, Map<string, number>>();
+const memoryHashExpiry = new Map<string, number>();
+const memoryLists = new Map<string, unknown[]>();
+const memoryListExpiry = new Map<string, number>();
 
 let redis: Redis | null = null;
 if (url && token) {
@@ -34,11 +38,11 @@ export const storageBackend: 'redis' | 'memory' = redis ? 'redis' : 'memory';
 
 /** Converts a Redis-style glob pattern (`*`, `?`) to a RegExp. */
 function globToRegex(pattern: string): RegExp {
-  let out = "";
+  let out = '';
   for (const ch of pattern) {
-    if (ch === "*") out += ".*";
-    else if (ch === "?") out += ".";
-    else out += ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (ch === '*') out += '.*';
+    else if (ch === '?') out += '.';
+    else out += ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
   return new RegExp(`^${out}$`);
 }
@@ -118,10 +122,108 @@ const memoryStore = {
   },
 
   async incr(key: string, ttlSeconds?: number): Promise<number> {
+    return memoryStore.incrby(key, 1, ttlSeconds);
+  },
+
+  async incrby(key: string, increment: number, ttlSeconds?: number): Promise<number> {
     const current = (await memoryStore.get<number>(key)) ?? 0;
-    const next = current + 1;
-    await memoryStore.set(key, next, ttlSeconds ? { ex: ttlSeconds } : undefined);
+    const next = current + increment;
+    // Preserve an existing TTL when none is given, mirroring Redis INCR
+    // (which never resets the expiry). Dropping it would let a ttl-less
+    // counter live forever after one ttl-bearing write.
+    let opts: SetOptions | undefined;
+    if (ttlSeconds) {
+      opts = { ex: ttlSeconds };
+    } else {
+      const existing = memory.get(key);
+      if (existing && existing.expiresAt > 0) {
+        const remainingMs = existing.expiresAt - Date.now();
+        if (remainingMs > 0) opts = { ex: Math.ceil(remainingMs / 1000) };
+      }
+    }
+    await memoryStore.set(key, next, opts);
     return next;
+  },
+
+  async getdel<T = unknown>(key: string): Promise<T | null> {
+    const value = await memoryStore.get<T>(key);
+    await memoryStore.del(key);
+    return value;
+  },
+};
+
+function liveHash(key: string): Map<string, number> | undefined {
+  const expiresAt = memoryHashExpiry.get(key);
+  if (expiresAt !== undefined && Date.now() > expiresAt) {
+    memoryHashes.delete(key);
+    memoryHashExpiry.delete(key);
+    return undefined;
+  }
+  return memoryHashes.get(key);
+}
+
+const memoryHashOps = {
+  async hincrby(
+    key: string,
+    field: string,
+    increment: number,
+    ttlSeconds?: number,
+  ): Promise<number> {
+    const hash = liveHash(key) ?? new Map<string, number>();
+    const next = (hash.get(field) ?? 0) + increment;
+    hash.set(field, next);
+    memoryHashes.set(key, hash);
+    if (ttlSeconds) {
+      memoryHashExpiry.set(key, Date.now() + ttlSeconds * 1000);
+    }
+    return next;
+  },
+
+  async hgetall(key: string): Promise<Record<string, number>> {
+    return Object.fromEntries(liveHash(key) ?? []);
+  },
+
+  async hlen(key: string): Promise<number> {
+    return liveHash(key)?.size ?? 0;
+  },
+};
+
+function liveList(key: string): unknown[] | undefined {
+  const expiresAt = memoryListExpiry.get(key);
+  if (expiresAt !== undefined && Date.now() > expiresAt) {
+    memoryLists.delete(key);
+    memoryListExpiry.delete(key);
+    return undefined;
+  }
+  return memoryLists.get(key);
+}
+
+const memoryListOps = {
+  async rpush(key: string, value: unknown, ttlSeconds?: number): Promise<number> {
+    const list = liveList(key) ?? [];
+    list.push(value);
+    memoryLists.set(key, list);
+    if (ttlSeconds) {
+      memoryListExpiry.set(key, Date.now() + ttlSeconds * 1000);
+    }
+    return list.length;
+  },
+
+  async ltrim(key: string, start: number, stop: number): Promise<void> {
+    const list = liveList(key);
+    if (!list) return;
+    const from = start < 0 ? Math.max(0, list.length + start) : Math.min(start, list.length);
+    const to = stop < 0 ? list.length + stop + 1 : Math.min(stop + 1, list.length);
+    memoryLists.set(key, to <= from ? [] : list.slice(from, to));
+  },
+
+  async lrange<T>(key: string, start: number, stop: number): Promise<T[]> {
+    const list = liveList(key);
+    if (!list) return [];
+    const from = start < 0 ? Math.max(0, list.length + start) : Math.min(start, list.length);
+    const to = stop < 0 ? list.length + stop + 1 : Math.min(stop + 1, list.length);
+    if (to <= from) return [];
+    return list.slice(from, to) as T[];
   },
 };
 
@@ -160,6 +262,97 @@ export const store = {
       return value;
     }
     return memoryStore.incr(key, ttlSeconds);
+  },
+
+  /** Atomically adds `increment` to a counter, applying the TTL when given. */
+  async incrby(key: string, increment: number, ttlSeconds?: number): Promise<number> {
+    if (redis) {
+      const value = await redis.incrby(key, increment);
+      if (ttlSeconds) {
+        await redis.expire(key, ttlSeconds);
+      }
+      return value;
+    }
+    return memoryStore.incrby(key, increment, ttlSeconds);
+  },
+
+  /** Reads and deletes a key in one step (one-shot tokens, run seeds). */
+  async getdel<T = unknown>(key: string): Promise<T | null> {
+    if (redis) {
+      return redis.getdel<T>(key);
+    }
+    return memoryStore.getdel<T>(key);
+  },
+
+  /** Adds `increment` to a hash field, applying the TTL when given. */
+  async hincrby(
+    key: string,
+    field: string,
+    increment: number,
+    ttlSeconds?: number,
+  ): Promise<number> {
+    if (redis) {
+      const value = await redis.hincrby(key, field, increment);
+      if (ttlSeconds) {
+        await redis.expire(key, ttlSeconds);
+      }
+      return value;
+    }
+    return memoryHashOps.hincrby(key, field, increment, ttlSeconds);
+  },
+
+  /**
+   * Returns every field/value pair of a hash (empty object when absent).
+   * Hash fields are assumed to be numeric counters; non-numeric values
+   * (only possible on the Redis path) coerce to `NaN`.
+   */
+  async hgetall(key: string): Promise<Record<string, number>> {
+    if (redis) {
+      const raw = (await redis.hgetall<Record<string, string | number>>(key)) ?? {};
+      // Upstash returns hash fields as strings; coerce to numbers so callers
+      // (analytics) can do arithmetic without string concatenation.
+      return Object.fromEntries(
+        Object.entries(raw).map(([field, value]) => [field, Number(value)]),
+      );
+    }
+    return memoryHashOps.hgetall(key);
+  },
+
+  /** Number of fields in a hash. */
+  async hlen(key: string): Promise<number> {
+    if (redis) {
+      return redis.hlen(key);
+    }
+    return memoryHashOps.hlen(key);
+  },
+
+  /** Appends a value to a list, applying the TTL when given. */
+  async rpush(key: string, value: unknown, ttlSeconds?: number): Promise<number> {
+    if (redis) {
+      const length = await redis.rpush(key, value);
+      if (ttlSeconds) {
+        await redis.expire(key, ttlSeconds);
+      }
+      return length;
+    }
+    return memoryListOps.rpush(key, value, ttlSeconds);
+  },
+
+  /** Trims a list to the given rank range (negative indexes count from the end). */
+  async ltrim(key: string, start: number, stop: number): Promise<void> {
+    if (redis) {
+      await redis.ltrim(key, start, stop);
+      return;
+    }
+    return memoryListOps.ltrim(key, start, stop);
+  },
+
+  /** Returns a list slice (negative indexes count from the end). */
+  async lrange<T = unknown>(key: string, start: number, stop: number): Promise<T[]> {
+    if (redis) {
+      return (await redis.lrange<T>(key, start, stop)) ?? [];
+    }
+    return memoryListOps.lrange<T>(key, start, stop);
   },
 
   /**

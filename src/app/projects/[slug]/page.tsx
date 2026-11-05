@@ -8,6 +8,7 @@ import { about, person, projects } from "@/content";
 import { ProjectsList } from "@/features/projects/ProjectsList";
 import { formatDate } from "@/lib/formatDate";
 import { logger } from "@/lib/logger";
+import { isPostVisible } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
 import { fetchFeaturedRepos } from "@/lib/github-repos";
 import { generateMeta } from "@/lib/seo";
@@ -31,13 +32,13 @@ export async function generateMetadata({
     : routeParams.slug || "";
   const posts = getPosts(["src", "content", "projects"]);
   const post = posts.find((p) => p.slug === slugPath);
-  if (!post) return {};
+  if (!post || !isPostVisible(post.metadata)) return {};
 
   const meta = generateMeta({
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+    image: post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`,
     path: `${projects.path}/${post.slug}`,
   });
 
@@ -68,8 +69,8 @@ export default async function ProjectDetail({
     : routeParams.slug || "";
   const post = getPosts(["src", "content", "projects"]).find((p) => p.slug === slugPath);
 
-  if (!post) {
-    logger.warn({ slug: slugPath }, "project post not found");
+  if (!post || !isPostVisible(post.metadata)) {
+    logger.warn({ slug: slugPath }, "project post not found or hidden");
     notFound();
   }
 

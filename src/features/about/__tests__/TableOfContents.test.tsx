@@ -9,7 +9,6 @@ vi.mock("@/config", () => ({
   routes: {},
   display: {},
   mailchimp: {},
-  protectedRoutes: {},
   fonts: {},
   sameAs: [],
   socialSharing: [],

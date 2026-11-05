@@ -1,6 +1,5 @@
 export type RoutesConfig = Record<string, boolean>;
 export type DisplayConfig = { location: boolean; time: boolean; themeSwitcher: boolean };
-export type ProtectedRoutesConfig = Record<string, boolean>;
 export type SameAsConfig = Record<string, string | undefined>;
 export type FontsConfig = {
   heading: { variable: string };
@@ -25,8 +24,6 @@ const display: DisplayConfig = {
   time: true,
   themeSwitcher: true,
 };
-
-const protectedRoutes: ProtectedRoutesConfig = {};
 
 import { Space_Grotesk } from "next/font/google";
 import { Inter } from "next/font/google";
@@ -105,7 +102,6 @@ export {
   display,
   fonts,
   mailchimp,
-  protectedRoutes,
   referral,
   routes,
   sameAs,

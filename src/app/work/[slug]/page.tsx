@@ -8,6 +8,7 @@ import { about, person, work } from "@/content";
 import { Projects } from "@/features/work/Projects";
 import { formatDate } from "@/lib/formatDate";
 import { logger } from "@/lib/logger";
+import { isPostVisible } from "@/lib/draft";
 import { getPosts } from "@/lib/mdx";
 import { generateMeta } from "@/lib/seo";
 import { Schema } from "@/lib/schema";
@@ -15,7 +16,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const posts = getPosts(["src", "content", "work"]);
+  const posts = getPosts(["src", "content", "work"]).filter((post) =>
+    isPostVisible(post.metadata),
+  );
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -34,13 +37,13 @@ export async function generateMetadata({
   const posts = getPosts(["src", "content", "work"]);
   const post = posts.find((post) => post.slug === slugPath);
 
-  if (!post) return {};
+  if (!post || !isPostVisible(post.metadata)) return {};
 
   const meta = generateMeta({
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+    image: post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`,
     path: `${work.path}/${post.slug}`,
   });
 
@@ -72,8 +75,8 @@ export default async function Project({
 
   const post = getPosts(["src", "content", "work"]).find((post) => post.slug === slugPath);
 
-  if (!post) {
-    logger.warn({ slug: slugPath }, "work post not found");
+  if (!post || !isPostVisible(post.metadata)) {
+    logger.warn({ slug: slugPath }, "work post not found or hidden");
     notFound();
   }
 

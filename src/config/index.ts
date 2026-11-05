@@ -3,7 +3,6 @@ export {
   mailchimp,
   referral,
   routes,
-  protectedRoutes,
   baseURL,
   fonts,
   sameAs,

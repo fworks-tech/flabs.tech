@@ -125,6 +125,8 @@ async function sendWebhook(url: string | undefined, body: Record<string, unknown
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      // Never let a third-party outage stall the chat response.
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) {
       logger.warn({ status: res.status }, 'abuse webhook delivery failed');

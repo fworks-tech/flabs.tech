@@ -154,9 +154,9 @@ describe('resolveKey', () => {
 });
 
 describe('retentionMs', () => {
-  it('defaults to 1 hour', () => {
+  it('defaults to 24 hours', () => {
     process.env.ABUSE_RETENTION_MS = '';
-    expect(retentionMs()).toBe(3600_000);
+    expect(retentionMs()).toBe(86_400_000);
   });
 
   it('reads the env override', () => {

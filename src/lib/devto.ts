@@ -2,7 +2,6 @@ import { logger } from "@/lib/logger";
 
 const DEVTO_API = "https://dev.to/api";
 const DEVTO_API_KEY = "DEVTO_API_KEY";
-const FALLBACK_API_KEY = "OPENCODE_API_KEY";
 
 export type DevtoArticleInput = {
   title: string;
@@ -37,12 +36,11 @@ export class DevtoError extends Error {
 }
 
 function getApiKey(): string {
-  const key = process.env[DEVTO_API_KEY] || process.env[FALLBACK_API_KEY];
+  const key = process.env[DEVTO_API_KEY];
   if (!key) {
     throw new DevtoError(
-      `Neither ${DEVTO_API_KEY} nor ${FALLBACK_API_KEY} is set. ` +
-      `Set ${DEVTO_API_KEY} (Dev.to: https://dev.to/settings/account) ` +
-      `or reuse your existing ${FALLBACK_API_KEY}.`,
+      `${DEVTO_API_KEY} is not set. ` +
+        `Set it to a Dev.to API key (https://dev.to/settings/account).`,
       401,
     );
   }

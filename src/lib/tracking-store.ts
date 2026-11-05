@@ -4,8 +4,8 @@ import { store } from '@/lib/abuse/store';
  * Server-side storage for the self-hosted, consent-first UX analytics.
  *
  * Namespace: `analytics:*` (separate from `abuse:*`).
- * - `analytics:counters:<day>`  — JSON map of daily totals (30d TTL)
- * - `analytics:pages:<day>`     — JSON map path -> pageview count, capped at 100 (30d TTL)
+ * - `analytics:counters:<day>`  — hash of daily totals (30d TTL)
+ * - `analytics:pages:<day>`     — hash path -> pageview count, capped at 100 (30d TTL)
  * - `analytics:uv:<day>`        — HyperLogLog of unique visitor ids (30d TTL)
  * - `analytics:seen:<uid>`      — marker for new-vs-returning detection (90d TTL)
  * - `analytics:events`          — bounded list of recent raw events (14d TTL)
@@ -73,20 +73,19 @@ export function dayKey(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
+// Counters are Redis hash fields: `HINCRBY` is atomic, so parallel events can
+// no longer overwrite each other's read-modify-write.
 async function bumpCounter(key: string, field: string, ttlSeconds: number): Promise<void> {
-  const data = (await store.get<Record<string, number>>(key)) ?? {};
-  data[field] = (data[field] ?? 0) + 1;
-  await store.set(key, data, { ex: ttlSeconds });
+  await store.hincrby(key, field, 1, ttlSeconds);
 }
 
 async function bumpPage(key: string, path: string, ttlSeconds: number): Promise<void> {
-  const data = (await store.get<Record<string, number>>(key)) ?? {};
-  if (!(path in data) && Object.keys(data).length >= MAX_PAGES) {
-    const lowest = Object.entries(data).sort((a, b) => a[1] - b[1])[0];
-    if (lowest) delete data[lowest[0]];
+  // Keep the path set bounded: once full, only existing paths keep counting.
+  if ((await store.hlen(key)) >= MAX_PAGES) {
+    const known = await store.hgetall(key);
+    if (!(path in known)) return;
   }
-  data[path] = (data[path] ?? 0) + 1;
-  await store.set(key, data, { ex: ttlSeconds });
+  await store.hincrby(key, path, 1, ttlSeconds);
 }
 
 /** Persists a validated analytics event (aggregates + bounded raw list). */
@@ -123,14 +122,14 @@ export async function recordEvent(ev: TrackedEvent): Promise<void> {
     }
   }
 
-  const events = (await store.get<TrackedEvent[]>('analytics:events')) ?? [];
-  events.push(ev);
-  await store.set('analytics:events', events.slice(-MAX_RECENT_EVENTS), { ex: EVENTS_TTL });
+  // A Redis list keeps parallel event writes from overwriting each other.
+  await store.rpush('analytics:events', ev, EVENTS_TTL);
+  await store.ltrim('analytics:events', -MAX_RECENT_EVENTS, -1);
 }
 
 export async function getRecentEvents(limit = 50): Promise<TrackedEvent[]> {
-  const events = (await store.get<TrackedEvent[]>('analytics:events')) ?? [];
-  return events.slice(-limit).reverse();
+  const events = await store.lrange<TrackedEvent>('analytics:events', -limit, -1);
+  return events.reverse();
 }
 
 /** Aggregated daily stats for the last `days` days (oldest first). */
@@ -144,35 +143,41 @@ export async function getDaySeries(days: number): Promise<
     chatMessages: number;
   }[]
 > {
-  const out = [];
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 24 * 60 * 60 * 1000);
-    const day = dayKey(d);
-    const counters = (await store.get<Record<string, number>>(`analytics:counters:${day}`)) ?? {};
-    const uniques = await store.pfcount(`analytics:uv:${day}`);
-    out.push({
-      day,
-      pageviews: counters.page_view ?? 0,
-      sessions: counters.session_start ?? 0,
-      uniques,
-      clicks:
-        (counters.nav_click ?? 0) +
-        (counters.external_link ?? 0) +
-        (counters.cta_click ?? 0) +
-        (counters.social_link ?? 0),
-      chatMessages: counters.ai_assistant_send ?? 0,
-    });
-  }
-  return out;
+  // Oldest first: i = days-1 .. 0.
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const rows = await Promise.all(
+    daysArr.map(async (i) => {
+      const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
+      const [counters, uniques] = await Promise.all([
+        store.hgetall(`analytics:counters:${day}`),
+        store.pfcount(`analytics:uv:${day}`),
+      ]);
+      return {
+        day,
+        pageviews: counters.page_view ?? 0,
+        sessions: counters.session_start ?? 0,
+        uniques,
+        clicks:
+          (counters.nav_click ?? 0) +
+          (counters.external_link ?? 0) +
+          (counters.cta_click ?? 0) +
+          (counters.social_link ?? 0),
+        chatMessages: counters.ai_assistant_send ?? 0,
+      };
+    }),
+  );
+  return rows;
 }
 
 export async function getTopPages(days: number, limit = 10): Promise<[string, number][]> {
   const merged: Record<string, number> = {};
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 24 * 60 * 60 * 1000);
-    const pages = (await store.get<Record<string, number>>(`analytics:pages:${dayKey(d)}`)) ?? {};
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const pagesByDay = await Promise.all(
+    daysArr.map((i) => store.hgetall(`analytics:pages:${dayKey(new Date(now - i * 24 * 60 * 60 * 1000))}`)),
+  );
+  for (const pages of pagesByDay) {
     for (const [path, count] of Object.entries(pages)) {
       merged[path] = (merged[path] ?? 0) + count;
     }
@@ -203,10 +208,18 @@ export async function getTotals(days: number): Promise<{
     browsers: {} as Record<string, number>,
   };
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 24 * 60 * 60 * 1000);
-    const day = dayKey(d);
-    const counters = (await store.get<Record<string, number>>(`analytics:counters:${day}`)) ?? {};
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const perDay = await Promise.all(
+    daysArr.map(async (i) => {
+      const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
+      const [counters, uniques] = await Promise.all([
+        store.hgetall(`analytics:counters:${day}`),
+        store.pfcount(`analytics:uv:${day}`),
+      ]);
+      return { counters, uniques };
+    }),
+  );
+  for (const { counters, uniques } of perDay) {
     totals.pageviews += counters.page_view ?? 0;
     totals.sessions += counters.session_start ?? 0;
     totals.newVisitors += counters.new_visitors ?? 0;
@@ -224,7 +237,7 @@ export async function getTotals(days: number): Promise<{
       const n = counters[`browser:${key}`] ?? 0;
       if (n > 0) totals.browsers[key] = (totals.browsers[key] ?? 0) + n;
     }
-    totals.uniques += await store.pfcount(`analytics:uv:${day}`);
+    totals.uniques += uniques;
   }
   return totals;
 }
@@ -250,19 +263,24 @@ export async function getEngagement(days: number): Promise<{
 }> {
   const out = {
     browsers: {} as Record<string, number>,
-    scrollDepth: Object.fromEntries(SCROLL_THRESHOLDS.map((t) => [t, 0])) as { [K in (typeof SCROLL_THRESHOLDS)[number]]: number },
+    scrollDepth: Object.fromEntries(SCROLL_THRESHOLDS.map((t) => [t, 0])) as {
+      [K in (typeof SCROLL_THRESHOLDS)[number]]: number;
+    },
     quiz: { starts: 0, completes: 0 },
   };
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
-    const counters = (await store.get<Record<string, number>>(`analytics:counters:${day}`)) ?? {};
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const countersByDay = await Promise.all(
+    daysArr.map((i) => store.hgetall(`analytics:counters:${dayKey(new Date(now - i * 24 * 60 * 60 * 1000))}`)),
+  );
+  for (const counters of countersByDay) {
     for (const key of BROWSER_KEYS) {
       const n = counters[`browser:${key}`] ?? 0;
       if (n > 0) out.browsers[key] = (out.browsers[key] ?? 0) + n;
     }
     for (const threshold of SCROLL_THRESHOLDS) {
-      out.scrollDepth[threshold] = (out.scrollDepth[threshold] ?? 0) + (counters[`scroll:${threshold}`] ?? 0);
+      out.scrollDepth[threshold] =
+        (out.scrollDepth[threshold] ?? 0) + (counters[`scroll:${threshold}`] ?? 0);
     }
     out.quiz.starts += counters.quiz_start ?? 0;
     out.quiz.completes += counters.quiz_complete ?? 0;

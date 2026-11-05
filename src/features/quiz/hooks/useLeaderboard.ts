@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
-import type { LeaderboardEntry, ScorePayload } from "@/features/quiz/lib/leaderboard";
-import { trackEvent } from "@/lib/analytics";
+import type { LeaderboardEntry, ScoreSubmission } from '@/features/quiz/lib/leaderboard';
+import { trackEvent } from '@/lib/analytics';
 
-export type LeaderboardWeek = "current" | "all";
+export type LeaderboardWeek = 'current' | 'all';
 
 export interface SaveResult {
   id: string;
@@ -21,7 +21,7 @@ export function useLeaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [week, setWeek] = useState<LeaderboardWeek>("current");
+  const [week, setWeek] = useState<LeaderboardWeek>('current');
   const [saved, setSaved] = useState<SaveResult | null>(null);
 
   const fetchBoard = useCallback(async (w: LeaderboardWeek) => {
@@ -71,23 +71,22 @@ export function useLeaderboard() {
   }, []);
 
   const saveScore = useCallback(
-    async (payload: ScorePayload): Promise<number | null> => {
+    async (submission: ScoreSubmission): Promise<SaveResult | null> => {
       try {
-        const res = await fetch("/api/quiz/score", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        const res = await fetch('/api/quiz/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submission),
         });
         if (!res.ok) return null;
         const data = (await res.json()) as { ok: boolean; id: string; rank: number | null };
-        setSaved({ id: data.id, rank: data.rank });
+        const result: SaveResult = { id: data.id, rank: data.rank };
+        setSaved(result);
         await fetchBoard(week);
-        trackEvent("quiz_score_saved", {
-          score: payload.score,
-          accuracy: payload.total === 0 ? 0 : payload.correct / payload.total,
-          rank: data.rank ?? -1,
-        });
-        return data.rank;
+        // The payload no longer carries a client-side score; quiz_complete
+        // already reports it for analytics.
+        trackEvent('quiz_score_saved', { rank: data.rank ?? -1 });
+        return result;
       } catch {
         return null;
       }

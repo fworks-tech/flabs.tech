@@ -1,59 +1,26 @@
-const attempts = new Map<string, { count: number; resetAt: number }>();
+import { store } from '@/lib/abuse/store';
 
+/**
+ * Durable per-actor rate limit.
+ *
+ * The counter lives in the store adapter (Upstash Redis in production), so
+ * the limit is shared by every serverless instance. The in-memory fallback
+ * keeps local development and tests working.
+ *
+ * The window is a sliding TTL: each request refreshes the expiry, so a client
+ * that keeps hammering stays blocked until it goes quiet for `windowSeconds`.
+ */
+const DEFAULT_WINDOW_SECONDS = 60;
 const DEFAULT_MAX_ATTEMPTS = 5;
-const DEFAULT_WINDOW_MS = 60_000;
-const CLEANUP_INTERVAL = 300_000;
 
-export interface RateLimitConfig {
-  maxAttempts?: number;
-  windowMs?: number;
-}
-
-// Periodic cleanup to prevent memory leak
-let cleanupTimer: ReturnType<typeof setInterval> | null = null;
-function ensureCleanup() {
-  if (cleanupTimer) return;
-  cleanupTimer = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of attempts) {
-      if (now > entry.resetAt) {
-        attempts.delete(key);
-      }
-    }
-    if (attempts.size === 0 && cleanupTimer) {
-      clearInterval(cleanupTimer);
-      cleanupTimer = null;
-    }
-  }, CLEANUP_INTERVAL);
-}
-
-ensureCleanup();
-
-export function rateLimit(
+export async function rateLimit(
   identifier: string,
-  configOrMaxAttempts: RateLimitConfig | number = DEFAULT_MAX_ATTEMPTS,
-  windowMs: number = DEFAULT_WINDOW_MS,
-): { allowed: boolean; retryAfter: number } {
-  const maxAttempts =
-    typeof configOrMaxAttempts === 'number'
-      ? configOrMaxAttempts
-      : configOrMaxAttempts.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-  const effectiveWindowMs =
-    typeof configOrMaxAttempts === 'number'
-      ? windowMs
-      : configOrMaxAttempts.windowMs ?? DEFAULT_WINDOW_MS;
-  const now = Date.now();
-  const entry = attempts.get(identifier);
-
-  if (!entry || now > entry.resetAt) {
-    attempts.set(identifier, { count: 1, resetAt: now + effectiveWindowMs });
-    return { allowed: true, retryAfter: 0 };
+  maxAttempts: number = DEFAULT_MAX_ATTEMPTS,
+  windowSeconds: number = DEFAULT_WINDOW_SECONDS,
+): Promise<{ allowed: boolean; retryAfter: number }> {
+  const count = await store.incr(`rl:${identifier}`, windowSeconds);
+  if (count > maxAttempts) {
+    return { allowed: false, retryAfter: windowSeconds };
   }
-
-  if (entry.count >= maxAttempts) {
-    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
-  }
-
-  entry.count++;
   return { allowed: true, retryAfter: 0 };
 }

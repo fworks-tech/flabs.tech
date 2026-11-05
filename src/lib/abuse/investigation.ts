@@ -45,12 +45,16 @@ export interface InvestigationCase {
   decision: 'open' | 'contained';
 }
 
-const DEFAULT_RETENTION_MS = 3600_000; // 1h
-const CASE_TTL_SECONDS = 3600 * 24; // Redis TTL for stored cases (24h)
+const DEFAULT_RETENTION_MS = 24 * 60 * 60 * 1000; // 24h
 
 export function retentionMs(): number {
   const raw = Number(process.env.ABUSE_RETENTION_MS);
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_RETENTION_MS;
+}
+
+/** Redis TTL for a stored case, derived from the retention knob (min 60s). */
+function caseTtlSeconds(): number {
+  return Math.max(60, Math.ceil(retentionMs() / 1000));
 }
 
 /**
@@ -124,7 +128,7 @@ export async function recordSignal(
     decision: severity === 'low' ? 'open' : 'contained',
   };
 
-  await store.set(caseKey(actorKey), nextCase, { ex: CASE_TTL_SECONDS });
+  await store.set(caseKey(actorKey), nextCase, { ex: caseTtlSeconds() });
   return nextCase;
 }
 
