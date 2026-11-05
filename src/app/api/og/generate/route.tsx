@@ -259,7 +259,10 @@ export async function GET(request: Request) {
       width: 1200,
       height: 630,
       headers: {
-        // The default card only depends on the static site identity.
+        // The default card only depends on the static site identity. Vercel's
+        // cache keys on the full URL (incl. query string), so distinct titles
+        // are cached separately; if that ever changes, gate s-maxage on the
+        // absence of a `title` param instead.
         "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
       },
     },

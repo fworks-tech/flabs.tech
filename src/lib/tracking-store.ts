@@ -143,35 +143,41 @@ export async function getDaySeries(days: number): Promise<
     chatMessages: number;
   }[]
 > {
-  const out = [];
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 24 * 60 * 60 * 1000);
-    const day = dayKey(d);
-    const counters = await store.hgetall(`analytics:counters:${day}`);
-    const uniques = await store.pfcount(`analytics:uv:${day}`);
-    out.push({
-      day,
-      pageviews: counters.page_view ?? 0,
-      sessions: counters.session_start ?? 0,
-      uniques,
-      clicks:
-        (counters.nav_click ?? 0) +
-        (counters.external_link ?? 0) +
-        (counters.cta_click ?? 0) +
-        (counters.social_link ?? 0),
-      chatMessages: counters.ai_assistant_send ?? 0,
-    });
-  }
-  return out;
+  // Oldest first: i = days-1 .. 0.
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const rows = await Promise.all(
+    daysArr.map(async (i) => {
+      const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
+      const [counters, uniques] = await Promise.all([
+        store.hgetall(`analytics:counters:${day}`),
+        store.pfcount(`analytics:uv:${day}`),
+      ]);
+      return {
+        day,
+        pageviews: counters.page_view ?? 0,
+        sessions: counters.session_start ?? 0,
+        uniques,
+        clicks:
+          (counters.nav_click ?? 0) +
+          (counters.external_link ?? 0) +
+          (counters.cta_click ?? 0) +
+          (counters.social_link ?? 0),
+        chatMessages: counters.ai_assistant_send ?? 0,
+      };
+    }),
+  );
+  return rows;
 }
 
 export async function getTopPages(days: number, limit = 10): Promise<[string, number][]> {
   const merged: Record<string, number> = {};
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 24 * 60 * 60 * 1000);
-    const pages = await store.hgetall(`analytics:pages:${dayKey(d)}`);
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const pagesByDay = await Promise.all(
+    daysArr.map((i) => store.hgetall(`analytics:pages:${dayKey(new Date(now - i * 24 * 60 * 60 * 1000))}`)),
+  );
+  for (const pages of pagesByDay) {
     for (const [path, count] of Object.entries(pages)) {
       merged[path] = (merged[path] ?? 0) + count;
     }
@@ -202,10 +208,18 @@ export async function getTotals(days: number): Promise<{
     browsers: {} as Record<string, number>,
   };
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 24 * 60 * 60 * 1000);
-    const day = dayKey(d);
-    const counters = await store.hgetall(`analytics:counters:${day}`);
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const perDay = await Promise.all(
+    daysArr.map(async (i) => {
+      const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
+      const [counters, uniques] = await Promise.all([
+        store.hgetall(`analytics:counters:${day}`),
+        store.pfcount(`analytics:uv:${day}`),
+      ]);
+      return { counters, uniques };
+    }),
+  );
+  for (const { counters, uniques } of perDay) {
     totals.pageviews += counters.page_view ?? 0;
     totals.sessions += counters.session_start ?? 0;
     totals.newVisitors += counters.new_visitors ?? 0;
@@ -223,7 +237,7 @@ export async function getTotals(days: number): Promise<{
       const n = counters[`browser:${key}`] ?? 0;
       if (n > 0) totals.browsers[key] = (totals.browsers[key] ?? 0) + n;
     }
-    totals.uniques += await store.pfcount(`analytics:uv:${day}`);
+    totals.uniques += uniques;
   }
   return totals;
 }
@@ -255,9 +269,11 @@ export async function getEngagement(days: number): Promise<{
     quiz: { starts: 0, completes: 0 },
   };
   const now = Date.now();
-  for (let i = days - 1; i >= 0; i--) {
-    const day = dayKey(new Date(now - i * 24 * 60 * 60 * 1000));
-    const counters = await store.hgetall(`analytics:counters:${day}`);
+  const daysArr = Array.from({ length: days }, (_, k) => days - 1 - k);
+  const countersByDay = await Promise.all(
+    daysArr.map((i) => store.hgetall(`analytics:counters:${dayKey(new Date(now - i * 24 * 60 * 60 * 1000))}`)),
+  );
+  for (const counters of countersByDay) {
     for (const key of BROWSER_KEYS) {
       const n = counters[`browser:${key}`] ?? 0;
       if (n > 0) out.browsers[key] = (out.browsers[key] ?? 0) + n;

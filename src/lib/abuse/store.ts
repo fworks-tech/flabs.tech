@@ -128,7 +128,20 @@ const memoryStore = {
   async incrby(key: string, increment: number, ttlSeconds?: number): Promise<number> {
     const current = (await memoryStore.get<number>(key)) ?? 0;
     const next = current + increment;
-    await memoryStore.set(key, next, ttlSeconds ? { ex: ttlSeconds } : undefined);
+    // Preserve an existing TTL when none is given, mirroring Redis INCR
+    // (which never resets the expiry). Dropping it would let a ttl-less
+    // counter live forever after one ttl-bearing write.
+    let opts: SetOptions | undefined;
+    if (ttlSeconds) {
+      opts = { ex: ttlSeconds };
+    } else {
+      const existing = memory.get(key);
+      if (existing && existing.expiresAt > 0) {
+        const remainingMs = existing.expiresAt - Date.now();
+        if (remainingMs > 0) opts = { ex: Math.ceil(remainingMs / 1000) };
+      }
+    }
+    await memoryStore.set(key, next, opts);
     return next;
   },
 
@@ -288,7 +301,11 @@ export const store = {
     return memoryHashOps.hincrby(key, field, increment, ttlSeconds);
   },
 
-  /** Returns every field/value pair of a hash (empty object when absent). */
+  /**
+   * Returns every field/value pair of a hash (empty object when absent).
+   * Hash fields are assumed to be numeric counters; non-numeric values
+   * (only possible on the Redis path) coerce to `NaN`.
+   */
   async hgetall(key: string): Promise<Record<string, number>> {
     if (redis) {
       const raw = (await redis.hgetall<Record<string, string | number>>(key)) ?? {};

@@ -48,6 +48,10 @@ export async function checkCostLimit(
   const usageKey = bucketKey(identifier);
   const used = (await store.get<number>(usageKey)) ?? 0;
 
+  // Approximate check-then-act: two concurrent requests can both pass before
+  // either increments. Acceptable because the cap is small ($0.50/h) and each
+  // request is bounded by MAX_TOKENS_PER_REQUEST; strict atomicity would need
+  // a Redis Lua script (Upstash eval) and is deferred.
   if (calculateCost(used + estimatedTokens) > MAX_COST_PER_HOUR_USD) {
     return { allowed: false, retryAfter: secondsToNextBucket(), usageKey, estimatedTokens: 0 };
   }

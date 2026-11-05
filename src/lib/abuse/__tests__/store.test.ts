@@ -47,6 +47,16 @@ describe('store memory fallback', () => {
     await expect(store.incr('test:count')).resolves.toBe(2);
   });
 
+  it('incr without TTL preserves a prior expiry', async () => {
+    vi.useFakeTimers();
+    const store = await loadStore();
+    await store.incr('test:ttlcount', 10);
+    await store.incr('test:ttlcount');
+    vi.advanceTimersByTime(11_000);
+    await expect(store.get('test:ttlcount')).resolves.toBeNull();
+    vi.useRealTimers();
+  });
+
   it('incrby adds an arbitrary amount', async () => {
     const store = await loadStore();
     await expect(store.incrby('test:cost', 4000)).resolves.toBe(4000);

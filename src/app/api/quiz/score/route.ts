@@ -1,7 +1,8 @@
+import { createHash } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { buildDeck } from '@/features/quiz/data/questions';
-import { isRateLimited } from '@/features/quiz/lib/rateLimit';
+import { clientIp, isRateLimited } from '@/features/quiz/lib/rateLimit';
 import {
   ALL_TIME_KEY,
   leaderboardMember,
@@ -23,6 +24,8 @@ const ATTEMPT_TTL_SECONDS = 7 * 24 * 60 * 60;
 interface RunRecord {
   seed: number;
   issuedAt: number;
+  /** SHA-256 prefix of the issuing client IP; absent on legacy runs. */
+  ipHash?: string;
 }
 
 /**
@@ -54,6 +57,16 @@ export async function POST(request: NextRequest) {
   if (!run || !Number.isInteger(run.seed)) {
     logger.warn({ runId: submission.runId }, 'score submitted for an unknown run');
     return NextResponse.json({ error: 'Unknown or expired run' }, { status: 400 });
+  }
+
+  // Bind the run to the issuing client so a leaked runId+seed cannot be
+  // redeemed from a different origin. Legacy records (no ipHash) are allowed.
+  if (run.ipHash) {
+    const requesterHash = createHash('sha256').update(clientIp(request)).digest('hex').slice(0, 16);
+    if (requesterHash !== run.ipHash) {
+      logger.warn({ runId: submission.runId }, 'score submitted from a different client');
+      return NextResponse.json({ error: 'Unknown or expired run' }, { status: 400 });
+    }
   }
 
   const deck = buildDeck(run.seed);
