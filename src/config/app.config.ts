@@ -41,11 +41,8 @@ const body = Inter({
   display: "swap",
 });
 
-const label = Inter({
-  variable: "--font-label",
-  subsets: ["latin"],
-  display: "swap",
-});
+// Reuse the body instance for the label role to avoid a duplicate font download.
+const label = body;
 
 const code = JetBrains_Mono({
   variable: "--font-code",

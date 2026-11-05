@@ -2,9 +2,9 @@ import "@mantine/core/styles.css";
 import "@/styles/custom.css";
 
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
-import { AiAssistant } from "@/components/ai";
+import ClientAiAssistant from "@/components/layout/ClientAiAssistant";
 import { Footer, Header, Providers } from "@/components";
-import { ConsentBanner } from "@/components/layout/ConsentBanner";
+import ClientConsentBanner from "@/components/layout/ClientConsentBanner";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { PostHogInit } from "@/components/layout/PostHogInit";
 import { SocialStats } from "@/components/layout/SocialStats";
@@ -107,8 +107,8 @@ export default function RootLayout({
             <SocialStats />
           </Suspense>
           <Footer />
-          <AiAssistant />
-          <ConsentBanner />
+          <ClientAiAssistant />
+          <ClientConsentBanner />
         </Providers>
         <TrackingProvider />
       <Analytics />
