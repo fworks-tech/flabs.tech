@@ -37,7 +37,7 @@ test.describe("mobile viewport (375px)", () => {
 test.describe("dark mode toggle", () => {
   for (const route of staticRoutes) {
     test(`${route} switches theme on toggle click`, async ({ page }) => {
-      await page.goto(route, { waitUntil: "networkidle" });
+      await page.goto(route);
       const html = page.locator("html");
       const initial = await html.getAttribute("data-mantine-color-scheme");
       expect(["dark", "light"]).toContain(initial);
