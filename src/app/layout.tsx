@@ -15,8 +15,7 @@ import { SkipLink } from "@/components/layout/SkipLink";
 import { baseURL, fonts, sameAs } from "@/config";
 import { home, person } from "@/content";
 import { generateMeta } from "@/lib/seo";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsightsWithRedaction } from "@/components/layout/SpeedInsightsWithRedaction";
+import ClientThirdParty from "@/components/layout/ClientThirdParty";
 
 import type { Viewport } from "next";
 import { Suspense } from "react";
@@ -111,8 +110,7 @@ export default function RootLayout({
           <ClientConsentBanner />
         </Providers>
         <TrackingProvider />
-      <Analytics />
-      <SpeedInsightsWithRedaction />
+      <ClientThirdParty />
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "Person",

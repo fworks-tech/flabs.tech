@@ -33,6 +33,7 @@ const heading = Space_Grotesk({
   variable: "--font-heading",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
 });
 
 const body = Inter({
