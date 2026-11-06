@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 const s3Mock = vi.hoisted(() => ({
   uploadFile: vi.fn(),
@@ -20,10 +20,15 @@ import { isAuthenticated } from "@/lib/auth";
 import { uploadFile } from "@/lib/s3";
 import { POST } from "../route";
 
+/**
+ * The route only reads `request.formData()`. Building that directly avoids a
+ * jsdom/undici FormData realm mismatch that made `new NextRequest(...)` drop
+ * the body on CI.
+ */
 function formRequest(file: File | null): NextRequest {
   const body = new FormData();
   if (file) body.append("file", file);
-  return new NextRequest("http://localhost/api/upload", { method: "POST", body });
+  return { formData: async () => body } as unknown as NextRequest;
 }
 
 describe("POST /api/upload", () => {
