@@ -1,5 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const redisMock = vi.hoisted(() => ({
+  hgetall: vi.fn(),
+  hlen: vi.fn(),
+  hincrby: vi.fn(),
+  lrange: vi.fn(),
+  ltrim: vi.fn(),
+  rpush: vi.fn(),
+  del: vi.fn(),
+  expire: vi.fn(),
+}));
+
+vi.mock('@upstash/redis', () => ({
+  Redis: class {
+    constructor() {
+      Object.assign(this, redisMock);
+    }
+  },
+}));
+
 // Force the in-memory fallback regardless of environment.
 beforeEach(() => {
   vi.resetModules();
@@ -13,6 +32,10 @@ afterEach(() => {
 
 async function loadStore() {
   return (await import('@/lib/abuse/store')).store;
+}
+
+function wrongTypeError() {
+  return new Error('WRONGTYPE Operation against a key holding the wrong kind of value');
 }
 
 describe('store memory fallback', () => {
@@ -110,6 +133,64 @@ describe('store memory fallback', () => {
     await store.pfadd('test:uv', 'visitor-1');
     await expect(store.pfcount('test:uv')).resolves.toBe(2);
     await expect(store.pfcount('test:missing')).resolves.toBe(0);
+  });
+});
+
+describe('store redis WRONGTYPE compatibility', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    process.env.UPSTASH_REDIS_REST_URL = 'https://example.upstash.io';
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'token';
+    redisMock.hgetall.mockReset();
+    redisMock.hlen.mockReset();
+    redisMock.hincrby.mockReset();
+    redisMock.lrange.mockReset();
+    redisMock.ltrim.mockReset();
+    redisMock.rpush.mockReset();
+    redisMock.del.mockReset();
+    redisMock.expire.mockReset();
+  });
+
+  it('hgetall returns an empty object for a pre-migration string key', async () => {
+    redisMock.hgetall.mockRejectedValue(wrongTypeError());
+    const store = await loadStore();
+    await expect(store.hgetall('analytics:counters:2026-11-04')).resolves.toEqual({});
+  });
+
+  it('hlen returns 0 for a pre-migration string key', async () => {
+    redisMock.hlen.mockRejectedValue(wrongTypeError());
+    const store = await loadStore();
+    await expect(store.hlen('analytics:pages:2026-11-04')).resolves.toBe(0);
+  });
+
+  it('lrange returns an empty array for a pre-migration string key', async () => {
+    redisMock.lrange.mockRejectedValue(wrongTypeError());
+    const store = await loadStore();
+    await expect(store.lrange('analytics:events', -40, -1)).resolves.toEqual([]);
+  });
+
+  it('hincrby drops a wrong-type key and retries once', async () => {
+    redisMock.hincrby.mockRejectedValueOnce(wrongTypeError()).mockResolvedValueOnce(1);
+    redisMock.del.mockResolvedValue(1);
+    const store = await loadStore();
+    await expect(store.hincrby('analytics:counters:2026-11-05', 'page_view', 1)).resolves.toBe(1);
+    expect(redisMock.del).toHaveBeenCalledWith('analytics:counters:2026-11-05');
+    expect(redisMock.hincrby).toHaveBeenCalledTimes(2);
+  });
+
+  it('rpush drops a wrong-type key and retries once', async () => {
+    redisMock.rpush.mockRejectedValueOnce(wrongTypeError()).mockResolvedValueOnce(1);
+    redisMock.del.mockResolvedValue(1);
+    const store = await loadStore();
+    await expect(store.rpush('analytics:events', { ty: 'page_view' })).resolves.toBe(1);
+    expect(redisMock.del).toHaveBeenCalledWith('analytics:events');
+    expect(redisMock.rpush).toHaveBeenCalledTimes(2);
+  });
+
+  it('other Redis errors still propagate', async () => {
+    redisMock.hgetall.mockRejectedValue(new Error('connection reset'));
+    const store = await loadStore();
+    await expect(store.hgetall('analytics:counters:2026-11-04')).rejects.toThrow('connection reset');
   });
 });
 
