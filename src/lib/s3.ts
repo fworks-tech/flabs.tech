@@ -1,7 +1,12 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
+const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1';
 const bucket = process.env.AWS_S3_BUCKET;
 
 let client: S3Client | null = null;
@@ -19,7 +24,7 @@ export function isS3Configured(): boolean {
 }
 
 export function getBucket(): string {
-  if (!bucket) throw new Error("AWS_S3_BUCKET is not set");
+  if (!bucket) throw new Error('AWS_S3_BUCKET is not set');
   return bucket;
 }
 
@@ -39,7 +44,7 @@ export async function uploadFile(
       // granted by the bucket policy / CloudFront distribution.
     }),
   );
-  return `https://${getBucket()}.s3.${region}.amazonaws.com/${key}`;
+  return publicUrl(key);
 }
 
 export async function deleteFile(key: string): Promise<void> {

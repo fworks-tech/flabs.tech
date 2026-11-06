@@ -1,26 +1,26 @@
-import { readdirSync, readFileSync } from "node:fs";
-import path from "node:path";
-import { uploadFile } from "../src/lib/s3";
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { uploadFile } from '../src/lib/s3';
 
 const root = process.cwd();
-const publicDir = path.join(root, "public");
-const dryRun = process.argv.includes("--dry-run");
+const publicDir = path.join(root, 'public');
+const dryRun = process.argv.includes('--dry-run');
 
 function mimeFor(ext: string): string {
   switch (ext.toLowerCase()) {
-    case "png":
-      return "image/png";
-    case "jpg":
-    case "jpeg":
-      return "image/jpeg";
-    case "webp":
-      return "image/webp";
-    case "gif":
-      return "image/gif";
-    case "svg":
-      return "image/svg+xml";
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'webp':
+      return 'image/webp';
+    case 'gif':
+      return 'image/gif';
+    case 'svg':
+      return 'image/svg+xml';
     default:
-      return "application/octet-stream";
+      return 'application/octet-stream';
   }
 }
 
@@ -40,8 +40,10 @@ async function main(): Promise<void> {
   console.log(`Found ${images.length} image(s) under public/`);
 
   for (const file of images) {
-    const rel = path.relative(publicDir, file).replace(/\\/g, "/");
-    const key = `public/${rel}`;
+    const rel = path.relative(publicDir, file).replace(/\\/g, '/');
+    // Key without the `public/` prefix so the S3 path mirrors the site path
+    // (public/images/a.png -> images/a.png).
+    const key = rel;
     if (dryRun) {
       console.log(`  would upload: ${rel} -> ${key}`);
       continue;
