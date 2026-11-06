@@ -1,0 +1,68 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
+
+const s3Mock = vi.hoisted(() => ({
+  uploadFile: vi.fn(),
+  isS3Configured: vi.fn(() => true),
+}));
+
+vi.mock("@/lib/s3", () => s3Mock);
+
+vi.mock("@/lib/auth", () => ({
+  isAuthenticated: vi.fn(async () => true),
+}));
+
+vi.mock("@/lib/logger", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
+
+import { isAuthenticated } from "@/lib/auth";
+import { uploadFile } from "@/lib/s3";
+import { POST } from "../route";
+
+function formRequest(file: File | null): NextRequest {
+  const body = new FormData();
+  if (file) body.append("file", file);
+  return new NextRequest("http://localhost/api/upload", { method: "POST", body });
+}
+
+describe("POST /api/upload", () => {
+  beforeEach(() => {
+    vi.mocked(isAuthenticated).mockResolvedValue(true);
+    s3Mock.isS3Configured.mockReturnValue(true);
+    s3Mock.uploadFile.mockReset();
+  });
+
+  it("rejects unauthenticated requests", async () => {
+    vi.mocked(isAuthenticated).mockResolvedValue(false);
+    const res = await POST(formRequest(new File(["x"], "a.png", { type: "image/png" })));
+    expect(res.status).toBe(401);
+    expect(uploadFile).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when S3 is not configured", async () => {
+    s3Mock.isS3Configured.mockReturnValue(false);
+    const res = await POST(formRequest(new File(["x"], "a.png", { type: "image/png" })));
+    expect(res.status).toBe(503);
+  });
+
+  it("rejects a missing file", async () => {
+    const res = await POST(formRequest(null));
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects unsupported content types", async () => {
+    const res = await POST(formRequest(new File(["x"], "a.exe", { type: "application/octet-stream" })));
+    expect(res.status).toBe(415);
+  });
+
+  it("uploads and returns the public URL", async () => {
+    s3Mock.uploadFile.mockResolvedValue("https://bucket.s3.us-east-1.amazonaws.com/uploads/x.png");
+    const res = await POST(formRequest(new File(["x"], "a.png", { type: "image/png" })));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ok: boolean; url: string; key: string };
+    expect(body.ok).toBe(true);
+    expect(body.url).toContain("uploads/");
+    expect(uploadFile).toHaveBeenCalledOnce();
+  });
+});
