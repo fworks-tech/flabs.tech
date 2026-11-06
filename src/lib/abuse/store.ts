@@ -36,6 +36,16 @@ if (url && token) {
 
 export const storageBackend: 'redis' | 'memory' = redis ? 'redis' : 'memory';
 
+/**
+ * True when Redis rejects an operation because the key holds a different type.
+ * Analytics counters/pages/events migrated from JSON strings to hashes/lists;
+ * pre-migration keys still hold the old type until their TTL expires, so these
+ * ops treat them as absent instead of throwing.
+ */
+function isWrongType(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('WRONGTYPE');
+}
+
 /** Converts a Redis-style glob pattern (`*`, `?`) to a RegExp. */
 function globToRegex(pattern: string): RegExp {
   let out = '';
@@ -292,7 +302,15 @@ export const store = {
     ttlSeconds?: number,
   ): Promise<number> {
     if (redis) {
-      const value = await redis.hincrby(key, field, increment);
+      let value: number;
+      try {
+        value = await redis.hincrby(key, field, increment);
+      } catch (error) {
+        // Pre-migration string key: drop it so the hash can start fresh.
+        if (!isWrongType(error)) throw error;
+        await redis.del(key);
+        value = await redis.hincrby(key, field, increment);
+      }
       if (ttlSeconds) {
         await redis.expire(key, ttlSeconds);
       }
@@ -308,12 +326,18 @@ export const store = {
    */
   async hgetall(key: string): Promise<Record<string, number>> {
     if (redis) {
-      const raw = (await redis.hgetall<Record<string, string | number>>(key)) ?? {};
-      // Upstash returns hash fields as strings; coerce to numbers so callers
-      // (analytics) can do arithmetic without string concatenation.
-      return Object.fromEntries(
-        Object.entries(raw).map(([field, value]) => [field, Number(value)]),
-      );
+      try {
+        const raw = (await redis.hgetall<Record<string, string | number>>(key)) ?? {};
+        // Upstash returns hash fields as strings; coerce to numbers so callers
+        // (analytics) can do arithmetic without string concatenation.
+        return Object.fromEntries(
+          Object.entries(raw).map(([field, value]) => [field, Number(value)]),
+        );
+      } catch (error) {
+        // Pre-migration keys held JSON strings — read as empty (they expire).
+        if (!isWrongType(error)) throw error;
+        return {};
+      }
     }
     return memoryHashOps.hgetall(key);
   },
@@ -321,7 +345,12 @@ export const store = {
   /** Number of fields in a hash. */
   async hlen(key: string): Promise<number> {
     if (redis) {
-      return redis.hlen(key);
+      try {
+        return await redis.hlen(key);
+      } catch (error) {
+        if (!isWrongType(error)) throw error;
+        return 0;
+      }
     }
     return memoryHashOps.hlen(key);
   },
@@ -329,7 +358,15 @@ export const store = {
   /** Appends a value to a list, applying the TTL when given. */
   async rpush(key: string, value: unknown, ttlSeconds?: number): Promise<number> {
     if (redis) {
-      const length = await redis.rpush(key, value);
+      let length: number;
+      try {
+        length = await redis.rpush(key, value);
+      } catch (error) {
+        // Pre-migration JSON-array key: drop it so the list can start fresh.
+        if (!isWrongType(error)) throw error;
+        await redis.del(key);
+        length = await redis.rpush(key, value);
+      }
       if (ttlSeconds) {
         await redis.expire(key, ttlSeconds);
       }
@@ -341,7 +378,11 @@ export const store = {
   /** Trims a list to the given rank range (negative indexes count from the end). */
   async ltrim(key: string, start: number, stop: number): Promise<void> {
     if (redis) {
-      await redis.ltrim(key, start, stop);
+      try {
+        await redis.ltrim(key, start, stop);
+      } catch (error) {
+        if (!isWrongType(error)) throw error;
+      }
       return;
     }
     return memoryListOps.ltrim(key, start, stop);
@@ -350,7 +391,12 @@ export const store = {
   /** Returns a list slice (negative indexes count from the end). */
   async lrange<T = unknown>(key: string, start: number, stop: number): Promise<T[]> {
     if (redis) {
-      return (await redis.lrange<T>(key, start, stop)) ?? [];
+      try {
+        return (await redis.lrange<T>(key, start, stop)) ?? [];
+      } catch (error) {
+        if (!isWrongType(error)) throw error;
+        return [];
+      }
     }
     return memoryListOps.lrange<T>(key, start, stop);
   },
