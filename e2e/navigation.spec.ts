@@ -14,10 +14,13 @@ test.describe("navigation", () => {
 
   async function clickNav(page: Page, path: string, expected: RegExp) {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    // `networkidle` never settles reliably (Next dev + analytics keep requests
+    // in flight); wait for the actionable link instead, which the click also waits on.
+    const link = page.locator(`header a[href="${path}"]:visible`).first();
+    await expect(link).toBeVisible();
     await Promise.all([
       page.waitForURL(expected, { timeout: 15000 }),
-      page.locator(`header a[href="${path}"]:visible`).first().click(),
+      link.click(),
     ]);
     await expect(page).toHaveURL(expected);
   }
@@ -41,8 +44,9 @@ test.describe("navigation", () => {
 
   test("home link navigates back to homepage", async ({ page }) => {
     await page.goto("/about");
-    await page.waitForLoadState("networkidle");
-    await page.locator('header a[href="/"]:visible').first().click();
+    const homeLink = page.locator('header a[href="/"]:visible').first();
+    await expect(homeLink).toBeVisible();
+    await homeLink.click();
     await expect(page).toHaveURL("/");
   });
 
