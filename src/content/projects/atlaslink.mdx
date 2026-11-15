@@ -1,30 +1,32 @@
 ---
-title: "Atlaslink — Multi-Agent Orchestrator"
+title: "Atlaslink — One Shared Room for Human-Guided AI Work"
 publishedAt: "2026-08-19"
-summary: "A multi-agent orchestrator — an Agenthood proof of concept that connects and runs AI agents through live, easy-to-use diagram flows."
+summary: "An experimental shared workspace where people and AI agents work through tasks together — built on Agenthood. Ask Atlas. Together, live."
 images: []
 tag: "AI"
-tags: ["AI", "Multi-Agent", "Agenthood", "Orchestrator", "Flow", "Pipeline", "Workflow"]
+tags: ["AI", "Multi-Agent", "Agenthood", "Live Sessions", "Approvals"]
 team: []
 link: "https://atlas.flabs.tech"
 ---
 
 ## Overview
 
-Atlaslink is a multi-agent orchestrator and Agenthood proof of concept — a modern UI for connecting and running AI agents through live diagram flows. Agents are wired together visually and executed as a pipeline: design the flow, run it, and watch each node produce its result in real time.
+Atlaslink is an experimental shared workspace where people and AI agents work through tasks together. Built on [Agenthood](https://github.com/fworks-tech/agenthood) — the core/runtime agents run on — Atlaslink is the shared room where people follow progress, steer execution, and make decisions alongside those agents: delegate work, watch it happen, step in when a decision is needed.
 
 **Links:** [atlas.flabs.tech](https://atlas.flabs.tech) · [GitHub](https://github.com/fworks-tech/atlaslink)
 
 ## Features
 
-- Visual diagram editor for wiring agents into executable pipelines and workflows.
-- Live flow runs with per-node results streamed in real time.
-- Agenthood-compatible orchestration primitives (nodes, edges, run pipeline).
+- Shared live sessions — humans and agents in one room, with presence, typing indicators, and delivery receipts.
+- Steer mid-flight — redirect a running session, rewrite a queued prompt, or interrupt entirely.
+- Approval gates — parked questions wait on a human; approve, reject, or reply in place.
+- Per-project sharing — members, roles, and single-use invite links instead of tenant-wide access.
+- Session activity on record, with LLM spend rolled up per agent, per day.
 
 ## Stack
 
-TypeScript, React flow-based UI, Agenthood orchestration concepts, deployed at atlas.flabs.tech.
+TypeScript, Fastify daemon + Next.js dashboard, SQLite/Postgres event store, Server-Sent Events rooms, deployed at atlas.flabs.tech.
 
 ## Status
 
-Live in production at [atlas.flabs.tech](https://atlas.flabs.tech) — the repository and live app are public, with news and updates published via the GitHub repository.
+Experimental proof of concept, live as a demo at [atlas.flabs.tech](https://atlas.flabs.tech) — the repository and live app are public, with news and updates published via the GitHub repository.
